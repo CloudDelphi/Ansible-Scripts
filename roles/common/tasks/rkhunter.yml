@@ -1,0 +1,22 @@
+- name: Install rkhunter
+  apt: pkg={{ item }}
+  with_items:
+    - rkhunter
+    - curl
+    - iproute
+    - lsof
+    - unhide
+    - unhide.rb
+
+- name: Configure rkhunter
+  copy: src=etc/{{ item }}
+        dest=/etc/{{ item }}
+        owner=root group=root
+        mode=0644
+  with_items:
+    - rkhunter.conf
+    - default/rkhunter
+  notify:
+    # This might not always be necessary, but it's not like we would
+    # change the config every day...
+    - Update rkhunter's data file

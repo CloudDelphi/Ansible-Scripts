@@ -12,3 +12,6 @@
 
 - name: Reload samhain
   service: name=samhain state=reloaded
+
+- name: Update rkhunter's data file
+  command: /usr/bin/rkhunter --propupd
