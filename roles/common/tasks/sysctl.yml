@@ -1,0 +1,52 @@
+- sysctl: name={{ item.name }} value={{ item.value }}
+  with_items:
+    - { name: 'kernel.domainname', value: '{{ ansible_domain }}' }
+
+      # Networking. See
+      # https://www.kernel.org/doc/Documentation/networking/ip-sysctl.txt
+
+      # Enable Spoof protection (reverse-path filter). Turn on Source
+      # Address Verification in all interfaces to prevent some spoofing
+      # attacks.
+    - { name: 'net.ipv4.conf.default.rp_filter', value: 1 }
+    - { name: 'net.ipv4.conf.all.rp_filter',     value: 1 }
+
+      # Enable TCP/IP SYN cookies to avoid TCP SYN flood attacks. We
+      # rate-limit not only the default ICMP types 3, 4, 11 and 12
+      # (0x1818), but also types 0 and 8. See icmp(7).
+    - { name: 'net.ipv4.tcp_syncookies',  value: 1 }
+    - { name: 'net.ipv4.icmp_ratemask',   value: 6425 }
+    - { name: 'net.ipv4.icmp_ratelimit',  value: 1000 }
+
+      # Disable paquet forwarding between interfaces (we are not a router).
+    - { name: 'net.ipv4.ip_forward',          value: 0 }
+    - { name: 'net.ipv6.conf.all.forwarding', value: 0 }
+
+      # Enable IPv6 Privacy Extensions.
+    - { name: 'net.ipv6.conf.default.use_tempaddr', value: 2 }
+    - { name: 'net.ipv6.conf.all.use_tempaddr',     value: 2 }
+    - { name: 'net.ipv6.conf.all.autoconf',         value: 0 }
+
+      # Do not accept ICMP redirects (prevent MITM attacks).
+    - { name: 'net.ipv4.conf.all.accept_redirects', value: 0 }
+    - { name: 'net.ipv6.conf.all.accept_redirects', value: 0 }
+
+      # Do not send ICMP redirects (we are not a router).
+    - { name: 'net.ipv4.conf.default.send_redirects', value:  0 }
+    - { name: 'net.ipv4.conf.all.send_redirects',     value:  0 }
+
+      # Do not accept IP source route packets (we are not a router).
+    - { name: 'net.ipv4.conf.all.accept_source_route', value:  0 }
+    - { name: 'net.ipv6.conf.all.accept_source_route', value:  0 }
+
+      # Log Martian Packets.
+    - { name: 'net.ipv4.conf.all.log_martians', value: 1 }
+
+      # Ignore ICMP broadcasts.
+    - { name: 'net.ipv4.icmp_echo_ignore_broadcasts', value: 1 }
+
+      # Ignore bogus ICMP errors.
+    - { name: 'net.ipv4.icmp_ignore_bogus_error_responses', value: 1 }
+
+      # Enable connection tracking flow accounting.
+    - { name: 'net.netfilter.nf_conntrack_acct', value: 1 }
