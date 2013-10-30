@@ -1,3 +1,4 @@
 ---
 - include: sysctl.yml   tags=sysctl
 - include: hosts.yml
+- include: apt.yml      tags=apt

@@ -1,0 +1,36 @@
+- name: Install various APT tools
+  apt: pkg={{ item }}
+  with_items:
+    - apt
+    - apt-listbugs
+    - apt-listchanges
+    - apt-show-versions
+    - debian-archive-keyring
+    - debian-goodies
+    - unattended-upgrades
+    - debfoster
+    - deborphan
+    - debsecan
+    - debsums
+    - update-notifier-common
+
+- name: Configure APT (1)
+  template: src=etc/apt/{{ item }}.j2
+            dest=/etc/apt/{{ item }}
+            owner=root group=root
+            mode=0644
+  with_items:
+    - sources.list
+    - preferences
+  notify:
+    - apt-get update
+
+- name: Configure APT (2)
+  copy: src=etc/apt/{{ item }}
+        dest=/etc/apt/{{ item }}
+        owner=root group=root
+        mode=0644
+  with_items:
+    - listchanges.conf
+    - apt.conf.d/10periodic
+    - apt.conf.d/50unattended-upgrades

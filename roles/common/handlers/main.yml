@@ -1,3 +1,6 @@
 ---
 - name: Refresh hostname
   service: name=hostname.sh state=restarted
+
+- name: apt-get update
+  apt: update_cache=yes
