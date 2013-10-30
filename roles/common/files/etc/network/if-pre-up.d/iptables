@@ -1,0 +1,38 @@
+#!/bin/bash
+# 
+# A pre-up hook to auto-(re)load the iptables rulesets whenever the
+# network is brought up. If the action fails, an alert message is passed
+# to syslogd.
+#
+# Copyright 2013 Guilhem Moulin <guilhem@fripost.org>
+#
+# Licensed under the GNU GPL version 3 or higher.
+#
+
+set -uo pipefail
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+
+# NOTE: syslog starts after networking during the boot process, messages
+# won't be logged at boot time.
+log="/usr/bin/logger -st firewall"
+
+# Ignore the loopback interface; run the strip for ifup only.
+[ "$IFACE" != lo -a "$MODE" = start ] || exit 0
+
+# We support only IPv4 and IPv6.
+[ "$ADDRFAM" = inet -o "$ADDRFAM" = inet6 ] || exit 0
+
+$log -p syslog.info -- "Loading $ADDRFAM firewall on interface $IFACE."
+
+case "$ADDRFAM" in
+    inet) iptr=/sbin/iptables-restore;  rules=rules.v4;;
+    inet6)iptr=/sbin/ip6tables-restore; rules=rules.v6;;
+esac
+rules="/etc/iptables/$rules"
+
+$iptr < $rules 2>&1 | $log -p syslog.err
+rv=$?
+
+[ $rv -gt 0 ] && $log -p syslog.alert \
+    "WARN: Failed to load iptables rulesets; the machine may be unprotected!"
+exit $rv

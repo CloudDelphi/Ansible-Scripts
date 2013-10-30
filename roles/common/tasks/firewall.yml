@@ -1,0 +1,34 @@
+- name: Install some packages required for the firewall
+  apt: pkg={{ item }}
+  with_items:
+    - iptables
+    - netmask
+    - bsdutils
+
+- name: Create directory /etc/iptables
+  file: path=/etc/iptables
+        owner=root group=root
+        state=directory
+        mode=0755
+
+- name: Generate /etc/iptables/services
+  template: src=etc/iptables/services.j2
+            dest=/etc/iptables/services
+            owner=root group=root
+            mode=0600
+  notify:
+    - Unsafe firewall update
+
+- name: Copy /usr/local/sbin/update-firewall.sh
+  copy: src=usr/local/sbin/update-firewall.sh
+        dest=/usr/local/sbin/update-firewall.sh
+        owner=root group=root
+        mode=0755
+  notify:
+    - Unsafe firewall update
+
+- name: Make the iptable ruleset persistent
+  copy: src=etc/network/if-pre-up.d/iptables
+        dest=/etc/network/if-pre-up.d/iptables
+        owner=root group=root
+        mode=0755
