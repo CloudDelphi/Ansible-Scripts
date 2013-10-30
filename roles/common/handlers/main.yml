@@ -15,3 +15,6 @@
 
 - name: Update rkhunter's data file
   command: /usr/bin/rkhunter --propupd
+
+- name: Restart fail2ban
+  service: name=fail2ban state=restarted
