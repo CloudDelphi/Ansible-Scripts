@@ -1,0 +1,39 @@
+- name: Install strongSwan
+  apt: pkg=strongswan-ikev2
+
+- name: Ensure we have our private key
+  file: path=/etc/ipsec.d/private/{{ inventory_hostname }}.key
+        owner=root group=root
+        mode=0600
+  notify:
+    - Missing IPSec certificate
+
+- name: Ensure we have our public key
+  file: path=/etc/ipsec.d/certs/{{ inventory_hostname }}.pem
+        owner=root group=root
+        mode=0644
+  notify:
+    - Missing IPSec certificate
+
+- name: Ensure we have the CA's public key
+  file: path=/etc/ipsec.d/cacerts/cacert.pem
+        owner=root group=root
+        mode=0644
+  notify:
+    - Missing IPSec certificate
+
+- name: Configure IPSec's secrets
+  template: src=etc/ipsec.secrets.j2
+            dest=/etc/ipsec.secrets
+            owner=root group=root
+            mode=0600
+  notify:
+    - Restart IPSec
+
+- name: Configure IPSec
+  template: src=etc/ipsec.conf.j2
+            dest=/etc/ipsec.conf
+            owner=root group=root
+            mode=0644
+  notify:
+    - Restart IPSec

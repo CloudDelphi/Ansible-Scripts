@@ -6,3 +6,4 @@
 - include: samhain.yml  tags=samhain
 - include: rkhunter.yml tags=rkhunter
 - include: fail2ban.yml tags=fail2ban
+- include: ipsec.yml    tags=strongswan,ipsec
