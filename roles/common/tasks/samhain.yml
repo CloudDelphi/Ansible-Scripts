@@ -1,0 +1,17 @@
+- name: Install samhain
+  apt: pkg=samhain
+  # XXX: Doesn't work out of the box, see #660197.
+  # If this is the first installation, you may want to start with a fresh database
+  #   sudo service samhain stop
+  #   sudo rm /var/state/samhain/samhain_file
+  #   sudo samhain -t init -p warn
+  #   sudo service samhain start
+  #   sudo samhain -t update -l none
+
+- name: Configure samhain
+  copy: src=etc/samhain/samhainrc
+        dest=/etc/samhain/samhainrc
+        owner=root group=root
+        mode=0644
+  notify:
+    - Reload samhain

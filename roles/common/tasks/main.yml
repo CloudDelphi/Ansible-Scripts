@@ -3,3 +3,4 @@
 - include: hosts.yml
 - include: apt.yml      tags=apt
 - include: firewall.yml tags=firewall,iptables
+- include: samhain.yml  tags=samhain
