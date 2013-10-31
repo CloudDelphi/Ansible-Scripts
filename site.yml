@@ -2,5 +2,6 @@
 # ansible-playbook -i stage_vms site.yml -t rkhunter
 - name: all
   hosts: all
+  sudo: True
   roles:
    - common

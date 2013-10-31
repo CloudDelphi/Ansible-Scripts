@@ -1,10 +1,14 @@
 #!/bin/bash
 #
-# Create iptables (v4 and v6) rules. Unless [-f] is given, a
-# confirmation is asked after loading the new rulesets; if the user
-# answers No or doesn't answer, the old ruleset is restored. If the user
-# answer Yes (or if the flag [-f] is given), the new ruleset is made
-# persistent using iptables-persistent.
+# Create iptables (v4 and v6) rules. Unless one of [-f] or [-c] is
+# given, a confirmation is asked after loading the new rulesets; if the
+# user answers No or doesn't answer, the old ruleset is restored. If the
+# user answer Yes (or if the flag [-f] is given), the new ruleset is
+# made persistent using iptables-persistent.
+#
+# The [-c] flag switch to dry-run (check) mode. The rulesets are not
+# applied, but merely checked against the existing ones. If they differ
+# the return value is one, and 0 otherwise.
 #
 # This firewall is only targeted towards end-servers, not gateways. In
 # particular, there is no NAT'ing at the moment.
@@ -21,6 +25,19 @@ PATH=/usr/sbin:/usr/bin:/sbin:/bin
 
 timeout=10
 force=0
+check=0
+
+usage() {
+    echo "Usage: $0 [-c|-f]" >&2
+    exit 1
+}
+
+[ $# -le 1 ] || usage
+case "${1:-}" in
+    -f) force=1;;
+    -c) check=1;;
+    ?*) usage
+esac
 
 [ "${1:-}" = -f ] && force=1
 if ! /usr/bin/tty -s && [ $force -eq 0 ]; then
@@ -57,6 +74,30 @@ log() {
 fatal() {
     /usr/bin/logger -st firewall -p syslog.err  -- "$@"
     exit 1
+}
+save() {
+    mkdir -p /etc/iptables
+    /sbin/iptables-save  > /etc/iptables/rules.v4
+    /sbin/ip6tables-save > /etc/iptables/rules.v6
+
+    # Ignore the counters
+    sed -ri 's/^(:.*)\[[0-9]+:[0-9]+\]$/\1[0:0]/' \
+        /etc/iptables/rules.v4 /etc/iptables/rules.v6
+}
+iptdiff() {
+    local v="$1" old="$2" new="$3" rv1=0 rv2=0
+
+    diff -qI '^#' "$old" "$new" >/dev/null || rv1=$?
+    if [ -f /etc/iptables/rules.$v ]; then
+        diff -qI '^#' "$old" /etc/iptables/rules.$v >/dev/null || rv2=$?
+    else
+        rv2=1
+    fi
+
+    [ $rv1 -eq 0 ] || log "WARN: The IP$v firewall is not up to date! Please run '$0'."
+    [ $rv2 -eq 0 ] || log "WARN: The current IP$v firewall is not persistent! Please run '$0'."
+
+    return $(( $rv1 | $rv2 ))
 }
 
 [ -n "$WAN" -o -n "$WAN6" ] || fatal "Error: couldn't find a network interface"
@@ -106,14 +147,14 @@ if [ -n "$WAN" ]; then
     [ -n "$MyNetwork" ] && \
     for ip in 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 169.254.0.0/16; do
         [ "$ip" = "$(/usr/bin/netmask -nc $ip $MyNetwork | sed 's/ //g')" ] \
-        || iptables -A INPUT  -i $WAN -s "$ip" -j DROP
+        || iptables -A INPUT -i $WAN -s "$ip" -j DROP
     done
 
     # Other martian packets: "This" network, multicast, broadcast (RFCs
     # 1122, 3171 and 919).
     for ip in 0.0.0.0/8 224.0.0.0/4 240.0.0.0/4 255.255.255.255/32; do
-        iptables -A INPUT  -i $WAN -s "$ip" -j DROP
-        iptables -A INPUT  -i $WAN -d "$ip" -j DROP
+        iptables -A INPUT -i $WAN -s "$ip" -j DROP
+        iptables -A INPUT -i $WAN -d "$ip" -j DROP
     done
 fi
 
@@ -121,8 +162,8 @@ fi
 # 3879).
 for ip6 in fc00::/7 fec0::/10
 do
-    ip6tables -A INPUT  -i $WAN6 -s "$ip6" -j DROP
-    ip6tables -A INPUT  -i $WAN6 -d "$ip6" -j DROP
+    ip6tables -A INPUT -i $WAN6 -s "$ip6" -j DROP
+    ip6tables -A INPUT -i $WAN6 -d "$ip6" -j DROP
 done
 
 
@@ -134,7 +175,7 @@ done
 
 
 # DROP bogus TCP packets.
-iptables -A INPUT -p tcp -m tcp --tcp-flags SYN,FIN SYN,FIN -j DROP
+iptables -A INPUT -p tcp -m tcp --tcp-flags FIN,SYN FIN,SYN -j DROP
 iptables -A INPUT -p tcp -m tcp --tcp-flags SYN,RST SYN,RST -j DROP
 
 ip6tables -A INPUT -p tcp -m tcp --tcp-flags SYN,FIN SYN,FIN -j DROP
@@ -142,11 +183,11 @@ ip6tables -A INPUT -p tcp -m tcp --tcp-flags SYN,RST SYN,RST -j DROP
 
 
 # Allow all input/output to/from the loopback interface.
-iptables -A INPUT  -i lo -s 127.0.0.1 -d 127.0.0.1 -j ACCEPT
-iptables -A OUTPUT -o lo -s 127.0.0.1 -d 127.0.0.1 -j ACCEPT
+iptables -A INPUT  -i lo -s 127.0.0.1/32 -d 127.0.0.1/32 -j ACCEPT
+iptables -A OUTPUT -o lo -s 127.0.0.1/32 -d 127.0.0.1/32 -j ACCEPT
 
-ip6tables -A INPUT  -i lo -s ::1 -d ::1 -j ACCEPT
-ip6tables -A OUTPUT -o lo -s ::1 -d ::1 -j ACCEPT
+ip6tables -A INPUT  -i lo -s ::1/128 -d ::1/128 lo -j ACCEPT
+ip6tables -A OUTPUT -o lo -s ::1/128 -d ::1/128 lo -j ACCEPT
 
 
 # Allow only ICMP of type 0, 3 and 8. The rate-limiting is done directly
@@ -172,7 +213,7 @@ while read dir proto dport sport; do
     stEst=ESTABLISHED
 
     # In-Out means full-duplex
-    [[ "$dir" =~ inout ]] && stEst="$stNew"
+    [[ "$dir" =~ ^inout ]] && stEst="$stNew"
 
     optsNew=
     optsEst=
@@ -211,17 +252,32 @@ tgrep '^-[AI] fail2ban-\S+ '
 echo COMMIT >> "$newv4table"
 echo COMMIT >> "$newv6table"
 
-/usr/bin/uniq "$newv4table" | /sbin/iptables-restore
-/usr/bin/uniq "$newv6table" | /sbin/ip6tables-restore
+netns=
+innetns=
+if [ $check -eq 1 ]; then
+    # Create an alternative net namespace in which we apply the ruleset,
+    # so we can easily get a normalized version we can compare latter.
+    # See http://bugzilla.netfilter.org/show_bug.cgi?id=790
+    netns="ipt-firewall-test-$$"
+    /bin/ip netns add $netns
+    innetns="/bin/ip netns exec $netns"
+fi
 
-save() {
-    mkdir -p /etc/iptables
-    /sbin/iptables-save  > /etc/iptables/rules.v4
-    /sbin/ip6tables-save > /etc/iptables/rules.v6
-}
+/usr/bin/uniq "$newv4table" | $innetns /sbin/iptables-restore
+/usr/bin/uniq "$newv6table" | $innetns /sbin/ip6tables-restore
 
 rv=0
-if [ $force -eq 1 ]; then
+if [ $check -eq 1 ]; then
+    $innetns /sbin/iptables-save  > "$newv4table"
+    $innetns /sbin/ip6tables-save > "$newv6table"
+    /bin/ip netns del $netns
+
+    # Reset the counters, they are not relevant here
+    sed -ri 's/^(:.*)\[[0-9]+:[0-9]+\]$/\1[0:0]/' "$oldv4table" "$oldv6table"
+    iptdiff v4 "$oldv4table" "$newv4table" || rv=$(( $rv | $? ))
+    iptdiff v6 "$oldv6table" "$newv6table" || rv=$(( $rv | $? ))
+
+elif [ $force -eq 1 ]; then
     # At the user's own risks...
     save
 else

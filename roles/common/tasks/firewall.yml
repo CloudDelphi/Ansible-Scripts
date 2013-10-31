@@ -16,14 +16,17 @@
             dest=/etc/iptables/services
             owner=root group=root
             mode=0600
-  notify:
-    - Unsafe firewall update
 
 - name: Copy /usr/local/sbin/update-firewall.sh
   copy: src=usr/local/sbin/update-firewall.sh
         dest=/usr/local/sbin/update-firewall.sh
         owner=root group=root
         mode=0755
+
+- name: Ensure the firewall is up to date
+  command: /usr/local/sbin/update-firewall.sh -c
+  register: rv
+  changed_when: rv.rc
   notify:
     - Unsafe firewall update
 
