@@ -23,15 +23,15 @@
         owner=root group=root
         mode=0755
 
-- name: Ensure the firewall is up to date
-  command: /usr/local/sbin/update-firewall.sh -c
-  register: rv
-  changed_when: rv.rc
-  notify:
-    - Unsafe firewall update
-
 - name: Make the iptable ruleset persistent
   copy: src=etc/network/if-pre-up.d/iptables
         dest=/etc/network/if-pre-up.d/iptables
         owner=root group=root
         mode=0755
+
+- name: Ensure the firewall is up to date
+  command: /usr/local/sbin/update-firewall.sh -c
+  register: rv
+  # A non-zero return value will make ansible stop and show stderr. This
+  # is what we want.
+  changed_when: rv.rc

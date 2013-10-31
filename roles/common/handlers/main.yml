@@ -5,11 +5,6 @@
 - name: apt-get update
   apt: update_cache=yes
 
-- name: Unsafe firewall update
-  fail: msg="The firewall has been updated, but not activated yet; an unsafe
-    update may lock you and others out! Please log in to '{{ ansible_fqdn }}' and
-    manually run 'sudo update-firewall.sh'."
-
 - name: Reload samhain
   service: name=samhain state=reloaded
 

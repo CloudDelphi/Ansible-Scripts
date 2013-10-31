@@ -4,7 +4,7 @@
 # given, a confirmation is asked after loading the new rulesets; if the
 # user answers No or doesn't answer, the old ruleset is restored. If the
 # user answer Yes (or if the flag [-f] is given), the new ruleset is
-# made persistent using iptables-persistent.
+# then stored under /etc/iptables/rules.v[46].
 #
 # The [-c] flag switch to dry-run (check) mode. The rulesets are not
 # applied, but merely checked against the existing ones. If they differ
@@ -32,6 +32,92 @@ usage() {
     exit 1
 }
 
+log() {
+    /usr/bin/logger -st firewall -p syslog.info -- "$@"
+}
+fatal() {
+    /usr/bin/logger -st firewall -p syslog.err  -- "$@"
+    exit 1
+}
+
+getInterface() {
+    # Get the default interface associated with an address family
+    /bin/ip -f "$1" route show to default scope "${2:-global}" \
+    | sed -nr '/^default via \S+ dev (\S+).*/ {s//\1/p;q}'
+}
+
+iptables() {
+    # Fake iptables(8); use the more efficient iptables-restore(8) instead
+    [ -z "$WAN" ] || { echo "$@" >> "$newv4"; }
+}
+ip6tables() {
+    # Fake ip6tables(8); use the more efficient ip6tables-restore(8) instead
+    [ -z "$WAN6" ] || { echo "$@" >> "$newv6"; }
+}
+tgrep() {
+    # Grep some rules from the old rulesets and add them to each new ruleset.
+    [ -z "$WAN" ]  || { grep -E -- "$@" "$oldv4" >> "$newv4" || true; }
+    [ -z "$WAN6" ] || { grep -E -- "$@" "$oldv6" >> "$newv6" || true; }
+}
+
+ipt-trim() {
+    # Remove dynamic chain/rules from the input stream, as they are
+    # automatically included by third-party servers (such as strongSwan
+    # or fail2ban). The output is ready to be made persistent.
+    grep -Ev -e '^:fail2ban-\S' \
+             -e "$IPSec_re" \
+             -e '-j fail2ban-\S+$' \
+             -e "$fail2ban_re"
+}
+
+ipt-reset-counters() {
+    # Reset the counters. They are not useful for comparing and/or
+    # storing persistent ruleset.
+    sed -ri -e '/^:/ s/\[[0-9]+:[0-9]+\]$/[0:0]/' \
+            -e 's/^\[[0-9]+:[0-9]+\]\s+//' \
+            "$@"
+}
+ipt-save() {
+    # Make the current ruleset persistent. (Requires a pre-up hook
+    # script to load the rules before the network is configured.)
+
+    [ -d /etc/iptables ] || mkdir /etc/iptables
+    /sbin/iptables-save  -t filter | ipt-trim > /etc/iptables/rules.v4
+    /sbin/ip6tables-save -t filter | ipt-trim > /etc/iptables/rules.v6
+
+    chmod 0600 /etc/iptables/rules.v4 /etc/iptables/rules.v6
+    ipt-reset-counters /etc/iptables/rules.v4 /etc/iptables/rules.v6
+}
+
+ipt-diff() {
+    /usr/bin/diff -qI '^#' "$1" "$2" >/dev/null
+}
+isOK() {
+    # Check the difference between the persistent, current, and new
+    # rulesets (but only if the interface is defined). The current
+    # ruleset is trimmed before checking whether it's persistent.
+    local v="$1" old="$2" new="$3" if="${4:-}"
+    local rv1=0 rv2=0 persistent=/etc/iptables/rules.$v
+
+    ipt-reset-counters "$old"
+    [ -z "$if" ] || ipt-diff "$old" "$new" || rv1=$?
+
+    if ! [ -f "$persistent" -a -x /etc/network/if-pre-up.d/iptables ]; then
+        rv2=1
+    elif [ -n "$if" ]; then
+        # Ignore persistency check if the address family is not of
+        # globally scoped.
+        ipt-trim < "$old" | ipt-diff - "$persistent" || rv2=$?
+    fi
+
+    local update="Please run '${0##*/}'."
+    [ $rv1 -eq 0 ] || log "WARN: The IP$v firewall is not up to date! $update"
+    [ $rv2 -eq 0 ] || log "WARN: The current IP$v firewall is not persistent! $update"
+
+    return $(( $rv1 | $rv2 ))
+}
+
+
 [ $# -le 1 ] || usage
 case "${1:-}" in
     -f) force=1;;
@@ -45,83 +131,42 @@ if ! /usr/bin/tty -s && [ $force -eq 0 ]; then
     exit 1
 fi
 
-getInteface() {
-    /sbin/ip -f "$1" route | sed -nr 's/^default via .*dev (\S+).*/\1/p' | head -1
-}
+WAN=$( getInterface inet )
+WAN6=$(getInterface inet6)
 
-WAN=$( getInteface inet )
-WAN6=$(getInteface inet6)
+oldv4=$(mktemp)
+newv4=$(mktemp)
 
-oldv4table=$(mktemp)
-newv4table=$(mktemp)
-
-oldv6table=$(mktemp)
-newv6table=$(mktemp)
-
-iptables() {
-    [ -z "$WAN" ] || { echo "$@" >> "$newv4table"; }
-}
-ip6tables() {
-    [ -z "$WAN6" ] || { echo "$@" >> "$newv6table"; }
-}
-tgrep() {
-    [ -z "$WAN" ]  || { /bin/grep -E -- "$@" "$oldv4table" >> "$newv4table" || true; }
-    [ -z "$WAN6" ] || { /bin/grep -E -- "$@" "$oldv6table" >> "$newv6table" || true; }
-}
-log() {
-    /usr/bin/logger -st firewall -p syslog.info -- "$@"
-}
-fatal() {
-    /usr/bin/logger -st firewall -p syslog.err  -- "$@"
-    exit 1
-}
-save() {
-    mkdir -p /etc/iptables
-    /sbin/iptables-save  > /etc/iptables/rules.v4
-    /sbin/ip6tables-save > /etc/iptables/rules.v6
-
-    # Ignore the counters
-    sed -ri 's/^(:.*)\[[0-9]+:[0-9]+\]$/\1[0:0]/' \
-        /etc/iptables/rules.v4 /etc/iptables/rules.v6
-}
-iptdiff() {
-    local v="$1" old="$2" new="$3" rv1=0 rv2=0
-
-    diff -qI '^#' "$old" "$new" >/dev/null || rv1=$?
-    if [ -f /etc/iptables/rules.$v ]; then
-        diff -qI '^#' "$old" /etc/iptables/rules.$v >/dev/null || rv2=$?
-    else
-        rv2=1
-    fi
-
-    [ $rv1 -eq 0 ] || log "WARN: The IP$v firewall is not up to date! Please run '$0'."
-    [ $rv2 -eq 0 ] || log "WARN: The current IP$v firewall is not persistent! Please run '$0'."
-
-    return $(( $rv1 | $rv2 ))
-}
+oldv6=$(mktemp)
+newv6=$(mktemp)
 
 [ -n "$WAN" -o -n "$WAN6" ] || fatal "Error: couldn't find a network interface"
 
+IPSec_re=' -m policy --dir (in|out) --pol ipsec .* --proto esp -j ACCEPT$'
+fail2ban_re='^(\[[0-9]+:[0-9]+\]\s+)?-A fail2ban-\S'
+
 # Store the existing table
-/sbin/iptables-save  -t filter > "$oldv4table"
-/sbin/ip6tables-save -t filter > "$oldv6table"
+/sbin/iptables-save  -ct filter > "$oldv4"
+/sbin/ip6tables-save -ct filter > "$oldv6"
 
 # The usual chains in filter, along with the desired default policies.
-cat > "$newv4table" <<- EOF
+cat > "$newv4" <<- EOF
 	*filter
 	:INPUT   DROP [0:0]
 	:FORWARD DROP [0:0]
 	:OUTPUT  DROP [0:0]
 	:fail2ban -   [0:0]
 EOF
-cp -f "$newv4table" "$newv6table"
+cp -f "$newv4" "$newv6"
 
-# Also, keep fail2ban chains
-tgrep ':fail2ban-'
+# Keep fail2ban chains, traps, and existing rules.
+tgrep ':fail2ban-\S'
+tgrep ' -j fail2ban-\S+$'
+tgrep "$fail2ban_re"
 
 
 # (Host-to-host) IPSec tunnels come first. TODO: test IPSec on IPv6.
-tgrep ' -m policy --dir (in|out) --pol ipsec .* --proto esp -j ACCEPT$'
+tgrep "$IPSec_re"
 
 
 # Allow any IPsec ESP protocol packets to be sent and received.
@@ -132,10 +177,6 @@ ip6tables -A INPUT  -i $WAN6 -p esp -j ACCEPT
 ip6tables -A OUTPUT -o $WAN6 -p esp -j ACCEPT
 
 
-# Then we have the fail2ban traps
-tgrep ' -j fail2ban-\S+$'
-
-
 ##################################################################################
 # DROP all RFC1918 addresses, martian networks, multicasts, ...
 # Credits to http://newartisans.com/2007/09/neat-tricks-with-iptables/
@@ -143,10 +184,11 @@ tgrep ' -j fail2ban-\S+$'
 
 if [ -n "$WAN" ]; then
     # Private-use networks (RFC 1918) and link local (RFC 3927)
-    MyNetwork=$( /bin/ip addr show "$WAN" \
-               | sed -nr "s/^\s+inet\s(\S+).*\bscope global ($WAN)?$/\1/p")
+    MyNetwork=$( /bin/ip -4 addr show dev "$WAN" scope global \
+               | sed -nr 's/^\s+inet\s(\S+).*/\1/p')
     [ -n "$MyNetwork" ] && \
     for ip in 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 169.254.0.0/16; do
+        # Don't lock us out if we are behind a NAT ;-)
         [ "$ip" = "$(/usr/bin/netmask -nc $ip $MyNetwork | sed 's/ //g')" ] \
         || iptables -A INPUT -i $WAN -s "$ip" -j DROP
     done
@@ -201,7 +243,7 @@ ip6tables -A OUTPUT -o lo -s ::1/128 -d ::1/128 lo -j ACCEPT
 # Allow only ICMP of type 0, 3 and 8. The rate-limiting is done directly
 # by the kernel (net.ipv4.icmp_ratelimit and net.ipv4.icmp_ratemask
 # runtime options). See icmp(7).
-for type in  echo-reply destination-unreachable echo-request; do
+for type in  'echo-reply' 'destination-unreachable' 'echo-request'; do
     iptables -A INPUT  -i $WAN -p icmp -m icmp --icmp-type $type -j ACCEPT
     iptables -A OUTPUT -o $WAN -p icmp -m icmp --icmp-type $type -j ACCEPT
 done
@@ -254,11 +296,9 @@ done
 
 
 ##################################################################################
-# And last come the fail2ban rules.
-tgrep '^-[AI] fail2ban-\S+ '
 
-echo COMMIT >> "$newv4table"
-echo COMMIT >> "$newv6table"
+echo COMMIT >> "$newv4"
+echo COMMIT >> "$newv6"
 
 netns=
 innetns=
@@ -271,23 +311,22 @@ if [ $check -eq 1 ]; then
     innetns="/bin/ip netns exec $netns"
 fi
 
-/usr/bin/uniq "$newv4table" | $innetns /sbin/iptables-restore
-/usr/bin/uniq "$newv6table" | $innetns /sbin/ip6tables-restore
+/usr/bin/uniq "$newv4" | $innetns /sbin/iptables-restore
+/usr/bin/uniq "$newv6" | $innetns /sbin/ip6tables-restore
 
 rv=0
 if [ $check -eq 1 ]; then
-    $innetns /sbin/iptables-save  > "$newv4table"
-    $innetns /sbin/ip6tables-save > "$newv6table"
+    # Normalize the new rulesets
+    $innetns /sbin/iptables-save  -t filter > "$newv4"
+    $innetns /sbin/ip6tables-save -t filter > "$newv6"
     /bin/ip netns del $netns
 
-    # Reset the counters, they are not relevant here
-    sed -ri 's/^(:.*)\[[0-9]+:[0-9]+\]$/\1[0:0]/' "$oldv4table" "$oldv6table"
-    iptdiff v4 "$oldv4table" "$newv4table" || rv=$(( $rv | $? ))
-    iptdiff v6 "$oldv6table" "$newv6table" || rv=$(( $rv | $? ))
+    isOK v4 "$oldv4" "$newv4" $WAN  || rv=$(( $rv | $? ))
+    isOK v6 "$oldv6" "$newv6" $WAN6 || rv=$(( $rv | $? ))
 
 elif [ $force -eq 1 ]; then
     # At the user's own risks...
-    save
+    ipt-save
 else
     echo "Try now to establish NEW connections to the machine."
 
@@ -295,15 +334,15 @@ else
          -p "Are you sure you want to use the new ruleset? (y/N) " \
          ret 2>&1 || { [ $? -gt 128 ] && echo -n "Timeout..."; }
     case "${ret:-N}" in
-        [yY]*) echo; save
+        [yY]*) echo; ipt-save
         ;;
-        *) log "Reverting to old ruleset... "; echo
-           /sbin/iptables-restore  -c < "$oldv4table"
-           /sbin/ip6tables-restore -c < "$oldv6table"
+        *) echo; log "Reverting to old ruleset... "
+           /sbin/iptables-restore  -c < "$oldv4"
+           /sbin/ip6tables-restore -c < "$oldv6"
            rv=1
         ;;
     esac
 fi
 
-rm -f "$oldv4table" "$newv4table" "$oldv6table" "$newv6table"
+rm -f "$oldv4" "$newv4" "$oldv6" "$newv6"
 exit $rv
