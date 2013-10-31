@@ -7,6 +7,10 @@
 # jail.{conf,local} configuration files.
 destemail = admin@fripost.org
 
+# Specify chain where jumps would need to be added in iptables-* actions
+chain = fail2ban
+
+# Choose default action.
 action = %(action_)s
 
 #

@@ -112,6 +112,7 @@ cat > "$newv4table" <<- EOF
 	:INPUT   DROP [0:0]
 	:FORWARD DROP [0:0]
 	:OUTPUT  DROP [0:0]
+	:fail2ban -   [0:0]
 EOF
 cp -f "$newv4table" "$newv6table"
 
@@ -180,6 +181,13 @@ iptables -A INPUT -p tcp -m tcp --tcp-flags SYN,RST SYN,RST -j DROP
 
 ip6tables -A INPUT -p tcp -m tcp --tcp-flags SYN,FIN SYN,FIN -j DROP
 ip6tables -A INPUT -p tcp -m tcp --tcp-flags SYN,RST SYN,RST -j DROP
+
+# Prepare fail2ban. We make fail2ban insert its rules in a dedicated
+# chain, so that it doesn't mess up the existing rules.
+# XXX: As of Wheezy, fail2ban is IPv4 only. See
+#      https://github.com/fail2ban/fail2ban/issues/39 for the current
+#      state of the art.
+iptables -A INPUT -i $WAN -j fail2ban
 
 
 # Allow all input/output to/from the loopback interface.
