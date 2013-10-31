@@ -1,0 +1,17 @@
+# Don't forget to remove these log files from other files under
+# /etc/logrotate.d/ !
+
+/var/log/mail.log
+/var/log/mail.info
+{
+	rotate 3
+	daily
+	missingok
+	notifempty
+	compress
+	delaycompress
+	sharedscripts
+	postrotate
+		invoke-rc.d rsyslog rotate > /dev/null
+	endscript
+}

@@ -1,0 +1,32 @@
+- name: Install logging server & utilities
+  apt: pkg={{ item }}
+  with_items:
+    - rsyslog
+    - syslog-summary
+    - logcheck
+    - logcheck-database
+    - logrotate
+
+- name: Configure logcheck
+  copy: src=etc/logcheck/{{ item }}
+        dest=/etc/logcheck/{{ item }}
+        owner=root group=logcheck
+        mode=0640
+  with_items:
+    - logcheck.conf
+    - ignore.d.server/common.local
+
+- name: Minimal logging policy (1)
+  lineinfile: dest=/etc/logrotate.d/rsyslog
+              regexp="^/var/log/mail.(log|info)$"
+              state=absent
+
+- name: Minimal logging policy (2)
+  copy: src=etc/logrotate.d/fripost-mail
+        dest=/etc/logrotate.d/fripost-mail
+        owner=root group=root
+        mode=0644
+
+# TODO: We also have specialized per-role logcheck rulesets, per-role
+# logrotate configuration (/etc/logrotate.d), and per-role rsyslog
+# configuration (/etc/rsyslog.d).

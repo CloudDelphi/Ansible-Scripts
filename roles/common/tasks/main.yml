@@ -7,3 +7,4 @@
 - include: rkhunter.yml tags=rkhunter
 - include: fail2ban.yml tags=fail2ban
 - include: ipsec.yml    tags=strongswan,ipsec
+- include: logging.yml  tags=logging
