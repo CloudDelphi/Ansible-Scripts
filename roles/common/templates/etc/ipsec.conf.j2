@@ -27,7 +27,6 @@ conn %default
     leftfirewall = yes
     rightauth    = pubkey
     rightca      = %same
-    type         = transport
     auto         = start
 
 {% for host in groups.all|sort %}
