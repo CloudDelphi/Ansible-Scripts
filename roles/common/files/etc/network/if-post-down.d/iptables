@@ -1,0 +1,27 @@
+#!/bin/sh
+#
+# A post-down hook to flush ip tables and delete custom chains in the
+# loaded v4 and v6 rulesets.
+#
+# Copyright 2013 Guilhem Moulin <guilhem@fripost.org>
+#
+# Licensed under the GNU GPL version 3 or higher.
+#
+
+set -ue
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+
+# Ignore the loopback interface; run the script for ifdown only.
+[ "$IFACE" != lo -a "$MODE" = stop ] || exit 0
+
+case "$ADDRFAM" in
+    inet)  ipts=/sbin/iptables-save;  ipt=/sbin/iptables;;
+    inet6) ipts=/sbin/ip6tables-save; ipt=/sbin/ip6tables;;
+    *)     exit 0
+esac
+
+$ipts | sed -nr 's/^\*//p' | \
+while read table; do
+    $ipt -t "$table" -F
+    $ipt -t "$table" -X
+done

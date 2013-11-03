@@ -19,3 +19,9 @@
 
 - name: Restart IPSec
   service: name=ipsec state=restarted
+
+- name: Reload networking
+  # /etc/init.d/networking doesn't answer the status command; but since
+  # it should be "up" whenever ansible has access to the machine, we use
+  # pattern=init as a dummy assumption.
+  service: name=networking pattern=init state=reloaded

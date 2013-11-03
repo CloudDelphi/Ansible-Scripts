@@ -24,10 +24,14 @@
         mode=0755
 
 - name: Make the iptable ruleset persistent
-  copy: src=etc/network/if-pre-up.d/iptables
-        dest=/etc/network/if-pre-up.d/iptables
+  copy: src=etc/network/{{ item }}
+        dest=/etc/network/{{ item }}
         owner=root group=root
         mode=0755
+  with_items:
+    - if-pre-up.d/iptables
+    - if-post-down.d/iptables
+
 
 - name: Ensure the firewall is up to date
   command: /usr/local/sbin/update-firewall.sh -c

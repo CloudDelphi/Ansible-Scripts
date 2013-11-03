@@ -1,0 +1,44 @@
+#!/bin/sh
+#
+# A post-up/down hook to automatically create/delete a 'sec' VLAN
+# device, and a dedicated, host-scoped, IP for IPSec (v4 only).
+#
+# Copyright 2013 Guilhem Moulin <guilhem@fripost.org>
+#
+# Licensed under the GNU GPL version 3 or higher.
+#
+
+set -ue
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+
+if=sec0
+ip=172.16.0.1/32
+
+# Ignore the loopback interface and non inet4 families.
+[ "$IFACE" != lo -a "$ADDRFAM" = inet ] || exit 0
+
+# Only the device with the default, globally-scoped route, is of
+# interest here.
+[ "$( /bin/ip -4 route show to default scope global \
+    | sed -nr '/^default via \S+ dev (\S+).*/ {s//\1/p;q}' )" \
+  = \
+  "$IFACE" ] || exit 0
+
+case "$MODE" in
+    start) # Don't create $if if it's already there
+           /bin/ip -o link show | grep -qE "^[0-9]+:\s+$if" && exit 0
+        
+           # Create a new VLAN $IFACE on physical device $if. This is
+           # required otherwise charon thinks the left peer is that
+           # host-scoped, non-routable IP.
+           /bin/ip link    add link "$IFACE" name "$if" type vlan id 2713
+           /bin/ip address add "$ip" dev "$if" scope host
+           /bin/ip link    set dev "$if" up
+    ;;
+    stop)  # Don't create $if if it's no there
+           /bin/ip -o link show | grep -qE "^[0-9]+:\s+$if" || exit 0
+        
+           # Deactivate the VLAN
+           /bin/ip link set dev "$if" down
+    ;;
+esac

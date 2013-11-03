@@ -61,11 +61,25 @@ iptables() {
     # iptables-restore(8) instead.
     echo "$@" >> "$new";
 }
+commit() {
+    # End a table
+    echo COMMIT >> "$new"
+}
 inet46() {
     case "$1" in
         4) echo "$2";;
         6) echo "$3";;
     esac
+}
+ipt-chains() {
+    # Define new (tables and) chains.
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            ?*:*) echo ":${1%:*} ${1##*:} [0:0]";;
+            ?*)   echo "*$1";;
+        esac
+        shift
+    done >> "$new"
 }
 
 ipt-trim() {
@@ -134,15 +148,17 @@ run() {
                  | sed -nr "/^[0-9]+:\s+(sec[0-9]+)@$if:\s.*/ {s//\1/p;q}" )
 
     # The (host-scoped) IP reserved for IPSec.
-    local ipsec=
+    local ipsec= secmark
     if [ -n "$ifsec" -a $f = 4 ]; then
         tables+=( [$f]=' mangle nat' )
         ipsec=$( /bin/ip -$f address show dev "$ifsec" scope host \
                | sed -nr '/^\s+inet\s(\S+).*/ {s//\1/p;q}' )
+        secmark=0x1
     fi
 
     # Store the old (current) ruleset
-    local old=$(mktemp -t current-rules.v$f.XXXXXX)
+    local old=$(mktemp -t current-rules.v$f.XXXXXX) \
+          new=$(mktemp -t new-rules.v$f.XXXXXX)
     for table in ${tables[$f]}; do
         $ipt-save -ct $table
     done > "$old"
@@ -156,14 +172,35 @@ run() {
         fail2ban=1
     fi
 
+    if [ -n "$ipsec" ]; then
+        # We DNAT the IPSec paquets to $ipsec after decapsulation, and
+        # SNAT them before encapsulation. We need to do the NAT'ing
+        # before packets enter the IPSec stack because they are signed
+        # afterwards, and NAT'ing would mess up the signature.
+        ipt-chains mangle PREROUTING:ACCEPT INPUT:ACCEPT \
+                          FORWARD:DROP \
+                          OUTPUT:ACCEPT POSTROUTING:ACCEPT
+        # Mark all IPSec packets to keep track of them and NAT them
+        # after decapsulation. Unmarked packets that are to be sent to
+        # $ipsec are dropped.
+        iptables -A PREROUTING -p esp -j MARK --set-mark $secmark
+        iptables -A INPUT -d "$ipsec" -m mark \! --mark $secmark -j DROP
+        commit
+
+        ipt-chains nat PREROUTING:ACCEPT INPUT:ACCEPT \
+                       OUTPUT:ACCEPT POSTROUTING:ACCEPT
+        # DNAT all marked packets that have been decapsulated. Packets
+        # originating from our IPSec are SNAT'ed (MASQUERADE). We cannot
+        # mark them here (it won't survivethe NAT'ing), but any reply
+        # not going through IPSec would be dropped (since unmarked).
+        iptables -A PREROUTING \! -p esp -m mark --mark "$secmark" \
+                     -j DNAT --to "${ipsec%/*}"
+        iptables -A POSTROUTING -s "$ipsec" -j MASQUERADE
+        commit
+    fi
+
     # The usual chains in filter, along with the desired default policies.
-    local new=$(mktemp -t new-rules.v$f.XXXXXX)
-    cat > "$new" <<- EOF
-		*filter
-		:INPUT   DROP [0:0]
-		:FORWARD DROP [0:0]
-		:OUTPUT  DROP [0:0]
-	EOF
+    ipt-chains filter INPUT:DROP FORWARD:DROP OUTPUT:DROP
 
     if [ -z "$if" ]; then
         # If the interface is not configured, we stop here and DROP all
@@ -238,6 +275,14 @@ run() {
     iptables -A INPUT  -i lo -s "$localhost" -d "$localhost" -j ACCEPT
     iptables -A OUTPUT -o lo -s "$localhost" -d "$localhost" -j ACCEPT
 
+    if [ -n "$ipsec" ]; then
+        # ACCEPT any, *marked* traffic destinating to the non-routable
+        # $ipsec. Also ACCEPT all traffic originating from $ipsec, as it
+        # is MASQUERADE'd.
+        iptables -A INPUT  -i "$if" -d "$ipsec" -m mark --mark "$secmark" -j ACCEPT
+        iptables -A OUTPUT -s "$ipsec" -o "$if" -j ACCEPT
+    fi
+
     # Prepare fail2ban. We make fail2ban insert its rules in a dedicated
     # chain, so that it doesn't mess up the existing rules.
     [ $fail2ban -eq 1 ] && iptables -A INPUT -i $if -j fail2ban
@@ -296,10 +341,8 @@ run() {
     done
 
     ########################################################################
+    commit
 
-
-    # Commit the table 'filter'.
-    echo COMMIT >> "$new"
 
     local rv1=0 rv2=0 persistent=/etc/iptables/rules.v$f
     local oldz=$(mktemp -t current-rules.v$f.XXXXXX)
@@ -311,7 +354,7 @@ run() {
            -e 's/^\[[0-9]+:[0-9]+\]\s+//' \
            "$old" > "$oldz"
 
-    /usr/bin/uniq "$new" | /bin/ip netns exec $netns $ipt-restore
+    /usr/bin/uniq "$new" | /bin/ip netns exec $netns $ipt-restore || ipt-revert
 
     for table in ${tables[$f]}; do
        /bin/ip netns exec $netns $ipt-save -t $table
@@ -327,7 +370,7 @@ run() {
 
     local update="Please run '${0##*/}'."
     if [ $check -eq 0 ]; then
-        /usr/bin/uniq "$new" | $ipt-restore
+        /usr/bin/uniq "$new" | $ipt-restore || ipt-revert
     else
         if [ $rv1 -ne 0 ]; then
             log "WARN: The IPv$f firewall is not up to date! $update"
