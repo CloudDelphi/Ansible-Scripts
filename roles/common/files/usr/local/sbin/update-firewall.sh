@@ -147,11 +147,13 @@ run() {
                  | sed -nr "/^[0-9]+:\s+(sec[0-9]+)@$if:\s.*/ {s//\1/p;q}" )
 
     # The (host-scoped) IP reserved for IPSec.
-    local ipsec=
+    local ipsec= secmark
     if [ -n "$ifsec" -a $f = 4 ]; then
         tables[$f]='mangle nat filter'
         ipsec=$( /bin/ip -$f address show dev "$ifsec" scope host \
                | sed -nr '/^\s+inet\s(\S+).*/ {s//\1/p;q}' )
+        # /!\ This mark much match that in /etc/network/if-up.d/ipsec.
+        secmark=0xA99
     fi
 
     # Store the old (current) ruleset
@@ -251,7 +253,7 @@ run() {
         # $ipsec.  Also ACCEPT all traffic originating from $ipsec, as
         # it is MASQUERADE'd.
         iptables -A INPUT  -d "$ipsec" -i $if -m policy --dir in --pol ipsec -j ACCEPT
-        iptables -A OUTPUT -s "$ipsec" -o $if -j ACCEPT
+        iptables -A OUTPUT -m mark --mark "$secmark" -o $if -j ACCEPT
     fi
 
     # Prepare fail2ban.  We make fail2ban insert its rules in a
@@ -322,22 +324,31 @@ run() {
         ipt-chains mangle PREROUTING:ACCEPT INPUT:ACCEPT \
                           FORWARD:DROP \
                           OUTPUT:ACCEPT POSTROUTING:ACCEPT
+
         # Packets which destination is $ipsec *must* be associated with
         # an IPSec policy.
         iptables -A INPUT -d "$ipsec" -i $if -m policy --dir in --pol none -j DROP
+
+        # Packets originating from our (non-routable) $ipsec are marked;
+        # if there is no xfrm lookup (i.e., no matching IPSec
+        # association), the packet will retain its mark and be null
+        # routed later on.  Otherwise, the packet is re-queued unmarked.
+        iptables -A OUTPUT -o $if -j MARK --set-mark 0x0
+        iptables -A OUTPUT -s "$ipsec" -o $if  -m policy --dir out --pol none \
+                     -j MARK --set-mark $secmark
         commit
 
         ipt-chains nat PREROUTING:ACCEPT INPUT:ACCEPT \
                        OUTPUT:ACCEPT POSTROUTING:ACCEPT
-        # DNAT all marked packets after decapsulation.  Packets
-        # originating from our IPSec are SNAT'ed (MASQUERADE).  XXX:
-        # xfrm lookup occurs *after* NAT POSTROUTING, so sadly we can't
-        # DROP packets not matching an IPSec policy. However, any reply
-        # not going through IPSec would be DROPped (thanks to the rule
-        # in mangle:INPUT above); this is the best we can do for now.
+
+        # DNAT all marked packets after decapsulation.
         iptables -A PREROUTING \! -d "$ipsec" -i $if \
                      -m policy --dir in --pol ipsec -j DNAT --to "${ipsec%/*}"
-        iptables -A POSTROUTING -s "$ipsec" -o $if -j MASQUERADE
+
+        # Packets originating from our IPSec are SNAT'ed (MASQUERADE).
+        # (And null-routed later on unless there is an xfrm
+        # association.)
+        iptables -A POSTROUTING -m mark --mark $secmark -o $if -j MASQUERADE
         commit
     fi
 

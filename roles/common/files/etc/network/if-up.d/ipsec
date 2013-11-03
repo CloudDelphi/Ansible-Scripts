@@ -11,8 +11,11 @@
 set -ue
 PATH=/usr/sbin:/usr/bin:/sbin:/bin
 
-if=sec0
-ip=172.16.0.1/32
+ifsec=sec0
+ipsec=172.16.0.1/32
+
+# /!\ This mark much match that in /usr/local/sbin/update-firewall.sh.
+secmark=0xA99
 
 # Ignore the loopback interface and non inet4 families.
 [ "$IFACE" != lo -a "$ADDRFAM" = inet ] || exit 0
@@ -25,20 +28,29 @@ ip=172.16.0.1/32
   "$IFACE" ] || exit 0
 
 case "$MODE" in
-    start) # Don't create $if if it's already there
-           /bin/ip -o link show | grep -qE "^[0-9]+:\s+$if" && exit 0
-        
-           # Create a new VLAN $IFACE on physical device $if. This is
-           # required otherwise charon thinks the left peer is that
-           # host-scoped, non-routable IP.
-           /bin/ip link    add link "$IFACE" name "$if" type vlan id 2713
-           /bin/ip address add "$ip" dev "$if" scope host
-           /bin/ip link    set dev "$if" up
+    start) # Don't create $ifsec if it's already there
+           if ! /bin/ip -o link show | grep -qE "^[0-9]+:\s+$ifsec"; then
+               # Create a new VLAN $IFACE on physical device $ifsec. This is
+               # required otherwise charon thinks the left peer is that
+               # host-scoped, non-routable IP.
+               /bin/ip link    add link "$IFACE" name "$ifsec" type vlan id 2713
+               /bin/ip address add "$ipsec" dev "$ifsec" scope host
+               /bin/ip link    set dev "$ifsec" up
+           fi
+
+           # If a packet retained its mark that far, it means it has
+           # been SNAT'ed from $ipsec, and didn't have a xfrm
+           # association.  Hence we nullroute it to avoid leaking data.
+           /bin/ip rule  add fwmark "$secmark" table 666 priority 666 || true
+           /bin/ip route add prohibit default  table 666              || true
     ;;
-    stop)  # Don't create $if if it's no there
-           /bin/ip -o link show | grep -qE "^[0-9]+:\s+$if" || exit 0
-        
-           # Deactivate the VLAN
-           /bin/ip link set dev "$if" down
+    stop)  if /bin/ip -o link show | grep -qE "^[0-9]+:\s+$ifsec"; then
+               # Deactivate the VLAN
+               /bin/ip link set dev "$ifsec" down
+           fi
+
+           # Delete the 'prohibit' rule
+           /bin/ip rule  del fwmark "$secmark" table 666 priority 666 || true
+           /bin/ip route flush table 666
     ;;
 esac
