@@ -34,3 +34,8 @@
     - listchanges.conf
     - apt.conf.d/10periodic
     - apt.conf.d/50unattended-upgrades
+
+- name: Start cron
+  service: name=cron state=started
+  tags:
+    - cron

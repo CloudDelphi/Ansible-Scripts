@@ -38,6 +38,9 @@
   notify:
     - Restart IPSec
 
+- name: Start IPSec
+  service: name=ipsec state=started
+
 - name: Auto-create a dedicated interface for IPSec
   copy: src=etc/network/if-up.d/ipsec
         dest=/etc/network/if-up.d/ipsec

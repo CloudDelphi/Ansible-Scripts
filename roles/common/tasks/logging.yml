@@ -7,6 +7,11 @@
     - logcheck-database
     - logrotate
 
+- name: Start rsyslog
+  service: name=rsyslog state=started
+  tags:
+    - syslog
+
 - name: Configure logcheck
   copy: src=etc/logcheck/{{ item }}
         dest=/etc/logcheck/{{ item }}
