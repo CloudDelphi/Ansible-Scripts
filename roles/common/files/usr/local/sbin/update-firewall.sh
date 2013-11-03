@@ -136,7 +136,7 @@ run() {
     # Build and apply the firewall for IPv4/6.
     local f="$1"
     local ipt=/sbin/$(inet46 $f iptables ip6tables)
-    tables+=( [$f]=filter )
+    tables[$f]=filter
 
     # The default interface associated with this address.
     local if=$( /bin/ip -$f route show to default scope global \
@@ -150,7 +150,7 @@ run() {
     # The (host-scoped) IP reserved for IPSec.
     local ipsec= secmark
     if [ -n "$ifsec" -a $f = 4 ]; then
-        tables+=( [$f]=' mangle nat' )
+        tables[$f]='mangle nat filter'
         ipsec=$( /bin/ip -$f address show dev "$ifsec" scope host \
                | sed -nr '/^\s+inet\s(\S+).*/ {s//\1/p;q}' )
         secmark=0x1
@@ -162,7 +162,7 @@ run() {
     for table in ${tables[$f]}; do
         $ipt-save -ct $table
     done > "$old"
-    rss+=( [$f]="$old" )
+    rss[$f]="$old"
 
     local fail2ban=0
     # XXX: As of Wheezy, fail2ban is IPv4 only.  See
