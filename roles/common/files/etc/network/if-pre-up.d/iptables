@@ -1,5 +1,5 @@
 #!/bin/bash
-# 
+#
 # A pre-up hook to auto-(re)load the iptables rulesets whenever the
 # network is brought up. If the action fails, an alert message is passed
 # to syslogd.
@@ -16,7 +16,7 @@ PATH=/usr/sbin:/usr/bin:/sbin:/bin
 # won't be logged at boot time.
 log="/usr/bin/logger -st firewall"
 
-# Ignore the loopback interface; run the strip for ifup only.
+# Ignore the loopback interface; run the script for ifup only.
 [ "$IFACE" != lo -a "$MODE" = start ] || exit 0
 
 # We support only IPv4 and IPv6.

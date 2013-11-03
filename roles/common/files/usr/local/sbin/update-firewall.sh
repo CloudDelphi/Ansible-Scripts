@@ -1,14 +1,15 @@
 #!/bin/bash
 #
 # Create iptables (v4 and v6) rules. Unless one of [-f] or [-c] is
-# given, a confirmation is asked after loading the new rulesets; if the
-# user answers No or doesn't answer, the old ruleset is restored. If the
-# user answer Yes (or if the flag [-f] is given), the new ruleset is
-# then stored under /etc/iptables/rules.v[46].
+# given, or if the ruleset is unchanged, a confirmation is asked after
+# loading the new rulesets; if the user answers No or doesn't answer,
+# the old ruleset is restored. If the user answer Yes (or if the flag
+# [-f] is given), the new ruleset is made persistent (requires a pre-up
+# hook) by moving it to /etc/iptables/rules.v[46].
 #
 # The [-c] flag switch to dry-run (check) mode. The rulesets are not
-# applied, but merely checked against the existing ones. If they differ
-# the return value is one, and 0 otherwise.
+# applied, but merely checked against the existing ones. The return
+# value is 0 iff. they do not differ.
 #
 # This firewall is only targeted towards end-servers, not gateways. In
 # particular, there is no NAT'ing at the moment.
@@ -22,13 +23,28 @@
 
 set -ue
 PATH=/usr/sbin:/usr/bin:/sbin:/bin
-
 timeout=10
+
 force=0
 check=0
+verbose=0
+addrfam=
+
+fail2ban_re='^(\[[0-9]+:[0-9]+\]\s+)?-A fail2ban-\S'
+IPSec_re=' -m policy --dir (in|out) --pol ipsec .* --proto esp -j ACCEPT$'
+declare -A rss=() tables=()
 
 usage() {
-    echo "Usage: $0 [-c|-f]" >&2
+    cat >&2 <<- EOF
+		Usage: $0 [OPTIONS]
+
+		Options:
+		    -f force:   no confirmation asked
+		    -c check:   check (dry-run) mode
+		    -v verbose: see the difference between old and new ruleset
+		    -4 IPv4 only
+		    -6 IPv6 only
+	EOF
     exit 1
 }
 
@@ -40,24 +56,16 @@ fatal() {
     exit 1
 }
 
-getInterface() {
-    # Get the default interface associated with an address family
-    /bin/ip -f "$1" route show to default scope "${2:-global}" \
-    | sed -nr '/^default via \S+ dev (\S+).*/ {s//\1/p;q}'
-}
-
 iptables() {
-    # Fake iptables(8); use the more efficient iptables-restore(8) instead
-    [ -z "$WAN" ] || { echo "$@" >> "$newv4"; }
+    # Fake iptables/ip6tables(8); use the more efficient
+    # iptables-restore(8) instead.
+    echo "$@" >> "$new";
 }
-ip6tables() {
-    # Fake ip6tables(8); use the more efficient ip6tables-restore(8) instead
-    [ -z "$WAN6" ] || { echo "$@" >> "$newv6"; }
-}
-tgrep() {
-    # Grep some rules from the old rulesets and add them to each new ruleset.
-    [ -z "$WAN" ]  || { grep -E -- "$@" "$oldv4" >> "$newv4" || true; }
-    [ -z "$WAN6" ] || { grep -E -- "$@" "$oldv6" >> "$newv6" || true; }
+inet46() {
+    case "$1" in
+        4) echo "$2";;
+        6) echo "$3";;
+    esac
 }
 
 ipt-trim() {
@@ -70,263 +78,318 @@ ipt-trim() {
              -e "$fail2ban_re"
 }
 
-ipt-reset-counters() {
-    # Reset the counters. They are not useful for comparing and/or
-    # storing persistent ruleset.
-    sed -ri -e '/^:/ s/\[[0-9]+:[0-9]+\]$/[0:0]/' \
-            -e 's/^\[[0-9]+:[0-9]+\]\s+//' \
-            "$@"
+ipt-diff() {
+    # Get the difference between two rulesets.
+    if [ $verbose -eq 1 ]; then
+        /usr/bin/diff -u -I '^#' "$1" "$2"
+    else
+        /usr/bin/diff -q -I '^#' "$1" "$2" >/dev/null
+    fi
 }
-ipt-save() {
+
+ipt-persist() {
     # Make the current ruleset persistent. (Requires a pre-up hook
     # script to load the rules before the network is configured.)
 
+    log "Making ruleset persistent... "
     [ -d /etc/iptables ] || mkdir /etc/iptables
-    /sbin/iptables-save  -t filter | ipt-trim > /etc/iptables/rules.v4
-    /sbin/ip6tables-save -t filter | ipt-trim > /etc/iptables/rules.v6
 
-    chmod 0600 /etc/iptables/rules.v4 /etc/iptables/rules.v6
-    ipt-reset-counters /etc/iptables/rules.v4 /etc/iptables/rules.v6
+    local f rs table
+    for f in "${!tables[@]}"; do
+        ipts=/sbin/$(inet46 $f iptables ip6tables)-save
+        rs=/etc/iptables/rules.v$f
+
+        for table in ${tables[$f]}; do
+            /bin/ip netns exec $netns $ipts -t $table
+        done | ipt-trim > "$rs"
+        chmod 0600 "$rs"
+    done
 }
 
-ipt-diff() {
-    /usr/bin/diff -qI '^#' "$1" "$2" >/dev/null
-}
-isOK() {
-    # Check the difference between the persistent, current, and new
-    # rulesets (but only if the interface is defined). The current
-    # ruleset is trimmed before checking whether it's persistent.
-    local v="$1" old="$2" new="$3" if="${4:-}"
-    local rv1=0 rv2=0 persistent=/etc/iptables/rules.$v
+ipt-revert() {
+    [ $check -eq 0 ] || return
+    log "Reverting to old ruleset... "
 
-    ipt-reset-counters "$old"
-    [ -z "$if" ] || ipt-diff "$old" "$new" || rv1=$?
+    local rs
+    for f in "${!rss[@]}"; do
+        /sbin/$(inet46 $f iptables ip6tables)-restore -c < "${rss[$f]}"
+        rm -f "${rss[$f]}"
+    done
+    exit 1
+}
+
+run() {
+    # Build and apply the firewall for IPv4/6.
+    local f="$1"
+    local ipt=/sbin/$(inet46 $f iptables ip6tables)
+    tables+=( [$f]=filter )
+
+    # The default interface associated with this address.
+    local if=$( /bin/ip -$f route show to default scope global \
+              | sed -nr '/^default via \S+ dev (\S+).*/ {s//\1/p;q}' )
+    [ -n "$if" ] || return 0
+
+    # The virtual interface reserved for IPSec.
+    local ifsec=$( /bin/ip -o -$f link show \
+                 | sed -nr "/^[0-9]+:\s+(sec[0-9]+)@$if:\s.*/ {s//\1/p;q}" )
+
+    # The (host-scoped) IP reserved for IPSec.
+    local ipsec=
+    if [ -n "$ifsec" -a $f = 4 ]; then
+        tables+=( [$f]=' mangle nat' )
+        ipsec=$( /bin/ip -$f address show dev "$ifsec" scope host \
+               | sed -nr '/^\s+inet\s(\S+).*/ {s//\1/p;q}' )
+    fi
+
+    # Store the old (current) ruleset
+    local old=$(mktemp -t current-rules.v$f.XXXXXX)
+    for table in ${tables[$f]}; do
+        $ipt-save -ct $table
+    done > "$old"
+    rss+=( [$f]="$old" )
+
+    local fail2ban=0
+    # XXX: As of Wheezy, fail2ban is IPv4 only. See
+    #      https://github.com/fail2ban/fail2ban/issues/39 for the current
+    #      state of the art.
+    if [ "$f" = 4 ] && which /usr/bin/fail2ban-server >/dev/null; then
+        fail2ban=1
+    fi
+
+    # The usual chains in filter, along with the desired default policies.
+    local new=$(mktemp -t new-rules.v$f.XXXXXX)
+    cat > "$new" <<- EOF
+		*filter
+		:INPUT   DROP [0:0]
+		:FORWARD DROP [0:0]
+		:OUTPUT  DROP [0:0]
+	EOF
+
+    if [ -z "$if" ]; then
+        # If the interface is not configured, we stop here and DROP all
+        # packets by default. Thanks to the pre-up hook this tight
+        # policy will be activated whenever the interface goes up.
+        mv "$new" /etc/iptables/rules.v$f
+        return 0
+    fi
+
+    # Fail2ban-specific chains and traps
+    if [ $fail2ban -eq 1 ]; then
+        echo ":fail2ban - [0:0]"
+        # Don't remove existing rules & traps in the current rulest
+        grep    -- '^:fail2ban-\S'      "$old" || true
+        grep -E -- ' -j fail2ban-\S+$'  "$old" || true
+        grep -E -- "$fail2ban_re"       "$old" || true
+    fi >> "$new"
+
+    if [ -n "$ifsec" ]; then
+        # (Host-to-host) IPSec tunnels come first. TODO: test IPSec with IPv6.
+        grep -E -- "$IPSec_re" "$old" >> "$new" || true
+
+        # Allow any IPsec ESP protocol packets to be sent and received.
+        iptables -A INPUT  -i $if -p esp -j ACCEPT
+        iptables -A OUTPUT -o $if -p esp -j ACCEPT
+    fi
+
+
+    ########################################################################
+    # DROP all RFC1918 addresses, martian networks, multicasts, ...
+    # Credits to http://newartisans.com/2007/09/neat-tricks-with-iptables/
+    #            http://baldric.net/loose-iptables-firewall-for-servers/
+
+    local ip
+    if [ "$f" = 4 ]; then
+        # Private-use networks (RFC 1918) and link local (RFC 3927)
+        local MyNetwork=$( /bin/ip -4 address show dev $if scope global \
+                         | sed -nr 's/^\s+inet\s(\S+).*/\1/p')
+        [ -n "$MyNetwork" ] && \
+        for ip in 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 169.254.0.0/16; do
+            # Don't lock us out if we are behind a NAT ;-)
+            [ "$ip" = "$(/usr/bin/netmask -nc $ip $MyNetwork | sed 's/ //g')" ] \
+            || iptables -A INPUT -i $if -s "$ip" -j DROP
+        done
+
+        # Other martian packets: "This" network, multicast, broadcast (RFCs
+        # 1122, 3171 and 919).
+        for ip in 0.0.0.0/8 224.0.0.0/4 240.0.0.0/4 255.255.255.255/32; do
+            iptables -A INPUT -i $if -s "$ip" -j DROP
+            iptables -A INPUT -i $if -d "$ip" -j DROP
+        done
+
+    elif [ "$f" = 6 ]; then
+        # Martian IPv6 packets: ULA (RFC 4193) and site local addresses
+        # (RFC 3879).
+        for ip in fc00::/7 fec0::/10; do
+            iptables -A INPUT -i $if -s "$ip" -j DROP
+            iptables -A INPUT -i $if -d "$ip" -j DROP
+        done
+    fi
+
+    # DROP INVALID packets immediately.
+    iptables -A INPUT  -m state --state INVALID -j DROP
+    iptables -A OUTPUT -m state --state INVALID -j DROP
+
+    # DROP bogus TCP packets.
+    iptables -A INPUT -p tcp -m tcp --tcp-flags FIN,SYN FIN,SYN -j DROP
+    iptables -A INPUT -p tcp -m tcp --tcp-flags SYN,RST SYN,RST -j DROP
+
+    # Allow all input/output to/from the loopback interface.
+    local localhost=$(inet46 $f '127.0.0.1/32' '::1/128')
+    iptables -A INPUT  -i lo -s "$localhost" -d "$localhost" -j ACCEPT
+    iptables -A OUTPUT -o lo -s "$localhost" -d "$localhost" -j ACCEPT
+
+    # Prepare fail2ban. We make fail2ban insert its rules in a dedicated
+    # chain, so that it doesn't mess up the existing rules.
+    [ $fail2ban -eq 1 ] && iptables -A INPUT -i $if -j fail2ban
+
+    if [ "$f" = 4 ]; then
+        # Allow only ICMP of type 0, 3 and 8. The rate-limiting is done
+        # directly by the kernel (net.ipv4.icmp_ratelimit and
+        # net.ipv4.icmp_ratemask runtime options). See icmp(7).
+        local t
+        for t in  'echo-reply' 'destination-unreachable' 'echo-request'; do
+            iptables -A INPUT  -i $if -p icmp -m icmp --icmp-type $t -j ACCEPT
+            iptables -A OUTPUT -o $if -p icmp -m icmp --icmp-type $t -j ACCEPT
+        done
+    elif [ $f = 6 ]; then
+        iptables -A INPUT -i $ip -p icmpv6 -j ACCEPT
+    fi
+
+
+    ########################################################################
+    # ACCEPT new connections to the services we provide, or to those we want
+    # to connect to.
+
+    sed -re 's/#.*//; /^\s*$/d' -e "s/^(in|out|inout)$f?(\s.*)/\1\2/" \
+            /etc/iptables/services | \
+    grep -Ev '^(in|out|inout)\S\s' | \
+    while read dir proto dport sport; do
+        # We add two entries per config line: we need to accept the new
+        # connection, and latter the reply.
+        local stNew=NEW,ESTABLISHED
+        local stEst=ESTABLISHED
+
+        # In-Out means full-duplex
+        [[ "$dir" =~ ^inout ]] && stEst="$stNew"
+
+        local iptNew= iptEst= optsNew= optsEst=
+        case "$dport" in
+            *,*|*:*) optsNew="--match multiport --dports $dport"
+                     optsEst="--match multiport --sports $dport";;
+            ?*)      optsNew="--dport $dport"
+                     optsEst="--sport $dport";;
+        esac
+        case "$sport" in
+            *,*|*:*) optsNew+=" --match multiport --sports $sport"
+                     optsEst+=" --match multiport --dports $sport";;
+            ?*)      optsNew+=" --sport $sport"
+                     optsEst+=" --dport $sport";;
+        esac
+        case "$dir" in
+            in|inout) iptNew="-A INPUT  -i";  iptEst="-A OUTPUT -o";;
+            out)      iptNew="-A OUTPUT -o";  iptEst="-A INPUT  -i";;
+            *) fatal "Error: Unknown direction: '$dir'."
+        esac
+
+        iptables $iptNew $if -p $proto $optsNew -m state --state $stNew -j ACCEPT
+        iptables $iptEst $if -p $proto $optsEst -m state --state $stEst -j ACCEPT
+    done
+
+    ########################################################################
+
+
+    # Commit the table 'filter'.
+    echo COMMIT >> "$new"
+
+    local rv1=0 rv2=0 persistent=/etc/iptables/rules.v$f
+    local oldz=$(mktemp -t current-rules.v$f.XXXXXX)
+
+    # Reset the counters. They are not useful for comparing and/or
+    # storing persistent ruleset. (We don't use sed -i because we want
+    # to restore the counters when reverting.)
+    sed -r -e '/^:/ s/\[[0-9]+:[0-9]+\]$/[0:0]/' \
+           -e 's/^\[[0-9]+:[0-9]+\]\s+//' \
+           "$old" > "$oldz"
+
+    /usr/bin/uniq "$new" | /bin/ip netns exec $netns $ipt-restore
+
+    for table in ${tables[$f]}; do
+       /bin/ip netns exec $netns $ipt-save -t $table
+    done > "$new"
+
+    ipt-diff "$oldz" "$new" || rv1=$?
 
     if ! [ -f "$persistent" -a -x /etc/network/if-pre-up.d/iptables ]; then
         rv2=1
-    elif [ -n "$if" ]; then
-        # Ignore persistency check if the address family is not of
-        # globally scoped.
-        ipt-trim < "$old" | ipt-diff - "$persistent" || rv2=$?
+    else
+        ipt-trim < "$oldz" | ipt-diff - "$persistent" || rv2=$?
     fi
 
     local update="Please run '${0##*/}'."
-    [ $rv1 -eq 0 ] || log "WARN: The IP$v firewall is not up to date! $update"
-    [ $rv2 -eq 0 ] || log "WARN: The current IP$v firewall is not persistent! $update"
+    if [ $check -eq 0 ]; then
+        /usr/bin/uniq "$new" | $ipt-restore
+    else
+        if [ $rv1 -ne 0 ]; then
+            log "WARN: The IPv$f firewall is not up to date! $update"
+        fi
+        if [ $rv2 -ne 0 ]; then
+            log "WARN: The current IPv$f firewall is not persistent! $update"
+        fi
+    fi
 
+    rm -f "$oldz" "$new"
     return $(( $rv1 | $rv2 ))
 }
 
 
-[ $# -le 1 ] || usage
-case "${1:-}" in
-    -f) force=1;;
-    -c) check=1;;
-    ?*) usage
-esac
+# Parse options
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -?*) for (( k=1; k<${#1}; k++ )); do
+                o="${1:$k:1}"
+                case "$o" in
+                    4|6) addrfam="$o";;
+                    c) check=1;;
+                    f) force=1;;
+                    v) verbose=1;;
+                    *) usage;;
+                esac
+            done
+        ;;
+        *) usage;;
+    esac
+    shift
+done
 
-[ "${1:-}" = -f ] && force=1
-if ! /usr/bin/tty -s && [ $force -eq 0 ]; then
-    echo "Error: Not a TTY. Try with -f (at your own risks)!" >&2
+# If we are going to apply the ruleset, we should either have a TTY, or
+# use -f.
+if ! /usr/bin/tty -s && [ $force -eq 0 -a $check -eq 0 ]; then
+    echo "Error: Not a TTY. Try with -f (at your own risks!)" >&2
     exit 1
 fi
 
-WAN=$( getInterface inet )
-WAN6=$(getInterface inet6)
+# Create an alternative net namespace in which we apply the ruleset, so
+# we can easily get a normalized version we can compare latter.  See
+# http://bugzilla.netfilter.org/show_bug.cgi?id=790
+netns="ipt-firewall-test-$$"
+/bin/ip netns add $netns
 
-oldv4=$(mktemp)
-newv4=$(mktemp)
-
-oldv6=$(mktemp)
-newv6=$(mktemp)
-
-[ -n "$WAN" -o -n "$WAN6" ] || fatal "Error: couldn't find a network interface"
-
-IPSec_re=' -m policy --dir (in|out) --pol ipsec .* --proto esp -j ACCEPT$'
-fail2ban_re='^(\[[0-9]+:[0-9]+\]\s+)?-A fail2ban-\S'
-
-# Store the existing table
-/sbin/iptables-save  -ct filter > "$oldv4"
-/sbin/ip6tables-save -ct filter > "$oldv6"
-
-# The usual chains in filter, along with the desired default policies.
-cat > "$newv4" <<- EOF
-	*filter
-	:INPUT   DROP [0:0]
-	:FORWARD DROP [0:0]
-	:OUTPUT  DROP [0:0]
-	:fail2ban -   [0:0]
-EOF
-cp -f "$newv4" "$newv6"
-
-# Keep fail2ban chains, traps, and existing rules.
-tgrep ':fail2ban-\S'
-tgrep ' -j fail2ban-\S+$'
-tgrep "$fail2ban_re"
-
-
-# (Host-to-host) IPSec tunnels come first. TODO: test IPSec on IPv6.
-tgrep "$IPSec_re"
-
-
-# Allow any IPsec ESP protocol packets to be sent and received.
-iptables -A INPUT  -i $WAN -p esp -j ACCEPT
-iptables -A OUTPUT -o $WAN -p esp -j ACCEPT
-
-ip6tables -A INPUT  -i $WAN6 -p esp -j ACCEPT
-ip6tables -A OUTPUT -o $WAN6 -p esp -j ACCEPT
-
-
-##################################################################################
-# DROP all RFC1918 addresses, martian networks, multicasts, ...
-# Credits to http://newartisans.com/2007/09/neat-tricks-with-iptables/
-#            http://baldric.net/loose-iptables-firewall-for-servers/
-
-if [ -n "$WAN" ]; then
-    # Private-use networks (RFC 1918) and link local (RFC 3927)
-    MyNetwork=$( /bin/ip -4 addr show dev "$WAN" scope global \
-               | sed -nr 's/^\s+inet\s(\S+).*/\1/p')
-    [ -n "$MyNetwork" ] && \
-    for ip in 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 169.254.0.0/16; do
-        # Don't lock us out if we are behind a NAT ;-)
-        [ "$ip" = "$(/usr/bin/netmask -nc $ip $MyNetwork | sed 's/ //g')" ] \
-        || iptables -A INPUT -i $WAN -s "$ip" -j DROP
-    done
-
-    # Other martian packets: "This" network, multicast, broadcast (RFCs
-    # 1122, 3171 and 919).
-    for ip in 0.0.0.0/8 224.0.0.0/4 240.0.0.0/4 255.255.255.255/32; do
-        iptables -A INPUT -i $WAN -s "$ip" -j DROP
-        iptables -A INPUT -i $WAN -d "$ip" -j DROP
-    done
-fi
-
-# Martian IPv6 packets: ULA (RFC 4193) and site local addresses (RFC
-# 3879).
-for ip6 in fc00::/7 fec0::/10
-do
-    ip6tables -A INPUT -i $WAN6 -s "$ip6" -j DROP
-    ip6tables -A INPUT -i $WAN6 -d "$ip6" -j DROP
-done
-
-
-# DROP INVALID packets immediately.
-for chain in INPUT OUTPUT; do
-    iptables  -A $chain -m state --state INVALID -j DROP
-    ip6tables -A $chain -m state --state INVALID -j DROP
-done
-
-
-# DROP bogus TCP packets.
-iptables -A INPUT -p tcp -m tcp --tcp-flags FIN,SYN FIN,SYN -j DROP
-iptables -A INPUT -p tcp -m tcp --tcp-flags SYN,RST SYN,RST -j DROP
-
-ip6tables -A INPUT -p tcp -m tcp --tcp-flags SYN,FIN SYN,FIN -j DROP
-ip6tables -A INPUT -p tcp -m tcp --tcp-flags SYN,RST SYN,RST -j DROP
-
-# Prepare fail2ban. We make fail2ban insert its rules in a dedicated
-# chain, so that it doesn't mess up the existing rules.
-# XXX: As of Wheezy, fail2ban is IPv4 only. See
-#      https://github.com/fail2ban/fail2ban/issues/39 for the current
-#      state of the art.
-iptables -A INPUT -i $WAN -j fail2ban
-
-
-# Allow all input/output to/from the loopback interface.
-iptables -A INPUT  -i lo -s 127.0.0.1/32 -d 127.0.0.1/32 -j ACCEPT
-iptables -A OUTPUT -o lo -s 127.0.0.1/32 -d 127.0.0.1/32 -j ACCEPT
-
-ip6tables -A INPUT  -i lo -s ::1/128 -d ::1/128 lo -j ACCEPT
-ip6tables -A OUTPUT -o lo -s ::1/128 -d ::1/128 lo -j ACCEPT
-
-
-# Allow only ICMP of type 0, 3 and 8. The rate-limiting is done directly
-# by the kernel (net.ipv4.icmp_ratelimit and net.ipv4.icmp_ratemask
-# runtime options). See icmp(7).
-for type in  'echo-reply' 'destination-unreachable' 'echo-request'; do
-    iptables -A INPUT  -i $WAN -p icmp -m icmp --icmp-type $type -j ACCEPT
-    iptables -A OUTPUT -o $WAN -p icmp -m icmp --icmp-type $type -j ACCEPT
-done
-ip6tables -A INPUT -i $WAN6 -p icmpv6 -j ACCEPT
-
-
-##################################################################################
-# ACCEPT new connections to the services we provide, or to those we want
-# to connect to.
-
-sed -re 's/#.*//; /^\s*$/d' -e 's/^(in|out|inout)\b(.*)/\14\2\n\16\2/' \
-        /etc/iptables/services | \
-while read dir proto dport sport; do
-    # We add two entries per config line: we need to accept the new
-    # connection, and latter the reply.
-    stNew=NEW,ESTABLISHED
-    stEst=ESTABLISHED
-
-    # In-Out means full-duplex
-    [[ "$dir" =~ ^inout ]] && stEst="$stNew"
-
-    optsNew=
-    optsEst=
-    case "$dport" in
-        *,*|*:*) optsNew="--match multiport --dports $dport"
-                 optsEst="--match multiport --sports $dport";;
-        ?*)      optsNew="--dport $dport"
-                 optsEst="--sport $dport";;
-    esac
-    case "$sport" in
-        *,*|*:*) optsNew+=" --match multiport --sports $sport"
-                 optsEst+=" --match multiport --dports $sport";;
-        ?*)      optsNew+=" --sport $sport"
-                 optsEst+=" --dport $sport";;
-    esac
-
-    case "$dir" in
-        in[46]|inout[46]) iptNew="-A INPUT  -i";  iptEst="-A OUTPUT -o";;
-        out[46])          iptNew="-A OUTPUT -o";  iptEst="-A INPUT  -i";;
-        *) fatal "Error: Unknown direction: '$dir'."
-    esac
-    case "$dir" in
-        *4) ipt="iptables";  if=$WAN;;
-        *6) ipt="ip6tables"; if=$WAN6;;
-    esac
-
-    $ipt $iptNew $if -p $proto $optsNew -m state --state $stNew -j ACCEPT
-    $ipt $iptEst $if -p $proto $optsEst -m state --state $stEst -j ACCEPT
-done
-
-
-##################################################################################
-
-echo COMMIT >> "$newv4"
-echo COMMIT >> "$newv6"
-
-netns=
-innetns=
-if [ $check -eq 1 ]; then
-    # Create an alternative net namespace in which we apply the ruleset,
-    # so we can easily get a normalized version we can compare latter.
-    # See http://bugzilla.netfilter.org/show_bug.cgi?id=790
-    netns="ipt-firewall-test-$$"
-    /bin/ip netns add $netns
-    innetns="/bin/ip netns exec $netns"
-fi
-
-/usr/bin/uniq "$newv4" | $innetns /sbin/iptables-restore
-/usr/bin/uniq "$newv6" | $innetns /sbin/ip6tables-restore
+trap '/bin/ip netns del $netns 2>/dev/null || true; ipt-revert' SIGINT
+trap '/bin/ip netns del $netns; rm -f "${rss[@]}"'              EXIT
 
 rv=0
-if [ $check -eq 1 ]; then
-    # Normalize the new rulesets
-    $innetns /sbin/iptables-save  -t filter > "$newv4"
-    $innetns /sbin/ip6tables-save -t filter > "$newv6"
-    /bin/ip netns del $netns
+for f in ${addrfam:=4 6}; do
+    run $f || rv=$(( $rv | $? ))
+done
 
-    isOK v4 "$oldv4" "$newv4" $WAN  || rv=$(( $rv | $? ))
-    isOK v6 "$oldv6" "$newv6" $WAN6 || rv=$(( $rv | $? ))
-
-elif [ $force -eq 1 ]; then
+if [ $force -eq 1 ]; then
     # At the user's own risks...
-    ipt-save
+    ipt-persist
+
+elif [ $check -eq 1 -o $rv -eq 0 ]; then
+    # Nothing to do, we're all set.
+    exit $rv
+
 else
     echo "Try now to establish NEW connections to the machine."
 
@@ -334,15 +397,9 @@ else
          -p "Are you sure you want to use the new ruleset? (y/N) " \
          ret 2>&1 || { [ $? -gt 128 ] && echo -n "Timeout..."; }
     case "${ret:-N}" in
-        [yY]*) echo; ipt-save
+        [yY]*) echo; ipt-persist
         ;;
-        *) echo; log "Reverting to old ruleset... "
-           /sbin/iptables-restore  -c < "$oldv4"
-           /sbin/ip6tables-restore -c < "$oldv6"
-           rv=1
+        *) echo; ipt-revert
         ;;
     esac
 fi
-
-rm -f "$oldv4" "$newv4" "$oldv6" "$newv6"
-exit $rv
