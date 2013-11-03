@@ -1,17 +1,17 @@
 #!/bin/bash
 #
-# Create iptables (v4 and v6) rules. Unless one of [-f] or [-c] is
+# Create iptables (v4 and v6) rules.  Unless one of [-f] or [-c] is
 # given, or if the ruleset is unchanged, a confirmation is asked after
 # loading the new rulesets; if the user answers No or doesn't answer,
-# the old ruleset is restored. If the user answer Yes (or if the flag
+# the old ruleset is restored.  If the user answer Yes (or if the flag
 # [-f] is given), the new ruleset is made persistent (requires a pre-up
 # hook) by moving it to /etc/iptables/rules.v[46].
 #
-# The [-c] flag switch to dry-run (check) mode. The rulesets are not
-# applied, but merely checked against the existing ones. The return
+# The [-c] flag switch to dry-run (check) mode.  The rulesets are not
+# applied, but merely checked against the existing ones.  The return
 # value is 0 iff. they do not differ.
 #
-# This firewall is only targeted towards end-servers, not gateways. In
+# This firewall is only targeted towards end-servers, not gateways.  In
 # particular, there is no NAT'ing at the moment.
 #
 # Dependencies: netmask(1)
@@ -85,7 +85,7 @@ ipt-chains() {
 ipt-trim() {
     # Remove dynamic chain/rules from the input stream, as they are
     # automatically included by third-party servers (such as strongSwan
-    # or fail2ban). The output is ready to be made persistent.
+    # or fail2ban).  The output is ready to be made persistent.
     grep -Ev -e '^:fail2ban-\S' \
              -e "$IPSec_re" \
              -e '-j fail2ban-\S+$' \
@@ -102,7 +102,7 @@ ipt-diff() {
 }
 
 ipt-persist() {
-    # Make the current ruleset persistent. (Requires a pre-up hook
+    # Make the current ruleset persistent.  (Requires a pre-up hook
     # script to load the rules before the network is configured.)
 
     log "Making ruleset persistent... "
@@ -165,7 +165,7 @@ run() {
     rss+=( [$f]="$old" )
 
     local fail2ban=0
-    # XXX: As of Wheezy, fail2ban is IPv4 only. See
+    # XXX: As of Wheezy, fail2ban is IPv4 only.  See
     #      https://github.com/fail2ban/fail2ban/issues/39 for the current
     #      state of the art.
     if [ "$f" = 4 ] && which /usr/bin/fail2ban-server >/dev/null; then
@@ -173,15 +173,15 @@ run() {
     fi
 
     if [ -n "$ipsec" ]; then
-        # We DNAT the IPSec paquets to $ipsec after decapsulation, and
-        # SNAT them before encapsulation. We need to do the NAT'ing
-        # before packets enter the IPSec stack because they are signed
+        # DNAT the IPSec paquets to $ipsec after decapsulation, and SNAT
+        # them before encapsulation.  We need to do the NAT'ing before
+        # packets enter the IPSec stack because they are signed
         # afterwards, and NAT'ing would mess up the signature.
         ipt-chains mangle PREROUTING:ACCEPT INPUT:ACCEPT \
                           FORWARD:DROP \
                           OUTPUT:ACCEPT POSTROUTING:ACCEPT
         # Mark all IPSec packets to keep track of them and NAT them
-        # after decapsulation. Unmarked packets that are to be sent to
+        # after decapsulation.  Unmarked packets that are to be sent to
         # $ipsec are dropped.
         iptables -A PREROUTING -p esp -j MARK --set-mark $secmark
         iptables -A INPUT -d "$ipsec" -m mark \! --mark $secmark -j DROP
@@ -189,10 +189,12 @@ run() {
 
         ipt-chains nat PREROUTING:ACCEPT INPUT:ACCEPT \
                        OUTPUT:ACCEPT POSTROUTING:ACCEPT
-        # DNAT all marked packets that have been decapsulated. Packets
-        # originating from our IPSec are SNAT'ed (MASQUERADE). We cannot
-        # mark them here (it won't survivethe NAT'ing), but any reply
-        # not going through IPSec would be dropped (since unmarked).
+        # DNAT all marked packets that have been decapsulated.  Packets
+        # originating from our IPSec are SNAT'ed (MASQUERADE).  XXX:
+        # xfrm lookup occurs *after* NAT POSTROUTING, so sadly we can't
+        # DROP packets not matching an IPSec policy. However, any reply
+        # not going through IPSec would be dropped (since unmarked);
+        # this is the best we can do for now.
         iptables -A PREROUTING \! -p esp -m mark --mark "$secmark" \
                      -j DNAT --to "${ipsec%/*}"
         iptables -A POSTROUTING -s "$ipsec" -j MASQUERADE
@@ -204,7 +206,7 @@ run() {
 
     if [ -z "$if" ]; then
         # If the interface is not configured, we stop here and DROP all
-        # packets by default. Thanks to the pre-up hook this tight
+        # packets by default.  Thanks to the pre-up hook this tight
         # policy will be activated whenever the interface goes up.
         mv "$new" /etc/iptables/rules.v$f
         return 0
@@ -277,20 +279,20 @@ run() {
 
     if [ -n "$ipsec" ]; then
         # ACCEPT any, *marked* traffic destinating to the non-routable
-        # $ipsec. Also ACCEPT all traffic originating from $ipsec, as it
-        # is MASQUERADE'd.
+        # $ipsec.  Also ACCEPT all traffic originating from $ipsec, as
+        # it is MASQUERADE'd.
         iptables -A INPUT  -i "$if" -d "$ipsec" -m mark --mark "$secmark" -j ACCEPT
         iptables -A OUTPUT -s "$ipsec" -o "$if" -j ACCEPT
     fi
 
-    # Prepare fail2ban. We make fail2ban insert its rules in a dedicated
-    # chain, so that it doesn't mess up the existing rules.
+    # Prepare fail2ban.  We make fail2ban insert its rules in a
+    # dedicated chain, so that it doesn't mess up the existing rules.
     [ $fail2ban -eq 1 ] && iptables -A INPUT -i $if -j fail2ban
 
     if [ "$f" = 4 ]; then
-        # Allow only ICMP of type 0, 3 and 8. The rate-limiting is done
+        # Allow only ICMP of type 0, 3 and 8.  The rate-limiting is done
         # directly by the kernel (net.ipv4.icmp_ratelimit and
-        # net.ipv4.icmp_ratemask runtime options). See icmp(7).
+        # net.ipv4.icmp_ratemask runtime options).  See icmp(7).
         local t
         for t in  'echo-reply' 'destination-unreachable' 'echo-request'; do
             iptables -A INPUT  -i $if -p icmp -m icmp --icmp-type $t -j ACCEPT
@@ -347,8 +349,8 @@ run() {
     local rv1=0 rv2=0 persistent=/etc/iptables/rules.v$f
     local oldz=$(mktemp -t current-rules.v$f.XXXXXX)
 
-    # Reset the counters. They are not useful for comparing and/or
-    # storing persistent ruleset. (We don't use sed -i because we want
+    # Reset the counters.  They are not useful for comparing and/or
+    # storing persistent ruleset.  (We don't use sed -i because we want
     # to restore the counters when reverting.)
     sed -r -e '/^:/ s/\[[0-9]+:[0-9]+\]$/[0:0]/' \
            -e 's/^\[[0-9]+:[0-9]+\]\s+//' \
