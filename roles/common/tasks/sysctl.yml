@@ -47,6 +47,3 @@
 
       # Ignore bogus ICMP errors.
     - { name: 'net.ipv4.icmp_ignore_bogus_error_responses', value: 1 }
-
-      # Enable connection tracking flow accounting.
-    - { name: 'net.netfilter.nf_conntrack_acct', value: 1 }
