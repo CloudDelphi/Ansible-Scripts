@@ -30,8 +30,11 @@ check=0
 verbose=0
 addrfam=
 
+secmark=0xA99   # must match that in /etc/network/if-up.d/ipsec
+secproto=esp    # must match /etc/ipsec.conf; ESP is the default (vs AH/IPComp)
+
 fail2ban_re='^(\[[0-9]+:[0-9]+\]\s+)?-A fail2ban-\S'
-IPSec_re=' -m policy --dir (in|out) --pol ipsec .* --proto esp -j ACCEPT$'
+IPSec_re=" -m policy --dir (in|out) --pol ipsec .* --proto $secproto -j ACCEPT$"
 declare -A rss=() tables=()
 
 usage() {
@@ -147,13 +150,11 @@ run() {
                  | sed -nr "/^[0-9]+:\s+(sec[0-9]+)@$if:\s.*/ {s//\1/p;q}" )
 
     # The (host-scoped) IP reserved for IPSec.
-    local ipsec= secmark
+    local ipsec=
     if [ -n "$ifsec" -a $f = 4 ]; then
         tables[$f]='mangle nat filter'
         ipsec=$( /bin/ip -$f address show dev "$ifsec" scope host \
                | sed -nr '/^\s+inet\s(\S+).*/ {s//\1/p;q}' )
-        # /!\ This mark much match that in /etc/network/if-up.d/ipsec.
-        secmark=0xA99
     fi
 
     # Store the old (current) ruleset
@@ -196,9 +197,9 @@ run() {
         # (Host-to-host) IPSec tunnels come first. TODO: test IPSec with IPv6.
         grep -E -- "$IPSec_re" "$old" >> "$new" || true
 
-        # Allow any IPsec ESP protocol packets to be sent and received.
-        iptables -A INPUT  -i $if -p esp -j ACCEPT
-        iptables -A OUTPUT -o $if -p esp -j ACCEPT
+        # Allow any IPsec $secproto protocol packets to be sent and received.
+        iptables -A INPUT  -i $if -p $secproto -j ACCEPT
+        iptables -A OUTPUT -o $if -p $secproto -j ACCEPT
     fi
 
 
@@ -252,7 +253,8 @@ run() {
         # ACCEPT any, *IPSec* traffic destinating to the non-routable
         # $ipsec.  Also ACCEPT all traffic originating from $ipsec, as
         # it is MASQUERADE'd.
-        iptables -A INPUT  -d "$ipsec" -i $if -m policy --dir in --pol ipsec -j ACCEPT
+        iptables -A INPUT  -d "$ipsec" -i $if -m policy --dir in \
+            --pol ipsec --proto $secproto -j ACCEPT
         iptables -A OUTPUT -m mark --mark "$secmark" -o $if -j ACCEPT
     fi
 
@@ -327,23 +329,25 @@ run() {
 
         # Packets which destination is $ipsec *must* be associated with
         # an IPSec policy.
-        iptables -A INPUT -d "$ipsec" -i $if -m policy --dir in --pol none -j DROP
+        iptables -A INPUT -d "$ipsec" -i $if -m policy --dir in \
+            --pol ipsec --proto $secproto -j ACCEPT
+        iptables -A INPUT -d "$ipsec" -i $if -j DROP
 
         # Packets originating from our (non-routable) $ipsec are marked;
         # if there is no xfrm lookup (i.e., no matching IPSec
         # association), the packet will retain its mark and be null
         # routed later on.  Otherwise, the packet is re-queued unmarked.
         iptables -A OUTPUT -o $if -j MARK --set-mark 0x0
-        iptables -A OUTPUT -s "$ipsec" -o $if  -m policy --dir out --pol none \
-                     -j MARK --set-mark $secmark
+        iptables -A OUTPUT -s "$ipsec" -o $if -m policy --dir out \
+            --pol none -j MARK --set-mark $secmark
         commit
 
         ipt-chains nat PREROUTING:ACCEPT INPUT:ACCEPT \
                        OUTPUT:ACCEPT POSTROUTING:ACCEPT
 
         # DNAT all marked packets after decapsulation.
-        iptables -A PREROUTING \! -d "$ipsec" -i $if \
-                     -m policy --dir in --pol ipsec -j DNAT --to "${ipsec%/*}"
+        iptables -A PREROUTING \! -d "$ipsec" -i $if -m policy --dir in \
+            --pol ipsec --proto $secproto -j DNAT --to "${ipsec%/*}"
 
         # Packets originating from our IPSec are SNAT'ed (MASQUERADE).
         # (And null-routed later on unless there is an xfrm

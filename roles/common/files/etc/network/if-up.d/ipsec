@@ -40,7 +40,10 @@ case "$MODE" in
 
            # If a packet retained its mark that far, it means it has
            # been SNAT'ed from $ipsec, and didn't have a xfrm
-           # association.  Hence we nullroute it to avoid leaking data.
+           # association.  Hence we nullroute it to avoid to leak data
+           # intented to be tunneled through IPSec.  /!\ The priority
+           # must be >220 (strongSwan IPSec's policy) since xfrm lookup
+           # must take precedence.
            /bin/ip rule  add fwmark "$secmark" table 666 priority 666 || true
            /bin/ip route add prohibit default  table 666              || true
     ;;
