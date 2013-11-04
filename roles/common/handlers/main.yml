@@ -1,3 +1,6 @@
+# 'service: name=... state=started' tasks should NOT run if there is a
+# corresponding state=restarted handler.  (Register the task notifying
+# the handler, and add a conditional.)
 ---
 - name: Refresh hostname
   service: name=hostname.sh state=restarted

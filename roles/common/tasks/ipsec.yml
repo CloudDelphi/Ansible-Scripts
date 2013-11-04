@@ -27,6 +27,7 @@
             dest=/etc/ipsec.secrets
             owner=root group=root
             mode=0600
+  register: r1
   notify:
     - Restart IPSec
 
@@ -35,11 +36,13 @@
             dest=/etc/ipsec.conf
             owner=root group=root
             mode=0644
+  register: r2
   notify:
     - Restart IPSec
 
 - name: Start IPSec
   service: name=ipsec state=started
+  when: not (r1.changed or r2.changed)
 
 - name: Auto-create a dedicated interface for IPSec
   copy: src=etc/network/if-up.d/ipsec

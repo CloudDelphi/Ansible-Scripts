@@ -17,6 +17,8 @@
     - Reload samhain
 
 - name: Start samhain
+  # This task is inconditional because samhain is reloaded not
+  # restarted.
   service: name=samhain state=started
 
 - meta: flush_handlers
