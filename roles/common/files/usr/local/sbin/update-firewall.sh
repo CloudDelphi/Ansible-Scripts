@@ -34,7 +34,7 @@ secmark=0xA99   # must match that in /etc/network/if-up.d/ipsec
 secproto=esp    # must match /etc/ipsec.conf; ESP is the default (vs AH/IPComp)
 
 fail2ban_re='^(\[[0-9]+:[0-9]+\]\s+)?-A fail2ban-\S'
-IPSec_re=" -m policy --dir (in|out) --pol ipsec .* --proto $secproto -j ACCEPT$"
+IPSec_re=" -m policy --dir (in|out) --pol ipsec --reqid [0-9]+ --proto $secproto -j ACCEPT$"
 declare -A rss=() tables=()
 
 usage() {
@@ -193,7 +193,7 @@ run() {
         grep -E -- "$fail2ban_re"       "$old" || true
     fi >> "$new"
 
-    if [ -n "$ifsec" ]; then
+    if [ -n "$ipsec" ]; then
         # (Host-to-host) IPSec tunnels come first. TODO: test IPSec with IPv6.
         grep -E -- "$IPSec_re" "$old" >> "$new" || true
 

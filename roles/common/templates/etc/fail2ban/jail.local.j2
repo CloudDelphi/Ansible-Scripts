@@ -20,8 +20,8 @@ action = %(action_)s
 [ssh]
 
 enabled  = true
-port	 = {{ ansible_ssh_port|default('22') }}
-filter	 = sshd
+port     = {{ ansible_ssh_port|default('22') }}
+filter   = sshd
 logpath  = /var/log/auth.log
 maxretry = 5
 
@@ -40,7 +40,7 @@ maxretry = 2
 
 enabled   = true
 # pam-generic filter can be customized to monitor specific subset of 'tty's
-filter	  = pam-generic
+filter    = pam-generic
 # port actually must be irrelevant but lets leave it all for some possible uses
 port      = all
 banaction = iptables-allports
