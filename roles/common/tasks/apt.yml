@@ -39,3 +39,6 @@
   service: name=cron state=started
   tags:
     - cron
+
+# We should run 'apt-get update' before proceeding to any other task.
+- meta: flush_handlers

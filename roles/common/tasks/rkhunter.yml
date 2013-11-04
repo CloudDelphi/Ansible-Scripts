@@ -20,3 +20,5 @@
     # This might not always be necessary, but it's not like we would
     # change the config every day...
     - Update rkhunter's data file
+
+- meta: flush_handlers

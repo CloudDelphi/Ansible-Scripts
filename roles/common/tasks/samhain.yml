@@ -18,3 +18,5 @@
 
 - name: Start samhain
   service: name=samhain state=started
+
+- meta: flush_handlers

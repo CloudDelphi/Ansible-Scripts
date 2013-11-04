@@ -11,3 +11,5 @@
 
 - name: Start fail2ban
   service: name=fail2ban state=started
+
+- meta: flush_handlers

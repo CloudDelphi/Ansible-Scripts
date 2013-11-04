@@ -56,3 +56,5 @@
         src=/etc/network/if-up.d/ipsec
         dest=/etc/network/if-down.d/ipsec
         owner=root group=root state=link
+
+- meta: flush_handlers
