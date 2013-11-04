@@ -22,7 +22,7 @@ log="/usr/bin/logger -st firewall"
 # We support only IPv4 and IPv6.
 [ "$ADDRFAM" = inet -o "$ADDRFAM" = inet6 ] || exit 0
 
-$log -p syslog.info -- "Loading $ADDRFAM firewall on interface $IFACE."
+$log -p user.info -- "Loading $ADDRFAM firewall on interface $IFACE."
 
 case "$ADDRFAM" in
     inet) iptr=/sbin/iptables-restore;  rules=rules.v4;;
@@ -30,9 +30,9 @@ case "$ADDRFAM" in
 esac
 rules="/etc/iptables/$rules"
 
-$iptr < $rules 2>&1 | $log -p syslog.err
+$iptr < $rules 2>&1 | $log -p user.err
 rv=$?
 
-[ $rv -gt 0 ] && $log -p syslog.alert \
+[ $rv -gt 0 ] && $log -p user.alert \
     "WARN: Failed to load iptables rulesets; the machine may be unprotected!"
 exit $rv

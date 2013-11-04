@@ -52,10 +52,10 @@ usage() {
 }
 
 log() {
-    /usr/bin/logger -st firewall -p syslog.info -- "$@"
+    /usr/bin/logger -st firewall -p user.info -- "$@"
 }
 fatal() {
-    /usr/bin/logger -st firewall -p syslog.err  -- "$@"
+    /usr/bin/logger -st firewall -p user.err  -- "$@"
     exit 1
 }
 
