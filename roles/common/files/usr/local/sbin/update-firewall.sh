@@ -151,7 +151,7 @@ run() {
 
     # The (host-scoped) IP reserved for IPSec.
     local ipsec=
-    if [ -n "$ifsec" -a $f = 4 ]; then
+    if [ "$ifsec" -a $f = 4 ]; then
         tables[$f]='mangle nat filter'
         ipsec=$( /bin/ip -$f address show dev "$ifsec" scope host \
                | sed -nr '/^\s+inet\s(\S+).*/ {s//\1/p;q}' )
@@ -176,7 +176,7 @@ run() {
     # The usual chains in filter, along with the desired default policies.
     ipt-chains filter INPUT:DROP FORWARD:DROP OUTPUT:DROP
 
-    if [ -z "$if" ]; then
+    if [ ! "$if" ]; then
         # If the interface is not configured, we stop here and DROP all
         # packets by default.  Thanks to the pre-up hook this tight
         # policy will be activated whenever the interface goes up.
@@ -193,7 +193,7 @@ run() {
         grep -E -- "$fail2ban_re"       "$old" || true
     fi >> "$new"
 
-    if [ -n "$ipsec" ]; then
+    if [ "$ipsec" ]; then
         # (Host-to-host) IPSec tunnels come first. TODO: test IPSec with IPv6.
         grep -E -- "$IPSec_re" "$old" >> "$new" || true
 
@@ -213,7 +213,7 @@ run() {
         # Private-use networks (RFC 1918) and link local (RFC 3927)
         local MyNetwork=$( /bin/ip -4 address show dev $if scope global \
                          | sed -nr 's/^\s+inet\s(\S+).*/\1/p')
-        [ -n "$MyNetwork" ] && \
+        [ "$MyNetwork" ] && \
         for ip in 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 169.254.0.0/16; do
             # Don't lock us out if we are behind a NAT ;-)
             [ "$ip" = "$(/usr/bin/netmask -nc $ip $MyNetwork | sed 's/ //g')" ] \
@@ -249,7 +249,7 @@ run() {
     iptables -A INPUT  -i lo -s "$localhost" -d "$localhost" -j ACCEPT
     iptables -A OUTPUT -o lo -s "$localhost" -d "$localhost" -j ACCEPT
 
-    if [ -n "$ipsec" ]; then
+    if [ "$ipsec" ]; then
         # ACCEPT any, *IPSec* traffic destinating to the non-routable
         # $ipsec.  Also ACCEPT all traffic originating from $ipsec, as
         # it is MASQUERADE'd.
@@ -318,7 +318,7 @@ run() {
     ########################################################################
     commit
 
-    if [ -n "$ipsec" ]; then
+    if [ "$ipsec" ]; then
         # DNAT the IPSec paquets to $ipsec after decapsulation, and SNAT
         # them before encapsulation.  We need to do the NAT'ing before
         # packets enter the IPSec stack because they are signed
