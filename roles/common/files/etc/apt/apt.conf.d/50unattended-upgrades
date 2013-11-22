@@ -4,10 +4,19 @@ Unattended-Upgrade::Origins-Pattern {
         // Note that this will silently match a different release after
         // migration to the specified archive (e.g. testing becomes the
         // new stable).
-        "o=${distro_id},a=${distro_codename}";
-//      "o=${distro_id},a=${distro_codename}-updates";
+        // XXX: Sadly as of Wheezy, unattended-upgrades doesn't match
+        // $distro_codename against (old)stable.  Hence since packages
+        // that are candidates for upgrade show up with a=(old)stable,
+        // it is not enough to specifiy a=$distro_codename here.
+        // Instead, we list both oldstable and stable; the useless one
+        // is harmless and is being ignored anyway, as it is not in a
+        // proper sources.list.
+        "o=${distro_id},a=oldstable";
+        "o=${distro_id},a=stable";
+//      "o=${distro_id},a=stable-updates";
 //      "o=${distro_id},a=proposed-updates";
-        "o=${distro_id},a=${distro_codename},l=Debian-Security";
+        "o=${distro_id},a=oldstable,l=Debian-Security";
+        "o=${distro_id},a=stable,l=Debian-Security";
 };
 
 // List of packages to not update
