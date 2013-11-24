@@ -1,0 +1,94 @@
+#!/usr/bin/python
+#
+# Create or update postfix's alias and lookup tables through ansible
+# playbooks.
+#
+# Copyright 2013 Guilhem Moulin <guilhem@fripost.org>
+#
+# Licensed under the GNU GPL version 3 or higher.
+#
+
+try:
+    import selinux
+    HAVE_SELINUX=True
+except ImportError:
+    HAVE_SELINUX=False
+
+
+# Look up for the file suffix corresponding to 'db'. If 'db' is unset,
+# pick the default_detabase_type of the given instance instead.
+def file_suffix(instance, db):
+    if not db:
+        cmd = [ os.path.join(os.sep, 'usr', 'sbin', 'postconf') ]
+        if instance:
+            config = os.path.join(os.sep, 'etc', 'postfix-%s' % instance)
+            cmd.extend([ '-c', config ])
+        cmd.extend([ '-h', 'default_database_type' ])
+        null = open (os.devnull, 'wb')
+        db = subprocess.check_output(cmd, stderr=null).rstrip()
+        null.closed
+
+    # See postmap(1) and postalias(1)
+    suffixes = { 'btree': 'db', 'cdb': 'cdb', 'hash': 'db' }
+    return suffixes[db]
+
+
+# Compile the given (alias/lookup) table
+def compile(cmd, instance, db, src):
+    cmd = [ os.path.join(os.sep, 'usr', 'sbin', cmd) ]
+    if instance:
+        config = os.path.join(os.sep, 'etc', 'postfix-%s' % instance)
+        cmd.extend([ '-c', config ])
+
+    if db:
+        src = "%s:%s" % (db,src)
+
+    cmd.append(src)
+    subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+
+
+def main():
+    module = AnsibleModule(
+        argument_spec = dict(
+            src = dict( required=True ),
+            db  = dict( choices=['btree','cdb','hash'] ),
+            cmd = dict( choices=['postmap','postalias'], default='postmap' ),
+            instance = dict( required=False )
+        ),
+        add_file_common_args=True,
+        supports_check_mode=True
+    )
+
+    params = module.params
+    src = params['src']
+    cmd = params['cmd']
+
+    if os.path.isabs(src):
+        src = src
+    else:
+        module.fail_json(msg="absolute paths are required")
+
+    if not os.path.exists(src):
+        module.fail_json(src=src, msg="no such file")
+
+    try:
+        dst = "%s.%s" % (src, file_suffix(params['instance'], params['db']))
+        params['dest'] = dst
+        file_args = module.load_file_common_arguments(params)
+
+        changed = False
+        msg = None
+        if not os.path.exists(dst) or os.path.getmtime(dst) <= os.path.getmtime(src):
+            changed = True
+            if not module.check_mode:
+                msg = compile( params['cmd'], params['instance'], params['db'], src)
+    except subprocess.CalledProcessError, e:
+        module.fail_json(rv=e.returncode, msg=e.output.rstrip())
+
+    changed = module.set_file_attributes_if_different(file_args, changed)
+    module.exit_json(changed=changed, msg=msg)
+
+
+# this is magic, see lib/ansible/module_common.py
+#<<INCLUDE_ANSIBLE_MODULE_COMMON>>
+main()

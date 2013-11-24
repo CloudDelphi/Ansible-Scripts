@@ -1,0 +1,84 @@
+#!/usr/bin/python
+#
+# Create and manage postfix instances.
+#
+# Copyright 2013 Guilhem Moulin <guilhem@fripost.org>
+#
+# Licensed under the GNU GPL version 3 or higher.
+#
+
+
+# Look up postfix configuration variable
+def postconf(k, instance=None):
+    cmd = [ os.path.join(os.sep, 'usr', 'sbin', 'postconf') ]
+    if instance:
+        config = os.path.join(os.sep, 'etc', 'postfix-%s' % instance)
+        cmd.extend([ '-c', config ])
+    cmd.extend([ '-h', k ])
+    return subprocess.check_output(cmd, stderr=subprocess.STDOUT).rstrip()
+
+
+def main():
+    module = AnsibleModule(
+        argument_spec = dict(
+            instance = dict( required=True ),
+            group    = dict( required=False )
+        ),
+        supports_check_mode=True
+    )
+
+    params = module.params
+    instance = params['instance']
+    group = params['group']
+
+    changed=False
+    try:
+        enable  = postconf('multi_instance_enable')
+        wrapper = postconf('multi_instance_wrapper')
+
+        if enable != "yes" or not wrapper:
+            # Initiate postmulti
+            changed = True
+            if module.check_mode:
+                module.exit_json(changed=changed, msg="init postmulti")
+            cmd = [ os.path.join(os.sep, 'usr', 'sbin', 'postmulti') ]
+            cmd.extend([ '-e', 'init' ])
+            subprocess.check_output(cmd, stderr=subprocess.STDOUT).rstrip()
+
+        instances = postconf('multi_instance_directories').split()
+        if os.path.join(os.sep, 'etc', 'postfix-%s' % instance) not in instances:
+            changed = True
+            # Create the instance
+
+            if module.check_mode:
+                module.exit_json(changed=changed, msg="create postmulti")
+            cmd = [ os.path.join(os.sep, 'usr', 'sbin', 'postmulti') ]
+            cmd.extend([ '-e', 'create' ])
+            if group:
+                cmd.extend([ '-G', group ])
+            cmd.extend([ '-I', 'postfix-%s' % instance ])
+            subprocess.check_output(cmd, stderr=subprocess.STDOUT).rstrip()
+
+        elif group != postconf('multi_instance_group', instance):
+           changed = True
+
+           # Assign a new group, or remove the existing group
+           if module.check_mode:
+               module.exit_json(changed=changed, msg="assign group")
+           cmd = [ os.path.join(os.sep, 'usr', 'sbin', 'postmulti') ]
+           cmd.extend([ '-e', 'assign', '-i', 'postfix-%s' % instance ])
+           if group:
+               cmd.extend([ '-G', group ])
+           else:
+               cmd.extend([ '-G', '-' ])
+           subprocess.check_output(cmd, stderr=subprocess.STDOUT).rstrip()
+
+        module.exit_json(changed=changed)
+
+    except subprocess.CalledProcessError, e:
+        module.fail_json(rv=e.returncode, msg=e.output.rstrip())
+
+
+# this is magic, see lib/ansible/module_common.py
+#<<INCLUDE_ANSIBLE_MODULE_COMMON>>
+main()

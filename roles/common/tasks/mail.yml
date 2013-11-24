@@ -1,0 +1,62 @@
+- name: Install Postfix
+  apt: pkg={{ item }}
+  with_items:
+    # That one is nicer than GNU mailutils' mailx(1)
+    - heirloom-mailx
+    - postfix
+    - postfix-cdb
+    - postfix-pcre
+
+- name: Create Postfix instances
+  postmulti: instance={{ postfix_instance[item].name }}
+             group={{ postfix_instance[item].group | default('') }}
+  register: r1
+  with_items: postfix_instance.keys() | intersect(group_names) | list
+  notify:
+    - Restart Postfix
+
+- name: Define dynamic maps for children instances
+  # main.cf and master.cf are configured in dedicated roles, though
+  file: src=../postfix/dynamicmaps.cf
+        dest=/etc/postfix-{{ postfix_instance[item].name }}/dynamicmaps.cf
+        owner=root group=root state=link
+  register: r2
+  with_items: postfix_instance.keys() | intersect(group_names) | list
+  notify:
+    - Restart Postfix
+
+- name: Configure Postfix (1)
+  copy: src=etc/postfix/{{ item }}
+        dest=/etc/postfix/{{ item }}
+        owner=root group=root
+        mode=0644
+  register: r3
+  with_items:
+    - master.cf
+    - generic.pcre
+  notify:
+    - Reload Postfix
+
+- name: Configure Postfix (2)
+  template: src=etc/postfix/main.cf.j2
+            dest=/etc/postfix/main.cf
+            owner=root group=root
+            mode=0644
+  register: r4
+  notify:
+    - Restart Postfix
+
+- name: Update the static local Postfix database
+  postmap: cmd=postalias src=/etc/aliases db=cdb
+           owner=root group=root
+           mode=0644
+
+# We're using CDB
+- name: Delete /etc/aliases.db
+  file: path=/etc/aliases.db state=absent
+
+- name: Start Postfix
+  service: name=postfix state=started
+  when: not (r1.changed or r2.changed or r3.changed or r4.changed)
+
+- meta: flush_handlers

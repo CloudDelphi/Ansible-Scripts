@@ -1,0 +1,57 @@
+########################################################################
+# Nullmailer configuration
+
+smtpd_banner     = $myhostname ESMTP $mail_name (Debian/GNU)
+biff             = no
+readme_directory = no
+
+myorigin            = /etc/mailname
+myhostname          = {{ ansible_fqdn }}
+mydomain            = {{ ansible_domain }}
+append_dot_mydomain = no
+
+# This server is for internal use only
+mynetworks_style  = host
+inet_interfaces   = loopback-only
+inet_protocols    = ipv4
+# Tunnel everything through IPSec
+smtp_bind_address = 172.16.0.1
+
+# No local delivery
+mydestination        =
+local_transport      = error:5.1.1 Mailbox unavailable
+alias_maps           =
+local_recipient_maps =
+
+# All aliases are virtual
+default_database_type = cdb
+virtual_alias_maps    = cdb:/etc/aliases
+alias_database        = $virtual_alias_maps
+
+# Transform local FQDN addresses to addresses routable on the internet
+smtp_generic_maps = pcre:$config_directory/generic.pcre
+
+# Forward everything to our internal mailhub
+{% if 'MTA-out' in group_names %}
+relayhost = [127.0.0.1]:2525
+{% else %}
+relayhost = [outgoing.fripost.org]:2525
+{% endif %}
+
+# This server is for internal use only; external connections are
+# protected by IPSec already
+smtpd_tls_security_level = none
+smtp_tls_security_level  = none
+
+{% set multi_instance = False %}
+{%- for g in postfix_instance.keys() | sort -%}
+  {%- if g in group_names -%}
+    {%- if not multi_instance -%}
+      {%- set multi_instance = True -%}
+## Other postfix instances
+multi_instance_wrapper     = $command_directory/postmulti -p --
+multi_instance_enable      = yes
+multi_instance_directories =
+    {%- endif %} /etc/postfix-{{ postfix_instance[g].name }}
+  {%- endif %}
+{% endfor %}

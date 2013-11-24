@@ -28,3 +28,10 @@
   # it should be "up" whenever ansible has access to the machine, we use
   # pattern=init as a dummy assumption.
   service: name=networking pattern=init state=reloaded
+
+# TODO: should be in a separate file, since it's used by other roles
+- name: Restart Postfix
+  service: name=postfix state=restarted
+
+- name: Reload Postfix
+  service: name=postfix state=reloaded

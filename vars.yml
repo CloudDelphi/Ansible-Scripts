@@ -1,0 +1,9 @@
+---
+postfix_instance:
+  # The keys are the group names associated with a Postfix role, and the
+  # values are the name and group (optional) of the instance dedicated
+  # to that role.
+  IMAP:    { name: mda                }
+  MX:      { name: mta-in, group: mta }
+  MTA-out: { name: mta-out,group: mta }
+  MSA:     { name: msa                }
