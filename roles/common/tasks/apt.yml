@@ -35,6 +35,12 @@
     - apt.conf.d/10periodic
     - apt.conf.d/50unattended-upgrades
 
+- name: Configure the Debian Security Analyzer
+  template: src=etc/default/debsecan.j2
+            dest=/etc/default/debsecan
+            owner=root group=root
+            mode=0644
+
 - name: Start cron
   service: name=cron state=started
   tags:
