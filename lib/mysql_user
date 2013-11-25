@@ -286,7 +286,7 @@ def privileges_unpack(priv):
                     pieces[0][idx] = "`" + pieces[0][idx] + "`"
             pieces[0] = '.'.join(pieces[0])
 
-        output[pieces[0]] = pieces[1].upper().split(',')
+        output[pieces[0]] = [ g.strip() for g in pieces[1].upper().split(',') ]
 
     if '*.*' not in output:
         output['*.*'] = ['USAGE']
