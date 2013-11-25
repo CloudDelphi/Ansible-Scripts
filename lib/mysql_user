@@ -151,16 +151,39 @@ def user_exists(cursor, user, host):
     count = cursor.fetchone()
     return count[0] > 0
 
-def user_add(cursor, user, host, password, new_priv):
-    cursor.execute("CREATE USER %s@%s IDENTIFIED BY %s", (user,host,password))
+def load_plugin(cursor, plugin):
+    cursor.execute("SELECT count(*) FROM plugin WHERE name = %s", plugin)
+    count = cursor.fetchone()
+    if count[0] == 0:
+        so = "%s.so" % plugin
+        cursor.execute("INSTALL PLUGIN %s SONAME %s", (plugin, so))
+
+def user_add(cursor, user, host, password, new_priv, auth_plugin):
+    if password is None:
+        # Automatically loaded on first first use.
+        load_plugin(cursor, auth_plugin)
+        cursor.execute("CREATE USER %s@%s IDENTIFIED WITH %s", (user,host,auth_plugin))
+    else:
+        cursor.execute("CREATE USER %s@%s IDENTIFIED BY %s", (user,host,password))
     if new_priv is not None:
         for db_table, priv in new_priv.iteritems():
             privileges_grant(cursor, user,host,db_table,priv)
     return True
 
-def user_mod(cursor, user, host, password, new_priv, append_privs):
+def user_mod(cursor, user, host, password, new_priv, append_privs, auth_plugin):
     changed = False
     grant_option = False
+
+    # Handle plugin.
+    if auth_plugin is not None:
+        cursor.execute("SELECT plugin FROM user WHERE user = %s AND host = %s", (user,host))
+        if cursor.fetchone()[0] != auth_plugin:
+            # Sadly there is no proper way to updade the authentication plugin:
+            # http://bugs.mysql.com/bug.php?id=67449
+            cursor.execute( "UPDATE user SET plugin = %s, password = '' WHERE user = %s AND host = %s"
+                          , (auth_plugin,user,host))
+            cursor.execute("FLUSH PRIVILEGES")
+            changed = True
 
     # Handle passwords.
     if password is not None:
@@ -399,6 +422,7 @@ def main():
             priv=dict(default=None),
             append_privs=dict(type="bool", default="no"),
             check_implicit_admin=dict(default=False),
+            auth_plugin=dict(default=None)
         )
     )
     user = module.params["user"]
@@ -408,6 +432,7 @@ def main():
     priv = module.params["priv"]
     check_implicit_admin = module.params['check_implicit_admin']
     append_privs = module.boolean(module.params["append_privs"])
+    auth_plugin = module.params['auth_plugin']
 
     if not mysqldb_found:
         module.fail_json(msg="the python mysqldb module is required")
@@ -449,11 +474,11 @@ def main():
 
     if state == "present":
         if user_exists(cursor, user, host):
-            changed = user_mod(cursor, user, host, password, priv, append_privs)
+            changed = user_mod(cursor, user, host, password, priv, append_privs, auth_plugin)
         else:
-            if password is None:
-                module.fail_json(msg="password parameter required when adding a user")
-            changed = user_add(cursor, user, host, password, priv)
+            if (password is None and auth_plugin is None) or (password is not None and auth_plugin is not None):
+                module.fail_json(msg="password xor auth_plugin is required when adding a user")
+            changed = user_add(cursor, user, host, password, priv, auth_plugin)
     elif state == "absent":
         if user_exists(cursor, user, host):
             changed = user_delete(cursor, user, host)
