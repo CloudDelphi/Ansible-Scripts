@@ -1,0 +1,29 @@
+- name: Install MySQL
+  apt: pkg={{ item }}
+  with_items:
+    # XXX: In non-interactive mode apt-get doesn't put a password on
+    # MySQL's root user; we fix that on the next task, but an intruder
+    # could exploit the race condition and for instance create dummy
+    # users.
+    - mysql-common
+    - mysql-server
+    - python-mysqldb
+
+- name: Force root to use UNIX permissions
+  mysql_user: name=root auth_plugin=auth_socket
+              state=present
+
+- name: Disallow anonymous and TCP/IP root login
+  mysql_user: name={{ item.name|default('') }} host={{ item.host }}
+              state=absent
+  with_items:
+    - {             host: '{{ inventory_hostname_short }}' }
+    - {             host: 'localhost' }
+    - {             host: '127.0.0.1'}
+    - {             host: '::1'}
+    - { name: root, host: '{{ inventory_hostname_short }}' }
+    - { name: root, host: '127.0.0.1'}
+    - { name: root, host: '::1'}
+
+- name: Start MySQL
+  service: name=mysql state=started

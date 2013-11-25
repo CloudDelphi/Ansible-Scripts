@@ -9,3 +9,9 @@
 - include: ipsec.yml    tags=strongswan,ipsec
 - include: logging.yml  tags=logging
 - include: mail.yml     tags=mail,postfix
+- include: sql.yml      tags=mysql,sql
+  # XXX: the conditional here is a bit dirty, because it clutters the
+  # output with 'skipping' notices.
+  when: "'MDA'     in group_names or
+         'webmail' in group_names or
+         'backup'  in group_names"
