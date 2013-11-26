@@ -53,6 +53,7 @@
   openldap: target=/etc/ldap/{{ item }} state=present
   with_items:
     - schema/fripost.ldif
+    # TODO load other required schemas *before* loading the database
     - fripost/database.ldif
 
 - name: Load LDAP modules

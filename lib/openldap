@@ -27,10 +27,8 @@ import re
 
 # Dirty hack to check equality between the targetted LDIF and that
 # currently in the directory.  The value of some configuration (olc*)
-# attributes is automatically indexed when added; for those we remove
-# the index before checking the equality between the two lists of
-# values.
-idxAttr_re = re.compile( '^\{\d+\}(.*)' )
+# attributes is automatically indexed when added; for those we'll add
+# explicit indices to what we find in the LDIF.
 indexedAttributes = frozenset([
     'olcAttributeTypes',
     'olcObjectClasses',
@@ -145,25 +143,36 @@ def processEntry(module, l, dn, entry):
         fst = str2dn(dn).pop(0)[0][0]
         diff = []
         for a,v in e.iteritems():
-            if a == fst:
-                # the first attribute of the DN is implicit
-                continue
             if a not in entry.keys():
-                diff.append((ldap.MOD_DELETE, a, v))
-                continue
-            if a in indexedAttributes:
-                # remove indices
-                v = [ idxAttr_re.search(v1).group(1) for v1 in v ]
-            if v != entry[a]:
-                # TODO: finer grain: we should modify/add/delete
-                # based on couple (attr,value), not attr only.
-                # The difficulty is that we need to preserve the order
-                # if a in indexedAttributes. Maybe we should index
-                # entry[a] instead, and walk on both lists at once?
-                diff.append((ldap.MOD_REPLACE, a, entry[a]))
+                if a != fst:
+                    # delete all values except for the first attribute,
+                    # which is implicit
+                    diff.append(( ldap.MOD_DELETE, a, None ))
+            elif a in indexedAttributes:
+                # add explicit indices in the entry from the LDIF
+                entry[a] = map( (lambda x: '{%d}%s' % x)
+                              , zip(range(len(entry[a])),entry[a]) )
+                if v != entry[a]:
+                    diff.append(( ldap.MOD_REPLACE, a, entry[a] ))
+            elif v != entry[a]:
+                # for non-indexed attribute, we update values in the
+                # symmetric difference only
+                s1 = set(v)
+                s2 = set(entry[a])
+                if s1.isdisjoint(s2):
+                    # replace the former values with the new ones
+                    diff.append(( ldap.MOD_REPLACE, a, entry[a] ))
+                else:
+                    x = list(s1.difference(s2))
+                    if x:
+                        diff.append(( ldap.MOD_DELETE, a, x ))
+                    y = list(s2.difference(s1))
+                    if y:
+                        diff.append(( ldap.MOD_ADD,    a, y ))
 
+        # add attributes that weren't in e
         for a in set(entry).difference(e.keys()):
-            diff.append((ldap.MOD_ADD, a, entry[a]))
+            diff.append(( ldap.MOD_ADD, a, entry[a] ))
 
         if diff:
             changed = True
