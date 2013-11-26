@@ -1,7 +1,6 @@
 ---
 - name: Common tasks
   hosts: all
-  sudo: True
   vars_files:
     - vars.yml
   roles:
