@@ -49,11 +49,11 @@
         owner=root group=root
         mode=0644
 
-- name: Create fripost database and load the schema
+- name: Load fripost's schema and configure the database
   openldap: target=/etc/ldap/{{ item }} state=present
   with_items:
-    - fripost/database.ldif
     - schema/fripost.ldif
+    - fripost/database.ldif
 
 - name: Load LDAP modules
   openldap: module={{ item }}.la state=present
