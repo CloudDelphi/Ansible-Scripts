@@ -1,0 +1,5 @@
+set_cachesize 0 5242880 1
+# 5MB cachesize, allow defragmentation
+set_lk_max_objects 1500
+set_lk_max_locks 1500
+set_lk_max_lockers 1500

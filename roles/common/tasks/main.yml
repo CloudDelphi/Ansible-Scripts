@@ -15,3 +15,9 @@
   when: "'MDA'     in group_names or
          'webmail' in group_names or
          'backup'  in group_names"
+- include: ldap.yml     tags=slapd,ldap
+  when: "'MDA'           in group_names or
+         'MSA'           in group_names or
+         'lists'         in group_names or
+         'LDAP-producer' in group_names or
+         'MX'            in group_names"

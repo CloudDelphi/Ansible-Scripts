@@ -1,0 +1,66 @@
+- name: Install OpenLDAP
+  apt: pkg={{ item }}
+  with_items:
+    - slapd
+    - ldap-utils
+    - ldapvi
+    - db-util
+    - python-ldap
+
+# Upon install slapd create and populate a database under /var/lib/ldap.
+# We clear it up and create a children directory to get finer-grain
+# control.
+- name: Clear empty /var/lib/ldap
+  # Don't remove the database (and fail) if it contains something else
+  # than its suffix or cn=admin,...
+  openldap: dbdirectory=/var/lib/ldap ignoredn=cn=admin
+            state=absent
+
+- name: Create directory /var/lib/ldap/fripost
+  file: path=/var/lib/ldap/fripost
+        owner=openldap group=openldap
+        state=directory
+        mode=0700
+
+- name: Copy /var/lib/ldap/fripost/DB_CONFIG
+  copy: src=var/lib/ldap/fripost/DB_CONFIG
+        dest=/var/lib/ldap/fripost/DB_CONFIG
+        owner=openldap group=openldap
+        mode=0600
+  notify:
+    # Not sure if required
+    - Restart slapd
+
+- name: Create directory /etc/ldap/fripost
+  file: path=/etc/ldap/fripost
+        owner=root group=root
+        state=directory
+        mode=0755
+
+- name: Copy fripost database definition
+  template: src=etc/ldap/database.ldif.j2
+            dest=/etc/ldap/fripost/database.ldif
+            owner=root group=root
+            mode=0600
+
+- name: Copy fripost schema
+  copy: src=etc/ldap/schema/fripost.ldif
+        dest=/etc/ldap/schema/fripost.ldif
+        owner=root group=root
+        mode=0644
+
+- name: Create fripost database and load the schema
+  openldap: target=/etc/ldap/{{ item }} state=present
+  with_items:
+    - fripost/database.ldif
+    - schema/fripost.ldif
+
+- name: Load LDAP modules
+  openldap: module={{ item }}.la state=present
+  with_items:
+    # TODO only if provider
+    - syncprov
+    # TODO only if writable
+    - constraint
+
+# TODO: authz constraint syncprov syncrepl

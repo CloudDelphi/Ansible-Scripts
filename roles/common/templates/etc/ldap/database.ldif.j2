@@ -1,0 +1,487 @@
+# Fripost's LDAP database definition
+# Copyright 2013 Guilhem Moulin <guilhem@fripost.org>
+#
+# Licensed under the GNU GPL version 3 or higher.
+
+dn: olcDatabase=hdb,cn=config
+objectClass: olcDatabaseConfig
+objectClass: olcHdbConfig
+olcDbDirectory: /var/lib/ldap/fripost
+olcSuffix: o=mailHosting,dc=fripost,dc=org
+olcLastMod: TRUE
+olcDbCheckpoint: 512 15
+# Require LDAPv3 protocol and authentication prior to directory
+# operations.
+olcRequires: LDAPv3 authc
+# We don't want to give "canAdd{Alias,List}" write access to alias/list
+# attributes.
+olcAddContentAcl: FALSE
+# The root user has all rights on the whole database (when SASL-binding
+# on a UNIX socket).
+olcRootDN: gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth
+#
+#
+########################################################################
+########################################################################
+# Performance considerations
+#
+# To reindex an existing database, you have to
+#  * Stop slapd     sudo service slapd stop
+#  * Reindex        su openldap -c "slapindex -b 'o=mailHosting,dc=fripost,dc=org'"
+#  * Restart slapd  sudo service slapd start
+#
+# References
+# - https://wiki.zimbra.com/wiki/OpenLDAP_Performance_Tuning_5.0
+# - http://www.openldap.org/doc/admin24/tuning.html
+# - http://www.openldap.org/faq/data/cache/42.html
+# - http://www.openldap.org/faq/data/cache/136.html
+# - http://www.zytrax.com/books/ldap/apa/indeces.html
+#
+olcDbIndex: objectClass eq
+# Let us make Postfix's life easier. TODO: only if MX, lists.f.o, MDA, etc.
+olcDbIndex: fripostIsStatusActive,fvd,fvl,fripostLocalAlias eq
+olcDbIndex: fripostOptionalMaildrop pres
+# SyncProv/SyncRepl specific indexing. TODO: only if SyncProv/SyncRepl
+olcDbIndex: entryCSN,entryUUID eq
+#
+#
+#
+# 1. On single- and dual-core systems, change the maximum number of
+# threads to 8. (The default, 16, is fine for 4- and 8-core systems.)
+#
+#       dn: cn=config
+#       changetype: modify
+#       add: olcThreads
+#       olcThreads: 8
+#
+#
+# 2. It may be a good idea to modify DB_CONFIG, depending on the output
+# of
+#
+#   db_stat -mh /var/lib/ldap/fripost | head -16
+#
+# (For optimal performance, the Requested pages found in the cache
+# should be above 95%, and the dirty/clean pages forced from the cache
+# should be 0.)
+#
+# and
+#
+#   db_stat -ch /var/lib/ldap/fripost | head -16
+#
+# (For optimal performance, usage should be within 85% of the configured
+# values.)
+#
+#
+########################################################################
+########################################################################
+# Access control
+# /!\ WARN: All modification to the ACL should be reflected to the test
+# /!\ suite as well!
+#
+# References:
+# - http://www.openldap.org/doc/admin24/access-control.html
+# - http://www.openldap.org/faq/data/cache/189.html
+# - http://www.openldap.org/faq/data/cache/1140.html
+# - http://www.openldap.org/faq/data/cache/1133.html
+# - man 5 slapd.access
+#
+#
+########################################################################
+# Most common services: Postfix, Amavis, SASLauth, Dovecot
+# (Most used ACLs are cheaper when written first.)
+#
+# Postfix have read access to the attribute they need.
+olcAccess: to dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org"
+        attrs=entry,objectClass,fvd,fvl,fripostMaildrop,fripostOptionalMaildrop,fripostLocalAlias
+        filter=(&(|(objectClass=FripostVirtualDomain)(objectClass=FripostVirtualUser)(objectClass=FripostVirtualAlias)(objectClass=FripostVirtualList)(objectClass=FripostVirtualListCommand))(!(objectClass=FripostPendingEntry))(!(fripostIsStatusActive=FALSE)))
+    by dn.exact="cn=Postfix,ou=services,o=mailHosting,dc=fripost,dc=org" =rsd
+    by users =0 break
+# Search lists and domain owners
+olcAccess: to dn.exact="ou=virtual,o=mailHosting,dc=fripost,dc=org"
+        attrs=entry
+    by dn.exact="cn=Postfix,ou=services,o=mailHosting,dc=fripost,dc=org" =s
+    by dn.exact="gidNumber=8+uidNumber=8,cn=peercred,cn=external,cn=auth" =s
+    by users =0 break
+#
+# Search domain owners / postmasters
+olcAccess: to dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org"
+        attrs=entry,objectClass,fvd,fvl,fripostPostmaster,fripostOwner
+        filter=(&(objectClass=FripostVirtualDomain)(!(objectClass=FripostPendingEntry))(!(fripostIsStatusActive=FALSE)))
+    by dn.exact="gidNumber=8+uidNumber=8,cn=peercred,cn=external,cn=auth" =rsd
+    by users =0 break
+#
+# Anonymous can authenticate into the services. (But not read or write the password.)
+olcAccess: to dn.one="ou=services,o=mailHosting,dc=fripost,dc=org"
+        attrs=userPassword
+    by realanonymous =xd
+#
+# That's necessary for SASL proxy Authorize the web application.
+olcAccess: to dn.exact="cn=AdminWebPanel,ou=services,o=mailHosting,dc=fripost,dc=org"
+        attrs=entry,objectClass,authzTo
+    by realanonymous =x
+#
+# 1. The WebPanel itself cannot bind, read or write passwords. This
+# guarantees that, if an attacker gains its priviledge, it will *not* be
+# able to change user passwords (which would allow him/her to read every
+# emails). This is a trick to tackle the absence of 'realgroup'.
+# 2. Anonymous users can bind.
+# 3. Users can change their password (but not read it).
+# 4. The postmaster of a domain can change (replace) his/her users' password (but not read it).
+olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org)$"
+        filter=(objectClass=FripostVirtualUser)
+        attrs=userPassword
+    by realdn.exact="uid=AdminWebPanel@fripost.org,cn=auth" =0
+    by realanonymous =xd
+    by realself =w
+    by group/FripostVirtualDomain/fripostPostmaster.expand="$1" =w
+    by dn.onelevel="ou=managers,o=mailHosting,dc=fripost,dc=org" =w
+#
+# A catch-all, to be sure that noone else have access to the passwords.
+olcAccess: to dn.subtree="o=mailHosting,dc=fripost,dc=org"
+        attrs=userPassword
+    by * =0
+#
+#
+########################################################################
+# Virtual subtree, pending token and general access
+#
+# 1. Users need further access. We use a set to deny all access to non-users without
+# having a need for an expensive LDAP search (URL) in the AuthzTo.
+# /!\ The objectClass "FripostVirtualUser" is case-sensitive in this case!
+# 2,3. Services that need particular access on the tree.
+# 4. Managers have read/write access to the "virtual" subtree.
+olcAccess: to dn.subtree="ou=virtual,o=mailHosting,dc=fripost,dc=org"
+    by set.exact="user/objectClass & [FripostVirtualUser]" =0 break
+    by dn.exact="cn=CreateList,ou=services,o=mailHosting,dc=fripost,dc=org" =0 break
+    by dn.exact="cn=DeletePendingEntries,ou=services,o=mailHosting,dc=fripost,dc=org" =0 break
+    by dn.onelevel="ou=managers,o=mailHosting,dc=fripost,dc=org" =wrscd
+#
+# Only the domain Postmasters and Owners can delete the 'pending' status on domains.
+olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
+        filter=(&(objectClass=FripostVirtualDomain)(objectClass=FripostPendingEntry))
+        attrs=objectClass val=FripostPendingEntry
+    by dnattr=fripostPostmaster =z break
+    by dnattr=fripostOwner =z break
+    by * =0 break
+#
+# The list creation service can delete the 'pending' status on lists and list commands.
+olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
+        filter=(&(|(objectClass=FripostVirtualList)(objectClass=FripostVirtualListCommand))(objectClass=FripostPendingEntry))
+        attrs=objectClass val=FripostPendingEntry
+    by dn.exact="cn=CreateList,ou=services,o=mailHosting,dc=fripost,dc=org" =z break
+    by * +0 break
+#
+# ObjectClass is a public attribute: everyone can read and search it.
+olcAccess: to dn.subtree="ou=virtual,o=mailHosting,dc=fripost,dc=org"
+        attrs=objectClass
+    by * +rscd
+#
+# The pending token is not public, but domain owner and postmasters can check their and
+# delete it (if the token matches, but the check is done on the library side).
+olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
+        filter=(&(objectClass=FripostVirtualDomain)(objectClass=FripostPendingEntry))
+        attrs=fripostPendingToken
+    by dnattr=fripostPostmaster =zcd break
+    by dnattr=fripostOwner =zcd break
+    by * +0 break
+#
+# The list creation service can delete the 'pending' status on lists and list commands.
+olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
+        filter=(&(|(objectClass=FripostVirtualList)(objectClass=FripostVirtualListCommand))(objectClass=FripostPendingEntry))
+        attrs=fripostPendingToken
+    by dn.exact="cn=CreateList,ou=services,o=mailHosting,dc=fripost,dc=org" +z
+    by * +0
+#
+# The cleaning service can list the (expired) pending entries and delete them.
+olcAccess: to dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org"
+        filter=(objectClass=FripostPendingEntry)
+        attrs=entry
+    by dn.exact="cn=DeletePendingEntries,ou=services,o=mailHosting,dc=fripost,dc=org" =zrd break
+    by * =0 break
+#
+# One can search search everywhere in the virtual tree.
+olcAccess: to dn.subtree="ou=virtual,o=mailHosting,dc=fripost,dc=org"
+        attrs=entry
+    by dn.exact="cn=DeletePendingEntries,ou=services,o=mailHosting,dc=fripost,dc=org" +s
+    by * =s break
+#
+# We're giving away create/delete access on the children attributes, but we will be carefull
+# with the 'entry' permissions.
+olcAccess: to dn.base="ou=virtual,o=mailHosting,dc=fripost,dc=org"
+        filter=(objectClass=FripostVirtual)
+        attrs=children
+    by dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org" =w
+    by dn.exact="cn=DeletePendingEntries,ou=services,o=mailHosting,dc=fripost,dc=org" =z
+olcAccess: to dn.one="ou=virtual,o=mailHosting,dc=fripost,dc=org"
+        filter=(objectClass=FripostVirtualDomain)
+        attrs=children
+    by dn.exact="cn=DeletePendingEntries,ou=services,o=mailHosting,dc=fripost,dc=org" =z
+    by * break
+olcAccess: to dn.one="ou=virtual,o=mailHosting,dc=fripost,dc=org"
+        filter=(&(objectClass=FripostVirtualDomain)(!(objectClass=FripostPendingEntry)))
+        attrs=children
+    by dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org" =w
+#
+# The cleaning service needs to know when entries have been created.
+olcAccess: to dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org"
+        filter=(objectClass=FripostPendingEntry)
+        attrs=createTimestamp
+    by dn.exact="cn=DeletePendingEntries,ou=services,o=mailHosting,dc=fripost,dc=org" =s
+#
+# Users can use these in filters (e.g., to list the entries they have created).
+olcAccess: to dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org"
+        filter=(|(objectClass=FripostVirtualDomain)(objectClass=FripostVirtualUser)(objectClass=FripostVirtualAlias)(objectClass=FripostVirtualList))
+        attrs=fripostOwner,fripostPostmaster,fripostCanAddAlias,fripostCanAddList
+    by dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org" =s break
+#
+#
+########################################################################
+# Virtual subtree, domains
+#
+# 1. The postmaster of a domain can give (or take back) people the right to create
+# aliases.
+# 2,3. People that can create aliases can list the members of the group.
+olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
+        filter=(objectClass=FripostVirtualDomain)
+        attrs=fripostCanAddAlias
+    by dnattr=fripostPostmaster =wrscd
+    by dnattr=fripostOwner =rscd
+    by set.exact="this/fripostCanAddAlias & (user | user/-1)" =rscd
+#
+# 1. The postmaster of a domain can give (or take back) people the right to create lists.
+# 2,3. People that can create lists can list the members of the group.
+olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
+        filter=(objectClass=FripostVirtualDomain)
+        attrs=fripostCanAddList
+    by dnattr=fripostPostmaster =wrscd
+    by dnattr=fripostOwner =rscd
+    by set.exact="this/fripostCanAddList & (user | user/-1)" =rscd
+#
+# 1-3. Noone (but the managers) can appoint domain Owners or Postmasters.
+# But people that can create aliases and lists can list the members of their group.
+olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
+        filter=(objectClass=FripostVirtualDomain)
+        attrs=fripostOwner,fripostPostmaster
+    by dnattr=fripostOwner =rscd
+    by dnattr=fripostPostmaster =rscd
+    by set.exact="(this/fripostCanAddAlias | this/fripostCanAddList) & (user | user/-1)" =rscd
+    by dn.onelevel,expand="$0" +d
+    by * +0
+#
+# 1. Domain owners can edit their entry's attributes.
+# 2. So can domain postmasters.
+# 3. Domain users can read the public domain attributes.
+# 4. So can users with "canAddAlias" or "canAddList" access.
+olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
+        filter=(objectClass=FripostVirtualDomain)
+        attrs=fvd,fripostIsStatusActive,description
+    by dnattr=fripostOwner =wrscd
+    by dnattr=fripostPostmaster =wrscd
+    by dn.onelevel,expand="$0" =rscd
+    by set.exact="(this/fripostCanAddAlias | this/fripostCanAddList) & (user | user/-1)" =rscd
+#
+# 1. Domain owners can edit their entry's attributes.
+# 2. So can domain postmasters.
+olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
+        filter=(objectClass=FripostVirtualDomain)
+        attrs=@fripostVirtualDomain
+    by dnattr=fripostOwner =wrscd
+    by dnattr=fripostPostmaster =wrscd
+    by * +0
+#
+# Users with "addDomain" access can create new entries, but only if
+# there is a pending token.
+olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
+        filter=(&(objectClass=FripostVirtualDomain)(objectClass=FripostPendingEntry)(fripostPendingToken=*))
+        attrs=entry
+    by set.exact="this/-1/fripostCanAddDomain & (user | user/-1)" +a break
+    by * +0 break
+#
+# 1. Domain owners can delete their domain (and read the entry).
+# 2. So can domain postmasters.
+# 3. Domain users can read the domain entry (but not delete it).
+# 4. So can users with "canAddAlias" or "canAddList" rights.
+olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
+        filter=(objectClass=FripostVirtualDomain)
+        attrs=entry
+    by dnattr=fripostOwner +zrd
+    by dnattr=fripostPostmaster +zrd
+    by dn.onelevel,expand="$0" +rd
+    by set.exact="(this/fripostCanAddAlias | this/fripostCanAddList) & (user | user/-1)" +rd
+    by dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org" +0
+#
+# Reserved local parts are reserved. /!\ The case must be insensitive
+# - postmaster: RFC 822, appendix C.6
+# - abuse:      RFC 2142, section 4
+olcAccess: to dn.regex="^fvl=(postmaster|abuse),fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
+    by * =0
+#
+#
+########################################################################
+# Virtual subtree, users
+#
+# Users and their postmaster can read the quota (but not change it).
+olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org)$"
+        filter=(objectClass=FripostVirtualUser)
+        attrs=fripostUserQuota
+    by self =rscd
+    by group/FripostVirtualDomain/fripostPostmaster.expand="$1" =rscd
+#
+# 1. Users can modify their own entry.
+# 2. So can their postmasters.
+olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org)$"
+        filter=(objectClass=FripostVirtualUser)
+        attrs=@FripostVirtualUser
+    by self =wrscd
+    by group/FripostVirtualDomain/fripostPostmaster.expand="$1" =wrscd
+#
+# 1. Users can read their entry (but not delete it).
+# 2. Postmasters can create users (but not delete them).
+# (Provided that they have +a access to the parent's "children" attribute.)
+olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org)$"
+        filter=(objectClass=FripostVirtualUser)
+        attrs=entry
+    by self +rd
+    by group/FripostVirtualDomain/fripostPostmaster.expand="$1" +ard
+#
+#
+########################################################################
+# Virtual subtree, aliases
+#
+# 1. The alias owner can list the ownership of the entry.
+# 2. The domain owner can add/delete/change the ownership of the entry.
+# 3. So can the domain postmasters.
+olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org)$"
+        filter=(objectClass=FripostVirtualAlias)
+        attrs=fripostOwner
+    by dnattr=fripostOwner =rscd continue
+    by group/FripostVirtualDomain/fripostOwner.expand="$1" =wrscd
+    by group/FripostVirtualDomain/fripostPostmaster.expand="$1" =wrscd
+    by * +0
+#
+# 1. The alias owners can edit the rest of their entry's attributes.
+# 2. So can the domain owners.
+# 3. So can the domain postmasters.
+olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org)$"
+        filter=(objectClass=FripostVirtualAlias)
+        attrs=@FripostVirtualAlias
+    by dnattr=fripostOwner =wrscd
+    by group/FripostVirtualDomain/fripostOwner.expand="$1" =wrscd
+    by group/FripostVirtualDomain/fripostPostmaster.expand="$1" =wrscd
+#
+# 1. The alias owners can read and delete the entry.
+# 2. So can the domain owner.
+# 3. So can the domain postmaster.
+# 4. Users with "canAddAlias" access (either explicitely, or as a wildcard) for the domain can create aliases for that domain.
+# (But *not* delete them, unless also owner.)
+olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org)$"
+        filter=(objectClass=FripostVirtualAlias)
+        attrs=entry
+    by dnattr=fripostOwner +zrd continue
+    by group/FripostVirtualDomain/fripostOwner.expand="$1" +wrd
+    by group/FripostVirtualDomain/fripostPostmaster.expand="$1" +wrd
+    by set.exact="this/-1/fripostCanAddAlias & (user | user/-1)" +a
+    by dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org" +0
+#
+#
+########################################################################
+# Virtual subtree, lists
+#
+# 1. The list owner can list the ownership of the entry.
+# 2. The domain owner can add/delete/change the ownership of the entry.
+# 3. So can the domain postmasters.
+olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org)$"
+        filter=(objectClass=FripostVirtualList)
+        attrs=fripostOwner
+    by dnattr=fripostOwner =rscd continue
+    by group/FripostVirtualDomain/fripostOwner.expand="$1" =wrscd
+    by group/FripostVirtualDomain/fripostPostmaster.expand="$1" =wrscd
+    by * +0
+#
+# 1. The list owner read (but not edit) the transport-related attributes.
+# 2. So can the domain ower.
+# 3. So can the domain postmaster.
+olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org)$"
+        filter=(objectClass=FripostVirtualList)
+        attrs=fripostListManager
+    by dnattr=fripostOwner =rscd
+    by group/FripostVirtualDomain/fripostOwner.expand="$1" =rscd
+    by group/FripostVirtualDomain/fripostPostmaster.expand="$1" =rscd
+#
+# Local aliases are for internal use only.
+olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org)$"
+        filter=(objectClass=FripostVirtualList)
+        attrs=fripostLocalAlias
+    by * =0
+#
+# 1. The list owners can edit their entry's attributes.
+# 2. So can the domain owners.
+# 3. So can the domain postmasters.
+olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org)$"
+        filter=(objectClass=FripostVirtualList)
+        attrs=@FripostVirtualList
+    by dnattr=fripostOwner =wrscd
+    by group/FripostVirtualDomain/fripostOwner.expand="$1" =wrscd
+    by group/FripostVirtualDomain/fripostPostmaster.expand="$1" =wrscd
+#
+# 1. The domain owner can create and delete lists, but only those with a 'pending' status
+# 2. So can the domain postmaster.
+# 3. The list owner can delete pending lists.
+# 4. The entry creator can delete pending lists (needed to be able to rollback).
+# 5. People with "canAddList" access can create lists, but only with a 'pending' status.
+# 6. The list creation service can search and browse the entry.
+olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org)$"
+        filter=(&(objectClass=FripostVirtualList)(objectClass=FripostPendingEntry))
+        attrs=entry
+    by group/FripostVirtualDomain/fripostOwner.expand="$1" +w break
+    by group/FripostVirtualDomain/fripostPostmaster.expand="$1" +w break
+    by dnattr=fripostOwner +z continue
+    by dnattr=creatorsName +z continue
+    by set.exact="this/-1/fripostCanAddList & (user | user/-1)" +a break
+    by dn.exact="cn=CreateList,ou=services,o=mailHosting,dc=fripost,dc=org" +rd
+    by * +0 break
+#
+# 1. The domain owner can create and delete list commands, but only those with a 'pending' status
+# 2. So can the domain postmaster.
+# 3. The entry creator can delete pending list commands (needed to be able to rollback).
+# 4. People with "canAddList" access can create list commands, but only with a 'pending' status.
+# 5. The list creation service can search and browse the entry.
+olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org)$"
+        filter=(&(objectClass=FripostVirtualListCommand)(objectClass=FripostPendingEntry))
+        attrs=entry
+    by group/FripostVirtualDomain/fripostOwner.expand="$1" +w
+    by group/FripostVirtualDomain/fripostPostmaster.expand="$1" +w
+    by dnattr=creatorsName +z continue
+    by set.exact="this/-1/fripostCanAddList & (user | user/-1)" +a
+    by dn.exact="cn=CreateList,ou=services,o=mailHosting,dc=fripost,dc=org" +rd
+    by * +0
+#
+# 1. The list owners can read the entry.
+# 2. So can the domain's Owner.
+# 3. So can the domain's Postmaster.
+olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org)$"
+        filter=(objectClass=FripostVirtualList)
+        attrs=entry
+    by dnattr=fripostOwner +rd
+    by group/FripostVirtualDomain/fripostOwner.expand="$1" +rd
+    by group/FripostVirtualDomain/fripostPostmaster.expand="$1" +rd
+    by * +0
+#
+#
+########################################################################
+# Catchall
+#
+# Users with "canAddDomain" access can see that they have the right
+# to create domains.
+olcAccess: to dn.base="ou=virtual,o=mailHosting,dc=fripost,dc=org"
+        filter=(objectClass=FripostVirtual)
+        attrs=entry
+    by dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org" +rd
+olcAccess: to dn.base="ou=virtual,o=mailHosting,dc=fripost,dc=org"
+        filter=(objectClass=FripostVirtual)
+        attrs=fripostCanAddDomain
+    by set.exact="this/fripostCanAddDomain & (user | user/-1)" =rscd
+# Catch the break above
+olcAccess: to dn.subtree="ou=virtual,o=mailHosting,dc=fripost,dc=org"
+    by dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org" +0
+# vim: set filetype=ldif :

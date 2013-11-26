@@ -1,0 +1,179 @@
+# Fripost's LDAP schema
+# Copyright 2013 Guilhem Moulin <guilhem@fripost.org>
+#
+# Licensed under the GNU GPL version 3 or higher.
+
+# Load this file with
+#
+#   ldapadd -Y EXTERNAL -H ldapi:/// -f fripost.ldif
+#
+# It will load the schema. To perform modifications, the easiest way is to
+#
+#  * Save the database:      slapcat -b 'o=mailHosting,dc=fripost,dc=dev' > /tmp/db.ldif
+#  * Save the configuration: slapcat -n0 > /tmp/config.ldif
+#  * Backup slap.d:          cp -a /etc/ldap/slapd.d/ /tmp/slap.d_back
+#  * Edit the schema in /tmp/config.ldif
+#  * Load the new config:    mkdir -m 0700 /tmp/slapd.d_new && slapadd -F /tmp/slapd.d_new -n0 -l /tmp/config.ldif
+#  * Stop slapd:             /etc/init.d/slapd stop
+#  * Load the new config:    rm -rf /etc/ldap/slapd.d/ && mv /tmp/slapd.d_new /etc/ldap/slapd.d && chown -R openldap:openldap /etc/ldap/slapd.d
+#  * Create indexes:         sudo -u openldap slapindex -b 'o=mailHosting,dc=fripost,dc=dev'
+#  * Start slapd:            /etc/init.d/slapd start
+#    If it fails, remove the existing database and see what's wrong
+#                 rm -rf /var/lib/ldap/dev/* && sudo -u openldap slapadd -b 'o=mailHosting,dc=fripost,dc=org' -l /tmp/db.ldif
+#
+#
+# /!\ WARN: All modification to the ACL should be reflected to the test
+# /!\ suite as well!
+#
+#
+# References:
+# - http://courier.svn.sourceforge.net/svnroot/courier/trunk/courier-authlib/authldap.schema
+# - http://www.qmail-ldap.org/wiki/index.php/Qmail.schema
+# - http://www.wanderingbarque.com/howtos/mailserver/mailserver.html
+
+
+# 1.3.6.1.4.1.40011        Fripost's OID
+# 1.3.6.1.4.1.40011.1
+# 1.3.6.1.4.1.40011.1.2    fripost LDAP Elements
+# 1.3.6.1.4.1.40011.1.2.1  AttributeTypes
+# 1.3.6.1.4.1.40011.1.2.2  ObjectClasses
+# 1.3.6.1.4.1.40011.1.2.3  Syntax Definitions
+
+# This schema depends on:
+# - core.schema
+# - cosine.schema
+# - nis.schema
+
+
+dn: cn=fripost-master,cn=schema,cn=config
+objectClass: olcSchemaConfig
+#
+# Attributes: 1.3.6.1.4.1.40011.1.1
+#
+olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.1 NAME 'fvd'
+    DESC 'A virtual mail domain'
+    EQUALITY caseIgnoreIA5Match
+    SUBSTR caseIgnoreIA5SubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} SINGLE-VALUE )
+#
+olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.2 NAME 'fvl'
+    DESC 'The local part of a virtual user, alias, list or list command'
+    EQUALITY caseIgnoreIA5Match
+    SUBSTR caseIgnoreIA5SubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{64} SINGLE-VALUE )
+#
+# This is redundant since we always use DNs of the form
+#     fvl=localpart,fvd=domainpart.tld,...
+# (But Postfix doesn't allow the use of '%u' and '%d' from the query in
+# its 'result_format'.)
+# It is a priori insecure to allow arbitrary values here since users
+# will modify this value themselves, however our Postfix will only
+# accept well-formed values, enforced by a custom filter:
+#    query_filter = (&...(fripostLocalAlias=%u#%d))
+#    result_attribute = fripostLocalAlias
+olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.3 NAME 'fripostLocalAlias'
+    DESC 'A local alias, typically localpart#domainpart.tld'
+    EQUALITY caseIgnoreIA5Match
+    SUBSTR caseIgnoreIA5SubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{64} SINGLE-VALUE )
+#
+olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.4 NAME 'fripostMaildrop'
+    DESC 'An email address the virtual alias should be mapped to'
+    EQUALITY caseIgnoreIA5Match
+    SUBSTR caseIgnoreIA5SubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} )
+#
+# We are creating a new attribute, optional in virtual domains and
+# users, because the presence index should *not* apply to the
+# mandatory attribute above.
+olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.5 NAME 'fripostOptionalMaildrop'
+    DESC 'An optional email address for catch-all aliases on domains and users'
+    EQUALITY caseIgnoreIA5Match
+    SUBSTR caseIgnoreIA5SubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} )
+#
+olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.6 NAME 'fripostIsStatusActive'
+    DESC 'When present, a token locking the entry in an inactive state'
+    EQUALITY booleanMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE )
+#
+olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.7 NAME 'fripostPendingToken'
+    DESC 'Is the entry pending?'
+    EQUALITY caseExactMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{64} SINGLE-VALUE )
+#
+olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.8 NAME 'fripostUserQuota'
+    DESC 'The quota on a user e.g., "50MB"'
+    EQUALITY caseExactMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{32} SINGLE-VALUE )
+#
+olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.9 NAME 'fripostCanAddDomain'
+    DESC 'A user/domain that can add domains'
+    SUP distinguishedName )
+#
+olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.10 NAME 'fripostCanAddAlias'
+    DESC 'A user/domain that can add aliases under the parent domain'
+    SUP distinguishedName )
+#
+olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.11 NAME 'fripostCanAddList'
+    DESC 'A user/domain that can add lists under the parent domain'
+    SUP distinguishedName )
+#
+olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.12 NAME 'fripostOwner'
+    DESC 'A user that owns under parent domain'
+    SUP distinguishedName )
+#
+olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.13 NAME 'fripostPostmaster'
+    DESC 'A user that is a postmaster of the parent domain'
+    SUP distinguishedName )
+#
+olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.14 NAME 'fripostListManager'
+    DESC 'The list manager'
+    EQUALITY caseIgnoreMatch
+    SUBSTR caseIgnoreSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{64} SINGLE-VALUE )
+#
+#
+# Objects: 1.3.6.1.4.1.40011.1.2
+#
+olcObjectClasses: ( 1.3.6.1.4.1.40011.1.2.1 NAME 'FripostVirtual'
+    AUXILIARY
+    DESC 'Virtual mail hosting'
+    MAY ( fripostCanAddDomain ) )
+#
+olcObjectClasses: ( 1.3.6.1.4.1.40011.1.2.2 NAME 'FripostVirtualDomain'
+    SUP top STRUCTURAL
+    DESC 'Virtual domain'
+    MUST ( fvd $ fripostIsStatusActive )
+    MAY ( fripostCanAddAlias $ fripostCanAddList $
+          fripostOwner $ fripostPostmaster $
+          fripostOptionalMaildrop $ description ) )
+#
+# | TODO: add limits here
+olcObjectClasses: ( 1.3.6.1.4.1.40011.1.2.3 NAME 'FripostVirtualUser'
+    SUP top STRUCTURAL
+    DESC 'Virtual user'
+    MUST ( fvl $ userPassword $ fripostIsStatusActive )
+    MAY ( fripostUserQuota $ fripostOptionalMaildrop $ description) )
+#
+olcObjectClasses: ( 1.3.6.1.4.1.40011.1.2.4 NAME 'FripostVirtualAlias'
+    SUP top STRUCTURAL
+    DESC 'Virtual alias'
+    MUST ( fvl $ fripostMaildrop $ fripostIsStatusActive )
+    MAY ( fripostOwner $ description ) )
+#
+olcObjectClasses: ( 1.3.6.1.4.1.40011.1.2.5 NAME 'FripostVirtualList'
+    SUP top STRUCTURAL
+    DESC 'Virtual list'
+    MUST ( fvl $ fripostListManager $ fripostIsStatusActive $ fripostLocalAlias )
+    MAY ( fripostOwner $ description ) )
+#
+olcObjectClasses: ( 1.3.6.1.4.1.40011.1.2.6 NAME 'FripostVirtualListCommand'
+    SUP top STRUCTURAL
+    DESC 'Virtual list command'
+    MUST ( fvl $ fripostLocalAlias ) )
+#
+olcObjectClasses: ( 1.3.6.1.4.1.40011.1.2.7 NAME 'FripostPendingEntry'
+    SUP top AUXILIARY
+    DESC 'Virtual pending entry'
+    MAY ( fripostPendingToken ) )
