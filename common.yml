@@ -1,7 +1,27 @@
 ---
+# XXX: This organization is unfortunate. As of Ansible 1.4, roles are
+# applied playbook by playbook and not globally for the whole inventory;
+# therefore if two playbooks are given the role 'common', the tasks
+# defined in 'common' would be run twice.
+# The quickfix to ensure that plays are role-disjoint is to create a
+# separate play for each role. Of course the downside is that we loose
+# (most of) the advantage of roles...
+
 - name: Common tasks
   hosts: all
-  vars_files:
-    - vars.yml
   roles:
     - common
+
+- name: Common SQL tasks
+  hosts: MDA:webmail:backup
+  gather_facts: False
+  tags: mysql,sql
+  roles:
+    - common-SQL
+
+- name: Common LDAP tasks
+  hosts: MDA:MSA:lists:LDAP-producer:MX
+  gather_facts: False
+  tags: slapd,ldap
+  roles:
+    - common-LDAP
