@@ -111,14 +111,14 @@ olcAccess: to dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org"
 olcAccess: to dn.exact="ou=virtual,o=mailHosting,dc=fripost,dc=org"
         attrs=entry
     by dn.exact="cn=Postfix,ou=services,o=mailHosting,dc=fripost,dc=org" =s
-    by dn.exact="gidNumber=8+uidNumber=8,cn=peercred,cn=external,cn=auth" =s
+    by dn.exact="username=postfix,cn=peercred,cn=external,cn=auth" =s
     by users =0 break
 #
 # Search domain owners / postmasters
 olcAccess: to dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org"
         attrs=entry,objectClass,fvd,fvl,fripostPostmaster,fripostOwner
         filter=(&(objectClass=FripostVirtualDomain)(!(objectClass=FripostPendingEntry))(!(fripostIsStatusActive=FALSE)))
-    by dn.exact="gidNumber=8+uidNumber=8,cn=peercred,cn=external,cn=auth" =rsd
+    by dn.exact="username=postfix,cn=peercred,cn=external,cn=auth" =rsd
     by users =0 break
 #
 # Anonymous can authenticate into the services. (But not read or write the password.)

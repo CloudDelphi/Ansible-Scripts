@@ -22,7 +22,7 @@ from ldap.dn      import dn2str,explode_dn,str2dn
 from ldap.modlist import addModlist
 from ldif         import LDIFParser
 from functools    import partial
-import re
+import re, pwd
 
 
 # Dirty hack to check equality between the targetted LDIF and that
@@ -46,6 +46,28 @@ indexedDN = {
     'olcSchemaConfig': [('cn',             '{*}%s')],
     'olcHdbConfig':    [('olcDbDirectory', '%s'   )],
 }
+
+# Allow for flexible ACLs for user using SASL's EXTERNAL mechanism.
+# "username=postfix,cn=peercred,cn=external,cn=auth" is replaced by
+# "gidNumber=106+uidNumber=102,cn=peercred,cn=external,cn=auth" where
+# 102 is postfix's UID and 106 its primary GID.
+# (Regular expressions are not allowed.)
+sasl_ext_re = re.compile( r"""(?P<start>\sby\s+dn(?:\.exact)?)=
+                              (?P<quote>['\"]?)username=(?P<user>[a-z][-a-z0-9_]*),
+                              (?P<end>cn=peercred,cn=external,cn=auth)
+                              (?P=quote)\s"""
+                        , re.VERBOSE )
+pwd_dict = {}
+
+def acl_sasl_ext(m):
+    u = m.group('user')
+    if u not in pwd_dict.keys():
+        pwd_dict[u] = pwd.getpwnam(u)
+    return '%s="gidNumber=%d+uidNumber=%d,%s" ' % ( m.group('start')
+                                                  , pwd_dict[u].pw_gid
+                                                  , pwd_dict[u].pw_uid
+                                                  , m.group('end')
+                                                  )
 
 
 # Run the given callback on each DN seen.  If its return value is not
@@ -149,6 +171,11 @@ def processEntry(module, l, dn, entry):
                     # which is implicit
                     diff.append(( ldap.MOD_DELETE, a, None ))
             elif a in indexedAttributes:
+                if a == 'olcAccess':
+                    # replace "username=...,cn=peercred,cn=external,cn=auth"
+                    # by a DN with proper gidNumber and uidNumber
+                    entry[a] = map ( partial(re.sub, sasl_ext_re, acl_sasl_ext)
+                                   , entry[a] )
                 # add explicit indices in the entry from the LDIF
                 entry[a] = map( (lambda x: '{%d}%s' % x)
                               , zip(range(len(entry[a])),entry[a]) )
@@ -310,6 +337,8 @@ def main():
         module.fail_json(rv=e.returncode, msg=e.output.rstrip())
     except ldap.LDAPError, e:
         module.fail_json(msg=e.args[0]['info'])
+    except KeyError, e:
+        module.fail_json(msg=str(e))
 
     module.exit_json(changed=changed)
 
