@@ -68,8 +68,10 @@ def main():
     )
 
     params = module.params
-    src = params['src']
-    cmd = params['cmd']
+    src      = params['src']
+    db       = params['db']
+    cmd      = params['cmd']
+    instance = params['instance']
 
     if os.path.isabs(src):
         src = src
@@ -80,7 +82,7 @@ def main():
         module.fail_json(src=src, msg="no such file")
 
     try:
-        dst = "%s.%s" % (src, file_suffix(params['instance'], params['db']))
+        dst = "%s.%s" % (src, file_suffix(instance, db))
         params['dest'] = dst
         file_args = module.load_file_common_arguments(params)
 
@@ -89,7 +91,7 @@ def main():
         if not os.path.exists(dst) or os.path.getmtime(dst) <= os.path.getmtime(src):
             changed = True
             if not module.check_mode:
-                msg = compile( params['cmd'], params['instance'], params['db'], src)
+                msg = compile( cmd, instance, db, src)
     except subprocess.CalledProcessError, e:
         module.fail_json(rv=e.returncode, msg=e.output.rstrip())
 
