@@ -23,10 +23,9 @@ olcLastMod: TRUE
 olcDbCheckpoint: 512 15
 # Require LDAPv3 protocol and authentication prior to directory
 # operations.
-olcRequires: LDAPv3 authc
-# We don't want to give "canAdd{Alias,List}" write access to alias/list
-# attributes.
-olcAddContentAcl: FALSE
+olcRequires: LDAPv3
+# TODO: how 'olcAddContentAcl' affects the test suite?
+olcAddContentAcl: TRUE
 # The root user has all rights on the whole database (when SASL-binding
 # on a UNIX socket).
 olcRootDN: gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth
@@ -98,24 +97,25 @@ olcDbIndex: entryCSN,entryUUID eq
 #
 #
 ########################################################################
-# Most common services: Postfix, Amavis, SASLauth, Dovecot
+# Most common services: Postfix, Amavis, Dovecot
 # (Most used ACLs are cheaper when written first.)
 #
-# Postfix have read access to the attribute they need.
+# Postfix have read access to the attribute it needs when eg, doing
+# alias resolution.
 olcAccess: to dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org"
         attrs=entry,objectClass,fvd,fvl,fripostMaildrop,fripostOptionalMaildrop,fripostLocalAlias
         filter=(&(|(objectClass=FripostVirtualDomain)(objectClass=FripostVirtualUser)(objectClass=FripostVirtualAlias)(objectClass=FripostVirtualList)(objectClass=FripostVirtualListCommand))(!(objectClass=FripostPendingEntry))(!(fripostIsStatusActive=FALSE)))
     by dn.exact="cn=Postfix,ou=services,o=mailHosting,dc=fripost,dc=org" =rsd
-    by dn.exact="username=postfix,cn=peercred,cn=external,cn=auth" =rsd
+    by realanonymous =rsd
     by users =0 break
 #
-# Search lists and domain owners
+# Postfix needs to look up lists' local aliases.
 olcAccess: to dn.exact="ou=virtual,o=mailHosting,dc=fripost,dc=org"
         attrs=entry
-    by dn.exact="username=postfix,cn=peercred,cn=external,cn=auth" =s
+    by realanonymous =s
     by users =0 break
 #
-# Search domain owners / postmasters
+# Search domain owners / postmasters (used by reserved-alias.pl).
 olcAccess: to dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org"
         attrs=entry,objectClass,fvd,fvl,fripostPostmaster,fripostOwner
         filter=(&(objectClass=FripostVirtualDomain)(!(objectClass=FripostPendingEntry))(!(fripostIsStatusActive=FALSE)))
@@ -128,7 +128,7 @@ olcAccess: to dn.one="ou=services,o=mailHosting,dc=fripost,dc=org"
         attrs=userPassword
     by realanonymous =xd
 #
-# That's necessary for SASL proxy Authorize the web application.
+# The following is required for SASL proxy Authorize the web application.
 olcAccess: to dn.exact="cn=AdminWebPanel,ou=services,o=mailHosting,dc=fripost,dc=org"
         attrs=entry,objectClass,authzTo
     by realanonymous =x

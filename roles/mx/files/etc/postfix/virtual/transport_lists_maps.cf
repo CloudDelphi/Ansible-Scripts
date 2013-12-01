@@ -5,8 +5,7 @@ server_host      = ldapi://%2Fprivate%2Fldapi/
 version          = 3
 search_base      = ou=virtual,o=mailHosting,dc=fripost,dc=org
 scope            = sub
-bind             = sasl
-sasl_mechs       = EXTERNAL
+bind             = none
 query_filter     = (&(|(ObjectClass=FripostVirtualList)(ObjectClass=FripostVirtualListCommand))(fripostLocalAlias=%s))
 result_attribute = fripostLocalAlias
 result_format    = smtp:[127.0.0.1]:2345
