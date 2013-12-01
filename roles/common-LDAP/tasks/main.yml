@@ -7,6 +7,15 @@
     - db-util
     - python-ldap
 
+- name: Configure slapd
+  template: src=etc/default/slapd.j2
+            dest=/etc/default/slapd
+            owner=root group=root
+            mode=0644
+  register: r1
+  notify:
+    - Restart slapd
+
 # Upon install slapd create and populate a database under /var/lib/ldap.
 # We clear it up and create a children directory to get finer-grain
 # control.
@@ -27,6 +36,7 @@
         dest=/var/lib/ldap/fripost/DB_CONFIG
         owner=openldap group=openldap
         mode=0600
+  register: r2
   notify:
     # Not sure if required
     - Restart slapd
@@ -63,5 +73,11 @@
     - syncprov
     # TODO only if writable
     - constraint
+
+- name: Start slapd
+  service: name=slapd state=started
+  when: not (r1.changed or r2.changed)
+
+- meta: flush_handlers
 
 # TODO: authz constraint syncprov syncrepl
