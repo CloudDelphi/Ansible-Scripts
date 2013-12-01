@@ -4,7 +4,7 @@ postfix_instance:
   # values are the name and group (optional) of the instance dedicated
   # to that role.
   IMAP:    { name: mda                }
-  MX:      { name: mta-in, group: mta }
+  MX:      { name: mx,     group: mta }
   MTA-out: { name: mta-out,group: mta }
   MSA:     { name: msa                }
 

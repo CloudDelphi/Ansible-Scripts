@@ -16,6 +16,10 @@ action = %(action_)s
 #
 # JAILS
 #
+# There is no risk to lock ourself out, since traffic between our machines goes
+# through IPSec, and these packets are accepted before having a chance to enter
+# fail2ban's chain.
+#
 
 [ssh]
 
@@ -47,3 +51,13 @@ banaction = iptables-allports
 port      = anyport
 logpath   = /var/log/auth.log
 maxretry  = 6
+
+{% if 'MX' in group_names %}
+[postfix]
+
+enabled  = true
+port     = smtp
+filter   = postfix
+logpath  = /var/log/mail.log
+maxretry = 10
+{% endif %}

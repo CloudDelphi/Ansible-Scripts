@@ -1,0 +1,9 @@
+server_host      = ldapi://%2Fprivate%2Fldapi/
+version          = 3
+search_base      = fvd=%s,ou=virtual,o=mailHosting,dc=fripost,dc=org
+scope            = base
+bind             = sasl
+sasl_mechs       = EXTERNAL
+query_filter     = (&(ObjectClass=FripostVirtualDomain)(fvd=%s))
+result_attribute = fvd
+result_format    = OK

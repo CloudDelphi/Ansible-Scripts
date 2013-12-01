@@ -1,0 +1,75 @@
+- name: Install Postfix & Postgrey
+  apt: pkg={{ item }}
+  with_items:
+    - postfix
+    - postfix-pcre
+    - postfix-ldap
+    - postgrey
+    - libnet-ldap-perl
+    - libauthen-sasl-perl
+
+- name: Configure Postgrey
+  lineinfile: dest=/etc/default/postgrey
+              regexp='^POSTGREY_OPTS='
+              line='POSTGREY_OPTS="--privacy --unix=/var/spool/postfix-{{ postfix_instance[inst].name }}/private/postgrey"'
+              owner=root group=root
+              mode=0644
+  register: r
+  notify:
+    - Restart Postgrey
+
+- name: Start Postgrey
+  service: name=postgrey state=started
+  when: not r.changed
+
+- meta: flush_handlers
+
+- name: Configure Postfix
+  template: src=etc/postfix/main.cf.j2
+            dest=/etc/postfix-{{ postfix_instance[inst].name }}/main.cf
+            owner=root group=root
+            mode=0644
+  register: r
+  notify:
+    - Restart Postfix
+
+- name: Create directory /etc/postfix-.../virtual
+  file: path=/etc/postfix-{{ postfix_instance[inst].name }}/virtual
+        owner=root group=root
+        state=directory
+        mode=0755
+
+- name: Copy lookups tables
+  copy: src=etc/postfix/virtual/{{ item }}
+        dest=/etc/postfix-{{ postfix_instance[inst].name }}/virtual/{{ item }}
+        owner=root group=root
+        mode=0644
+  with_items:
+    - mailbox_domains.cf
+    - reserved_maps.pcre
+    - alias_maps.cf
+    - lists_maps.cf
+    - alias_catchall_maps.cf
+    - mailbox_maps.cf
+    - reserved_transport_maps
+    - transport_lists_maps.cf
+  notify:
+    - Restart Postfix
+
+- name: Compile the Reserved Transport Maps
+  postmap: cmd=postalias instance={{ postfix_instance[inst].name }}
+           src=/etc/postfix-{{ postfix_instance[inst].name }}/virtual/reserved_transport_maps db=cdb
+           owner=root group=root
+           mode=0644
+
+- name: Copy reserved-alias.pl
+  copy: src=usr/local/sbin/reserved-alias.pl
+        dest=/usr/local/sbin/reserved-alias.pl
+        owner=root group=root
+        mode=0755
+
+- name: Start Postfix
+  service: name=postfix state=started
+  when: not r.changed
+
+- meta: flush_handlers

@@ -1,0 +1,5 @@
+# These reserved aliases will always be redirected to us and the domain
+# owner.
+# TODO: check 'postmaster+test@fripost.org'
+/^(?:postmaster|abuse)(?:\+.*)?@fripost\.org$/ admin@fripost.org
+/^((?:postmaster|abuse)(?:\+.*)?)@/            $1

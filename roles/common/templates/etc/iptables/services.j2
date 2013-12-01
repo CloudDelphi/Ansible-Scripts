@@ -5,9 +5,13 @@
 # (in|out|inout)[46]?    (tcp|udp|..) (port|port:port|port,port)  (port|port:port|port,port)
 
 inout   udp     500    500                              # ISAKMP
-
-in      tcp     {{ ansible_ssh_port|default('22') }}    # SSH
+#inout   udp     4500    4500    # IPSec NAT Traversal
 
 out     tcp     80,443                                  # HTTP/HTTPS
 out     udp     53                                      # DNS
 out     udp     67                                      # DHCP
+
+in      tcp     {{ ansible_ssh_port|default('22') }}    # SSH
+{% if 'MX' in group_names %}
+in      tcp     25                                      # SMTP
+{% endif %}
