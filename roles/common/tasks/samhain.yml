@@ -1,12 +1,14 @@
 - name: Install samhain
-  apt: pkg=samhain
+  apt: pkg={{ item }}
+  with_items:
+    - samhain
+    - auditd
   # XXX: Doesn't work out of the box, see #660197.
-  # If this is the first installation, you may want to start with a fresh database
-  #   sudo service samhain stop
-  #   sudo rm /var/state/samhain/samhain_file
-  #   sudo samhain -t init -p warn
-  #   sudo service samhain start
-  #   sudo samhain -t update -l none
+  # Every once in a while, or after a major upgrade, you may want to
+  # update Samhain's database (to avoid being flooded at the next
+  # reboot):
+  #
+  #     sudo samhain -t update --foreground -m none
 
 - name: Configure samhain
   copy: src=etc/samhain/samhainrc

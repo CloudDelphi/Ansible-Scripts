@@ -43,6 +43,10 @@ relayhost = [outgoing.fripost.org]:2525
 smtpd_tls_security_level = none
 smtp_tls_security_level  = none
 
+# Turn off all TCP/IP listener ports except that dedicated to
+# samhain(8), which sadly cannot use pickup through the sendmail binary.
+master_service_disable = !16132.inet inet
+
 {% set multi_instance = False %}
 {%- for g in postfix_instance.keys() | sort -%}
   {%- if g in group_names -%}

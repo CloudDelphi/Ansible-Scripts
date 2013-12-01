@@ -512,7 +512,7 @@ ChecksumTest=check
 ## and I/O limit (kilobytes per second; 0 == off)
 ## to reduce load on host.
 #
-# SetNiceLevel = 0
+SetNiceLevel = 19
 # SetIOLimit = 0
 
 ## The version string to embed in file signature databases
@@ -522,7 +522,7 @@ ChecksumTest=check
 ## Interval between time stamp messages
 #
 # SetLoopTime = 60
-SetLoopTime = 600
+SetLoopTime = 21600
 
 ## Interval between file checks 
 #
@@ -541,7 +541,7 @@ SetFileCheckTime = 7200
 ## Setting this to 'FALSE' will generate a report for any policy 
 ## violation (old and new ones) each time the daemon checks the file system.
 #
-# ReportOnlyOnce = True
+ReportOnlyOnce = True
 
 ## Report in full detail
 #
@@ -591,7 +591,12 @@ SetMailAddress = admin@fripost.org
 
 ## Mail relay (IP address)
 #
+# XXX: it's unfortunate that samhain cannot use the sendmail binary. We
+# use a custom port here to avoid conflicts with the usual SMTP port the
+# MX:es need to listen on.
+# See also: /usr/share/doc/samhain/TODO.Debian
 SetMailRelay = 127.0.0.1
+SetMailPort = 16132
 
 ## Custom subject format
 #
