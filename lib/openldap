@@ -336,7 +336,14 @@ def main():
     except subprocess.CalledProcessError, e:
         module.fail_json(rv=e.returncode, msg=e.output.rstrip())
     except ldap.LDAPError, e:
-        module.fail_json(msg=e.args[0]['info'])
+        e = e.args[0]
+        if 'info' in e.keys():
+            msg = e['info']
+        elif 'desc' in e.keys():
+            msg = e['desc']
+        else:
+            msg = str(e)
+        module.fail_json(msg=msg)
     except KeyError, e:
         module.fail_json(msg=str(e))
 
