@@ -15,13 +15,16 @@
   notify:
     - Restart Postfix
 
-- name: Define dynamic maps for children instances
-  # main.cf and master.cf are configured in dedicated roles, though
-  file: src=../postfix/dynamicmaps.cf
-        dest=/etc/postfix-{{ postfix_instance[item].name }}/dynamicmaps.cf
-        owner=root group=root state=link
+- name: Link the dynamic maps & master.cf of each children to the master's
+  # main.cf is specialized to each dedicated role, though
+  file: src=../postfix/{{ item.1 }}
+        dest=/etc/postfix-{{ postfix_instance[item.0].name }}/{{ item.1 }}
+        owner=root group=root
+        state=link force=yes
   register: r2
-  with_items: postfix_instance.keys() | intersect(group_names) | list
+  with_nested:
+    - postfix_instance.keys() | intersect(group_names) | list
+    - [ 'dynamicmaps.cf', 'master.cf' ]
   notify:
     - Restart Postfix
 

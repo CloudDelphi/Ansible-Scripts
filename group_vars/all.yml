@@ -7,3 +7,6 @@ postfix_instance:
   MX:      { name: mta-in, group: mta }
   MTA-out: { name: mta-out,group: mta }
   MSA:     { name: msa                }
+
+MTA_out: { IPv4: outgoing.fripost.org, port: 2525 }
+LDA:     { IPv4: lda.fripost.org,      port: 2526 }
