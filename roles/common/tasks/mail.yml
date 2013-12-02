@@ -33,7 +33,6 @@
         dest=/etc/postfix/{{ item }}
         owner=root group=root
         mode=0644
-  register: r3
   with_items:
     - master.cf
     - generic.pcre
@@ -45,7 +44,7 @@
             dest=/etc/postfix/main.cf
             owner=root group=root
             mode=0644
-  register: r4
+  register: r3
   notify:
     - Restart Postfix
 
@@ -60,6 +59,6 @@
 
 - name: Start Postfix
   service: name=postfix state=started
-  when: not (r1.changed or r2.changed or r3.changed or r4.changed)
+  when: not (r1.changed or r2.changed or r3.changed)
 
 - meta: flush_handlers

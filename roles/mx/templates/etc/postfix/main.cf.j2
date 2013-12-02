@@ -23,7 +23,7 @@ master_service_disable = !smtp.inet inet
 
 queue_directory       = /var/spool/postfix-{{ postfix_instance[inst].name }}
 data_directory        = /var/lib/postfix-{{ postfix_instance[inst].name }}
-multi_instance_group  = {{ postfix_instance[inst].group }}
+multi_instance_group  = {{ postfix_instance[inst].group | default('') }}
 multi_instance_name   = postfix-{{ postfix_instance[inst].name }}
 multi_instance_enable = yes
 
@@ -44,14 +44,15 @@ recipient_delimiter  = +
 
 # Forward everything to our internal mailhub
 {% if 'MTA-out' in group_names %}
-relay_transport = lmtp:unix:private/mta-out
+relayhost     = [127.0.0.1]:{{ MTA_out.port }}
 {% else %}
-relayhost       = [{{ MTA_out.IPv4 }}]:{{ MTA_out.port }}
+relayhost     = [{{ MTA_out.IPv4 }}]:{{ MTA_out.port }}
 {% endif %}
-relay_domains   =
+relay_domains =
 
+# Virtual transport
 {% if 'LDA' in group_names %}
-virtual_transport = lmtp:unix:private/lda
+virtual_transport = smtp:[127.0.0.1]:{{ LDA.port }}
 {% else %}
 virtual_transport = smtp:[{{ LDA.IPv4 }}]:{{ LDA.port }}
 {% endif %}
@@ -65,17 +66,20 @@ virtual_mailbox_maps    = ldap:$config_directory/virtual/mailbox_maps.cf
 mailbox_transport_maps  = cdb:$config_directory/virtual/reserved_transport_maps
                           ldap:$config_directory/virtual/transport_lists_maps.cf
 
-# Pass the client information along to the content filter
+# Don't rewrite remote headers
 local_header_rewrite_clients     =
+# Pass the client information along to the content filter
 smtp_send_xforward_command       = yes
+# Avoid splitting the envelope and scanning messages multiple times
 smtp_destination_recipient_limit = 1000
+# Tolerate occasional high latency
 smtp_data_done_timeout           = 1200s
 
 # Tunnel everything through IPSec
 smtp_tls_security_level = none
 smtp_bind_address       = 172.16.0.1
 
-# Virtual 
+# TLS
 smtpd_tls_security_level        = may
 smtpd_tls_cert_file             = /etc/ssl/certs/ssl-cert-snakeoil.pem
 smtpd_tls_key_file              = /etc/ssl/private/ssl-cert-snakeoil.key

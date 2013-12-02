@@ -1,7 +1,6 @@
 ---
 - name: Configure the MX:es
   hosts: MX
-  sudo: True
   roles:
     - { role: mx, inst: MX }
   tags:

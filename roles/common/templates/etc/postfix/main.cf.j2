@@ -35,12 +35,11 @@ smtp_generic_maps = pcre:$config_directory/generic.pcre
 
 # Forward everything to our internal mailhub
 {% if 'MTA-out' in group_names %}
-# TODO: use a UNIX socket instead
-relay_transport = lmtp:unix:private/mta-out
+relayhost     = [127.0.0.1]:{{ MTA_out.port }}
 {% else %}
-relayhost       = [{{ MTA_out.IPv4 }}]:{{ MTA_out.port }}
+relayhost     = [{{ MTA_out.IPv4 }}]:{{ MTA_out.port }}
 {% endif %}
-relay_domains   =
+relay_domains =
 
 # Tunnel everything through IPSec
 smtp_tls_security_level  = none

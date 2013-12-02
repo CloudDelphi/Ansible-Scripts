@@ -4,6 +4,7 @@
     - postfix
     - postfix-pcre
     - postfix-ldap
+    - postfix-cdb
     - postgrey
     - libnet-ldap-perl
     - libauthen-sasl-perl
@@ -53,8 +54,6 @@
     - mailbox_maps.cf
     - reserved_transport_maps
     - transport_lists_maps.cf
-  notify:
-    - Restart Postfix
 
 - name: Compile the Reserved Transport Maps
   postmap: cmd=postalias instance={{ postfix_instance[inst].name }}
