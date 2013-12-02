@@ -66,18 +66,8 @@
     # TODO load other required schemas *before* loading the database
     - fripost/database.ldif
 
-- name: Load LDAP modules
-  openldap: module={{ item }}.la state=present
-  with_items:
-    # TODO only if provider
-    - syncprov
-    # TODO only if writable
-    - constraint
-
 - name: Start slapd
   service: name=slapd state=started
   when: not (r1.changed or r2.changed)
 
 - meta: flush_handlers
-
-# TODO: authz constraint syncprov

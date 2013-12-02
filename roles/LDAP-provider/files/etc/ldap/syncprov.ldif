@@ -1,0 +1,13 @@
+# References:
+# - http://www.openldap.org/doc/admin24/replication.html#Syncrepl
+# - http://www.zytrax.com/books/ldap/ch7/#ol-syncrepl-rap
+# - man 5 slapo-syncprov
+
+dn: olcOverlay=syncprov,olcDatabase={*}hdb,cn=config
+objectClass: olcOverlayConfig
+objectClass: olcSyncProvConfig
+olcOverlay: syncprov
+# contextCSN saved to database every 50 updates or 5
+# minutes
+olcSpCheckpoint: 50 5
+olcSpReloadHint: TRUE

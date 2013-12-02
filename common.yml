@@ -25,3 +25,10 @@
   tags: slapd,ldap
   roles:
     - common-LDAP
+
+- name: Configure the LDAP provider
+  hosts: LDAP-provider
+  gather_facts: False
+  tags: slapd,ldap
+  roles:
+    - LDAP-provider

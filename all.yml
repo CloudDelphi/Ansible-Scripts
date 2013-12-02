@@ -1,0 +1,7 @@
+---
+# Example:
+#   ansible-playbook -i stage_vms all.yml -t rkhunter
+
+- include: common.yml
+- include: IMAP.yml
+- include: MX.yml
