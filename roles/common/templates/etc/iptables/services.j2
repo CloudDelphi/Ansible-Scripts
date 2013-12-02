@@ -18,3 +18,6 @@ in      tcp     25                                      # SMTP
 {% if 'IMAP' in group_names %}
 in      tcp     993                                     # IMAPS
 {% endif %}
+{% if 'MSA' in group_names %}
+in      tcp     587                                     # SMTP-AUTH
+{% endif %}

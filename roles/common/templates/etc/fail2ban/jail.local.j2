@@ -71,3 +71,13 @@ port    = imap2,imap3,imaps,pop3,pop3s
 filter  = dovecot
 logpath = /var/log/mail.log
 {% endif %}
+
+
+{% if 'MSA' in group_names %}
+[sasl]
+
+enabled  = true
+port     = submission
+filter   = sasl
+logpath  = /var/log/mail.warn
+{% endif %}

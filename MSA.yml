@@ -1,0 +1,9 @@
+---
+- name: Configure the Mail Submission Agent
+  hosts: MSA
+  tags:
+    - msa
+    - mail
+    - postfix
+  roles:
+    - { role: MSA, inst: MSA }

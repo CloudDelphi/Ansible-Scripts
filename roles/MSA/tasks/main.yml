@@ -1,0 +1,26 @@
+- name: Install Postfix
+  apt: pkg={{ item }}
+  with_items:
+    - postfix
+    - postfix-pcre
+
+- name: Configure Postfix
+  template: src=etc/postfix/main.cf.j2
+            dest=/etc/postfix-{{ postfix_instance[inst].name }}/main.cf
+            owner=root group=root
+            mode=0644
+  register: r
+  notify:
+    - Restart Postfix
+
+- name: Copy the Regex to anonymize senders
+  copy: src=etc/postfix/anonymize_sender.pcre
+        dest=/etc/postfix-{{ postfix_instance[inst].name }}/anonymize_sender.pcre
+        owner=root group=root
+        mode=0644
+
+- name: Start Postfix
+  service: name=postfix state=started
+  when: not r.changed
+
+- meta: flush_handlers
