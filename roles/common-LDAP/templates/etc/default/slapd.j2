@@ -23,7 +23,7 @@ SLAPD_SERVICES="ldapi:///"
 {% for i in postfix_instance.keys() | intersect(group_names) | list %}
 SLAPD_SERVICES="$SLAPD_SERVICES ldapi://%2Fvar%2Fspool%2Fpostfix-{{ postfix_instance[i].name }}%2Fprivate%2Fldapi/"
 {% endfor %}
-{% if 'LDAP-producer' in group_names %}
+{% if 'LDAP-provider' in group_names %}
 SLAPD_SERVICES="$SLAPD_SERVICES ldap://172.16.0.1:389/"
 {% endif %}
 

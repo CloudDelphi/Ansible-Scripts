@@ -33,6 +33,7 @@ indexedAttributes = frozenset([
     'olcAttributeTypes',
     'olcObjectClasses',
     'olcAccess',
+    'olcSyncrepl',
 ])
 
 

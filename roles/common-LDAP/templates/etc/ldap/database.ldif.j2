@@ -51,7 +51,7 @@ olcDbIndex: objectClass eq
 # Let us make Postfix's life easier. TODO: only if MX, lists.f.o, MDA, etc.
 olcDbIndex: fripostIsStatusActive,fvd,fvl,fripostLocalAlias eq
 olcDbIndex: fripostOptionalMaildrop pres
-# SyncProv/SyncRepl specific indexing. TODO: only if SyncProv/SyncRepl
+# SyncProv/SyncRepl specific indexing.
 olcDbIndex: entryCSN,entryUUID eq
 #
 #
@@ -80,6 +80,30 @@ olcDbIndex: entryCSN,entryUUID eq
 #
 # (For optimal performance, usage should be within 85% of the configured
 # values.)
+#
+#
+########################################################################
+########################################################################
+# Sync Replication
+# TODO: replace the simple bind by Kerberos/GSSAPI
+#
+# References:
+# - http://www.openldap.org/doc/admin24/replication.html#Syncrepl
+# - http://www.zytrax.com/books/ldap/ch7/#ol-syncrepl-rap
+#
+{% if 'LDAP_provider' not in group_names %}
+olcSyncrepl: rid=000
+  provider=ldap://{{ LDAP_provider }}
+  type=refreshAndPersist
+  retry="5 5 300 +"
+  searchbase="ou=virtual,o=mailHosting,dc=fripost,dc=org"
+  attrs=objectClass,fvd,fvl,fripostMaildrop,fripostOptionalMaildrop,fripostLocalAlias,fripostPostmaster,fripostOwner
+  scope=sub
+  schemachecking=off
+  bindmethod=simple
+  binddn="cn=Postfix,ou=services,o=mailHosting,dc=fripost,dc=org"
+  credentials=postfix
+{% endif %}
 #
 #
 ########################################################################
@@ -132,6 +156,14 @@ olcAccess: to dn.one="ou=services,o=mailHosting,dc=fripost,dc=org"
 olcAccess: to dn.exact="cn=AdminWebPanel,ou=services,o=mailHosting,dc=fripost,dc=org"
         attrs=entry,objectClass,authzTo
     by realanonymous =x
+#
+# The following is required for Sync Replication.
+{% if 'LDAP-provider' in group_names %}
+olcAccess: to dn.subtree="ou=virtual,o=mailHosting,dc=fripost,dc=org"
+        attrs=entry,objectClass,structuralObjectClass,createTimestamp,creatorsName,entryDN,entryUUID,modifiersName,modifyTimestamp,hasSubordinates,subschemaSubentry
+    by dn.exact="cn=Postfix,ou=services,o=mailHosting,dc=fripost,dc=org" =rsd
+    by users =0 break
+{% endif %}
 #
 # 1. The WebPanel itself cannot bind, read or write passwords. This
 # guarantees that, if an attacker gains its priviledge, it will *not* be

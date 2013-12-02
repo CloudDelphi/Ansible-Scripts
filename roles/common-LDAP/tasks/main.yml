@@ -80,4 +80,4 @@
 
 - meta: flush_handlers
 
-# TODO: authz constraint syncprov syncrepl
+# TODO: authz constraint syncprov
