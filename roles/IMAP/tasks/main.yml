@@ -1,2 +1,3 @@
 ---
 - include: imap.yml   tags=imap,dovecot
+- include: mda.yml    tags=mda,mail,postfix
