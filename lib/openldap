@@ -34,6 +34,7 @@ indexedAttributes = frozenset([
     'olcObjectClasses',
     'olcAccess',
     'olcSyncrepl',
+    'olcOverlay',
 ])
 
 
@@ -44,8 +45,9 @@ indexedAttributes = frozenset([
 # ('%s' in the attribute value is replaced with the value of the source
 # entry.)
 indexedDN = {
-    'olcSchemaConfig': [('cn',             '{*}%s')],
-    'olcHdbConfig':    [('olcDbDirectory', '%s'   )],
+    'olcSchemaConfig':  [('cn',             '{*}%s')],
+    'olcHdbConfig':     [('olcDbDirectory', '%s'   )],
+    'olcOverlayConfig': [('olcOverlay',     '%s'   )],
 }
 
 # Allow for flexible ACLs for user using SASL's EXTERNAL mechanism.
@@ -120,6 +122,7 @@ def flexibleSearch(module, l, dn, entry):
     if not idxClasses:
         base = dn
         scope = ldap.SCOPE_BASE
+        f = 'objectClass=*'
     else:
         # Search on the parent instead, and try to use a precise filter
         dn = str2dn(dn)
@@ -211,13 +214,11 @@ def processEntry(module, l, dn, entry):
 
 
 # Load the given module.
-def loadModule(module, name):
+def loadModule(module, l, name):
     changed = False
-    l = ldap.initialize( 'ldapi://' )
-    l.sasl_interactive_bind_s('', ldap.sasl.external())
 
     f = filter_format( '(&(objectClass=olcModuleList)(olcModuleLoad=%s))', [name] )
-    r = l.search_s( 'cn=config', ldap.SCOPE_ONELEVEL, filterstr = f, attrlist = [] )
+    r = l.search_s( 'cn=config', ldap.SCOPE_ONELEVEL, filterstr = f, attrlist = [''] )
 
     if not r:
         changed = True
@@ -226,8 +227,17 @@ def loadModule(module, name):
         l.modify_s( 'cn=module{0},cn=config'
                   , [(ldap.MOD_ADD, 'olcModuleLoad', name)] )
 
-    l.unbind_s()
     return changed
+
+
+# Find the database associated with a given attribute (eg,
+# olcDbDirectory or olcSuffix).
+def getDN_DB(module, l, a, v):
+    f = filter_format( '(&(objectClass=olcDatabaseConfig)('+a+'=%s))', [v] )
+    return l.search_s( 'cn=config'
+                     , ldap.SCOPE_ONELEVEL
+                     , filterstr = f
+                     , attrlist = [''] )
 
 
 # Clear the given DB directory and delete the associated database.  Fail
@@ -242,12 +252,7 @@ def removeDB(module, dbdir, skipdn=None):
 
     l = ldap.initialize( 'ldapi://' )
     l.sasl_interactive_bind_s('', ldap.sasl.external())
-
-    f = filter_format( '(&(objectClass=olcDatabaseConfig)(olcDbDirectory=%s))', [dbdir] )
-    r = l.search_s( 'cn=config'
-                  , ldap.SCOPE_ONELEVEL
-                  , filterstr = f
-                  , attrlist = ['olcSuffix'] )
+    r = getDN_DB( module, l, 'olcDbDirectory', dbdir )
     l.unbind_s()
 
     if len(r) > 1:
@@ -295,6 +300,7 @@ def main():
             state       = dict(default="present", choices=["absent", "present"]),
             target      = dict( default=None ),
             module      = dict( default=None ),
+            suffix      = dict( default=None ),
         ),
         supports_check_mode=True
     )
@@ -305,6 +311,7 @@ def main():
     ignoredn    = params['ignoredn']
     target      = params['target']
     mod         = params['module']
+    suffix      = params['suffix']
 
     if ignoredn is not None:
         ignoredn = ignoredn.split(':')
@@ -319,20 +326,34 @@ def main():
                 module.fail_json(msg="missing dbdirectory")
 
         elif state == "present":
-            if target is not None:
-                # bind only once per LDIF file to
-                l = ldap.initialize( 'ldapi://' )
-                l.sasl_interactive_bind_s('', ldap.sasl.external())
-
-                parser = LDIFCallback( module, open(target, 'r')
-                                     , partial(processEntry,module,l) )
-                parser.parse()
-                l.unbind_s()
-                changed = parser.changed
-            elif mod is not None:
-                changed = loadModule(module, mod)
-            else:
+            if target is None and mod is None:
                 module.fail_json(msg="missing target or module")
+            # bind only once per LDIF file for performance
+            l = ldap.initialize( 'ldapi://' )
+            l.sasl_interactive_bind_s('', ldap.sasl.external())
+
+            if mod is None:
+                callback = partial(processEntry,module,l)
+            else:
+                changed |= loadModule (module, l, '%s.la' % mod)
+                if target is None and suffix is None:
+                    l.unbind_s()
+                    module.exit_json(changed=changed)
+                if target is None or suffix is None:
+                    module.fail_json(msg="missing target or suffix")
+                r = getDN_DB(module, l, 'olcSuffix', suffix)
+                if not r:
+                    module.fail_json(msg="No database found for suffix %s" % suffix)
+                elif len(r) > 1:
+                    module.fail_json(msg="Multiple results found! This is a bug. Please report.")
+                else:
+                    d = 'olcOverlay=%s,%s' % (mod, r.pop()[0])
+                    callback = lambda _,e: processEntry(module,l,d,e)
+
+            parser = LDIFCallback( module, open(target, 'r'), callback )
+            parser.parse()
+            changed = parser.changed
+            l.unbind_s()
 
     except subprocess.CalledProcessError, e:
         module.fail_json(rv=e.returncode, msg=e.output.rstrip())
