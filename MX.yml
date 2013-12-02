@@ -2,7 +2,7 @@
 - name: Configure the MX:es
   hosts: MX
   roles:
-    - { role: mx, inst: MX }
+    - { role: MX, inst: MX }
   tags:
     - mail
     - postfix
