@@ -61,3 +61,13 @@ filter   = postfix
 logpath  = /var/log/mail.log
 maxretry = 10
 {% endif %}
+
+
+{% if 'IMAP' in group_names %}
+[dovecot]
+
+enabled = true
+port    = imap2,imap3,imaps,pop3,pop3s
+filter  = dovecot
+logpath = /var/log/mail.log
+{% endif %}

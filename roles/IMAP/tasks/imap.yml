@@ -1,0 +1,49 @@
+- name: Install Dovecot
+  apt: pkg={{ item }}
+  with_items:
+    - dovecot-core
+    - dovecot-ldap
+    - dovecot-imapd
+    - dovecot-lmtpd
+
+- name: Create a user 'vmail'
+  user: name=vmail system=yes
+        home=/home/mail
+        shell=/bin/false
+        password=!
+        state=present
+
+- name: Create directories for user 'vmail'
+  file: path=/home/mail{{ item }}
+        owner=vmail group=vmail
+        state=directory
+        mode=0700
+  with_items:
+    - /
+    - /mailboxes
+    - /sieve
+
+- name: Configure Dovecot
+  copy: src=etc/dovecot/{{ item }}
+        dest=/etc/dovecot/{{ item }}
+        owner=root group=root
+        mode=0644
+  register: r
+  with_items:
+    - conf.d/10-auth.conf
+    - conf.d/10-logging.conf
+    - conf.d/10-mail.conf
+    - conf.d/10-master.conf
+    - conf.d/10-ssl.conf
+    - conf.d/15-mailboxes.conf
+    - conf.d/20-lmtp.conf
+    - conf.d/auth-ldap.conf.ext
+    - dovecot-ldap.conf.ext
+  notify:
+    - Restart Dovecot
+
+- name: Start Dovecot
+  service: name=dovecot state=started
+  when: not r.changed
+
+- meta: flush_handlers

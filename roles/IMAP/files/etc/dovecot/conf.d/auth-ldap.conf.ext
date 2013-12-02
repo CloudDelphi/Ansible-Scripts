@@ -1,0 +1,37 @@
+# Authentication for LDAP users. Included from auth.conf.
+#
+# <doc/wiki/AuthDatabase.LDAP.txt>
+
+passdb {
+  driver = ldap
+
+  # Path for LDAP configuration file, see example-config/dovecot-ldap.conf.ext
+  args = /etc/dovecot/dovecot-ldap.conf.ext
+}
+
+# "prefetch" user database means that the passdb already provided the
+# needed information and there's no need to do a separate userdb lookup.
+# <doc/wiki/UserDatabase.Prefetch.txt>
+#userdb {
+#  driver = prefetch
+#}
+
+#userdb {
+#  driver = ldap
+#  # This should be a different file from the passdb's, in order to perform
+#  # asynchronous requests.
+#  args = /etc/dovecot/dovecot-ldap-userdb.conf.ext
+#  
+#  # Default fields can be used to specify defaults that LDAP may override
+#  #default_fields = home=/home/virtual/%u
+#}
+
+# If you don't have any user-specific settings, you can avoid the userdb LDAP
+# lookup by using userdb static instead of userdb ldap, for example:
+# <doc/wiki/UserDatabase.Static.txt>
+userdb {
+  driver = static
+  # The MTA has already verified the existence of users when doing alias resolution,
+  # so we can skip the passdb lookup here.
+  args = home=/home/mail/mailboxes/%d/%n allow_all_users=yes
+}

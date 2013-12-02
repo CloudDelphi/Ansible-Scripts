@@ -15,3 +15,6 @@ in      tcp     {{ ansible_ssh_port|default('22') }}    # SSH
 {% if 'MX' in group_names %}
 in      tcp     25                                      # SMTP
 {% endif %}
+{% if 'IMAP' in group_names %}
+in      tcp     993                                     # IMAPS
+{% endif %}

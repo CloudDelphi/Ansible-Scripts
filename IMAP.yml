@@ -1,0 +1,6 @@
+---
+- name: Configure the IMAP server
+  hosts: IMAP
+  sudo: True
+  roles:
+    - IMAP
