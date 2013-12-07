@@ -1,0 +1,14 @@
+- name: Install smartmontools
+  # apt-listbugs complains due to #706909.
+  apt: pkg=smartmontools
+
+- name: Configure smartmontools
+  lineinfile: dest=/etc/default/smartmontools
+              regexp='^(\s*#)?\s*start_smartd='
+              line='start_smartd=yes'
+              owner=root group=root
+              mode=0644
+
+- name: Start smartd
+  service: name=smartmontools state=started
+  when: ansible_virtualization_role is not defined and ansible_virtualization_type is not defined
