@@ -29,6 +29,9 @@
   # pattern=init as a dummy assumption.
   service: name=networking pattern=init state=reloaded
 
+- name: Restart ntp
+  service: name=ntp state=restarted
+
 # TODO: should be in a separate file, since it's used by other roles
 - name: Restart Postfix
   service: name=postfix state=restarted
