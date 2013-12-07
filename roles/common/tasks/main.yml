@@ -11,3 +11,22 @@
 - include: logging.yml  tags=logging
 - include: ntp.yml      tags=ntp
 - include: mail.yml     tags=mail,postfix
+
+- name: Install common packages
+  apt: pkg={{ item }}
+  with_items:
+    - ca-certificates
+    - clamav
+    - clamav-daemon
+    - clamav-freshclam
+    - daemontools
+    - etckeeper
+    - ethtool
+    - git
+    - harden-clients
+    - harden-servers
+    - htop
+    - molly-guard
+    - rsync
+    - screen
+    - telnet-ssl
