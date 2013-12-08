@@ -23,6 +23,7 @@ from ldap.modlist import addModlist
 from ldif         import LDIFParser
 from functools    import partial
 import re, pwd
+import tempfile, atexit
 
 
 # Dirty hack to check equality between the targetted LDIF and that
@@ -178,7 +179,7 @@ def processEntry(module, l, dn, entry):
                 if a == 'olcAccess':
                     # replace "username=...,cn=peercred,cn=external,cn=auth"
                     # by a DN with proper gidNumber and uidNumber
-                    entry[a] = map ( partial(re.sub, sasl_ext_re, acl_sasl_ext)
+                    entry[a] = map ( partial(sasl_ext_re.sub, acl_sasl_ext)
                                    , entry[a] )
                 # add explicit indices in the entry from the LDIF
                 entry[a] = map( (lambda x: '{%d}%s' % x)
@@ -292,15 +293,52 @@ def removeDB(module, dbdir, skipdn=None):
     return changed
 
 
+# Convert a *.schema file into *.ldif format. The algorithm can be found
+# in /etc/ldap/schema/openldap.ldif .
+def slapd_to_ldif(src, name):
+    s = open( src, 'r' )
+    d = tempfile.NamedTemporaryFile(delete=False)
+    atexit.register(lambda: os.unlink( d.name ))
+
+    d.write('dn: cn=%s,cn=schema,cn=config\n' % name)
+    d.write('objectClass: olcSchemaConfig\n')
+
+    re1 = re.compile( r'^objectIdentifier\s(.*)', re.I )
+    re2 = re.compile( r'^objectClass\s(.*)',      re.I )
+    re3 = re.compile( r'^attributeType\s(.*)',    re.I )
+    reSp = re.compile( r'^\s+' )
+    for line in s.readlines():
+        if line == '\n':
+            line = '#\n'
+        m1 = re1.match(line)
+        m2 = re2.match(line)
+        m3 = re3.match(line)
+        if m1 is not None:
+            line = 'olcObjectIdentifier: %s' % m1.group(1)
+        elif m2 is not None:
+            line = 'olcObjectClasses: %s'    % m2.group(1)
+        elif m3 is not None:
+            line = 'olcAttributeTypes: %s'   % m3.group(1)
+
+        d.write( reSp.sub(line, '  ') )
+
+
+    s.close()
+    d.close()
+    return d.name
+
+
 def main():
     module = AnsibleModule(
         argument_spec   = dict(
             dbdirectory = dict( default=None ),
             ignoredn    = dict( default=None ),
-            state       = dict(default="present", choices=["absent", "present"]),
+            state       = dict( default="present", choices=["absent", "present"]),
             target      = dict( default=None ),
             module      = dict( default=None ),
             suffix      = dict( default=None ),
+            format      = dict( default="ldif", choices=["ldif","slapd.conf"] ),
+            name        = dict( default=None ),
         ),
         supports_check_mode=True
     )
@@ -312,6 +350,8 @@ def main():
     target      = params['target']
     mod         = params['module']
     suffix      = params['suffix']
+    form        = params['format']
+    name        = params['name']
 
     if ignoredn is not None:
         ignoredn = ignoredn.split(':')
@@ -326,6 +366,11 @@ def main():
                 module.fail_json(msg="missing dbdirectory")
 
         elif state == "present":
+            if form == 'slapd.conf':
+                if name is None:
+                    module.fail_json(msg="name")
+                target = slapd_to_ldif(target, name)
+
             if target is None and mod is None:
                 module.fail_json(msg="missing target or module")
             # bind only once per LDIF file for performance
