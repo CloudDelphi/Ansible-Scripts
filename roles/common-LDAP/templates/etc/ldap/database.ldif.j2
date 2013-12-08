@@ -91,7 +91,7 @@ olcDbIndex: entryCSN,entryUUID eq
 # - http://www.openldap.org/doc/admin24/replication.html#Syncrepl
 # - http://www.zytrax.com/books/ldap/ch7/#ol-syncrepl-rap
 #
-{% if 'LDAP_provider' not in group_names %}
+{% if 'LDAP-provider' not in group_names %}
 olcSyncrepl: rid=000
   provider=ldap://{{ LDAP_provider }}
   type=refreshAndPersist
