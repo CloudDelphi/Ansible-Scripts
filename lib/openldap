@@ -36,6 +36,7 @@ indexedAttributes = frozenset([
     'olcAccess',
     'olcSyncrepl',
     'olcOverlay',
+    'olcLimits',
 ])
 
 
@@ -164,6 +165,11 @@ def processEntry(module, l, dn, entry):
         changed = True
         if module.check_mode:
             module.exit_json(changed=changed, msg="add DN %s" % dn)
+        if 'olcAccess' in entry.keys():
+            # replace "username=...,cn=peercred,cn=external,cn=auth"
+            # by a DN with proper gidNumber and uidNumber
+            entry['olcAccess'] = map ( partial(sasl_ext_re.sub, acl_sasl_ext)
+                                     , entry['olcAccess'] )
         l.add_s( dn, addModlist(entry) )
     else:
         d,e = r
@@ -233,12 +239,12 @@ def loadModule(module, l, name):
 
 # Find the database associated with a given attribute (eg,
 # olcDbDirectory or olcSuffix).
-def getDN_DB(module, l, a, v):
+def getDN_DB(module, l, a, v, attrlist=['']):
     f = filter_format( '(&(objectClass=olcDatabaseConfig)('+a+'=%s))', [v] )
     return l.search_s( 'cn=config'
                      , ldap.SCOPE_ONELEVEL
                      , filterstr = f
-                     , attrlist = [''] )
+                     , attrlist = attrlist )
 
 
 # Clear the given DB directory and delete the associated database.  Fail
@@ -253,7 +259,7 @@ def removeDB(module, dbdir, skipdn=None):
 
     l = ldap.initialize( 'ldapi://' )
     l.sasl_interactive_bind_s('', ldap.sasl.external())
-    r = getDN_DB( module, l, 'olcDbDirectory', dbdir )
+    r = getDN_DB( module, l, 'olcDbDirectory', dbdir, attrlist=['olcSuffix'] )
     l.unbind_s()
 
     if len(r) > 1:
@@ -368,7 +374,7 @@ def main():
         elif state == "present":
             if form == 'slapd.conf':
                 if name is None:
-                    module.fail_json(msg="name")
+                    module.fail_json(msg="missing name")
                 target = slapd_to_ldif(target, name)
 
             if target is None and mod is None:
