@@ -1,3 +1,18 @@
+# It may be a good idea to modify this file, depending on the output of
+#
+#   db_stat -mh /var/lib/ldap/fripost | head -16
+#
+# (For optimal performance, the Requested pages found in the cache
+# should be above 95%, and the dirty/clean pages forced from the cache
+# should be 0.)
+#
+# and
+#
+#   db_stat -ch /var/lib/ldap/fripost | head -16
+#
+# (For optimal performance, usage should be within 85% of the configured
+# values.)
+#
 set_cachesize 0 5242880 1
 # 5MB cachesize, allow defragmentation
 set_lk_max_objects 1500

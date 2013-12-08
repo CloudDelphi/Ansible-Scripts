@@ -40,6 +40,15 @@ olcRootDN: gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth
 #  * Reindex        su openldap -c "slapindex -b 'o=mailHosting,dc=fripost,dc=org'"
 #  * Restart slapd  sudo service slapd start
 #
+#
+# On single- and dual-core systems, change the maximum number of threads
+# to 8. (The default, 16, is fine for 4- and 8-core systems.)
+#
+#     dn: cn=config
+#     changetype: modify
+#     add: olcThreads
+#     olcThreads: 8
+#
 # References
 # - https://wiki.zimbra.com/wiki/OpenLDAP_Performance_Tuning_5.0
 # - http://www.openldap.org/doc/admin24/tuning.html
@@ -53,33 +62,6 @@ olcDbIndex: fripostIsStatusActive,fvd,fvl,fripostLocalAlias eq
 olcDbIndex: fripostOptionalMaildrop pres
 # SyncProv/SyncRepl specific indexing.
 olcDbIndex: entryCSN,entryUUID eq
-#
-#
-#
-# 1. On single- and dual-core systems, change the maximum number of
-# threads to 8. (The default, 16, is fine for 4- and 8-core systems.)
-#
-#       dn: cn=config
-#       changetype: modify
-#       add: olcThreads
-#       olcThreads: 8
-#
-#
-# 2. It may be a good idea to modify DB_CONFIG, depending on the output
-# of
-#
-#   db_stat -mh /var/lib/ldap/fripost | head -16
-#
-# (For optimal performance, the Requested pages found in the cache
-# should be above 95%, and the dirty/clean pages forced from the cache
-# should be 0.)
-#
-# and
-#
-#   db_stat -ch /var/lib/ldap/fripost | head -16
-#
-# (For optimal performance, usage should be within 85% of the configured
-# values.)
 #
 #
 ########################################################################
