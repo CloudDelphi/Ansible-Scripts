@@ -1,0 +1,51 @@
+- name: Install spamassassin
+  apt: pkg={{ item }}
+  with_items:
+    - razor
+    - spamassassin
+    - spamc
+    - libdbi-perl
+  notify:
+    - Restart Amavis
+
+- name: Create a 'spamassassin' database
+  mysql_db: name=spamassassin state=present
+            encoding=latin1 collation=latin1_general_ci
+  notify:
+    - Copy SQL tables for spamassassin
+    - Create SQL tables for spamassassin
+
+- meta: flush_handlers
+
+- name: Copy SpamAssassin's configuration
+  copy: src=etc/{{ item }}
+        dest=/etc/{{ item }}
+        owner=root group=root
+        mode=0644
+  with_items:
+    - spamassassin/local.cf
+    - spamassassin/v310.pre
+  notify:
+    - Restart Amavis
+
+- name: Ensure SpamAssassin is not auto-started at boot time
+  lineinfile: dest=/etc/default/spamassassin
+              regexp='^(\s*#)?\s*ENABLED='
+              line='ENABLED=0'
+              owner=root group=root
+              mode=0644
+
+- name: Create a 'amavis' SQL user
+  # This *must* be the user we run spamd as
+  # See https://svn.apache.org/repos/asf/spamassassin/trunk/sql/README.bayes
+  mysql_user: >
+      name=amavis auth_plugin=auth_socket
+      priv="spamassassin.awl:               SELECT,INSERT,UPDATE,DELETE
+           /spamassassin.bayes_seen:        SELECT,INSERT,       DELETE
+           /spamassassin.bayes_token:       SELECT,INSERT,UPDATE,DELETE
+           /spamassassin.bayes_global_vars: SELECT
+           /spamassassin.bayes_vars:        SELECT,INSERT,UPDATE,DELETE
+           /spamassassin.bayes_expire:      SELECT,INSERT,       DELETE"
+      state=present
+  notify:
+    - Restart Amavis

@@ -1,0 +1,56 @@
+- name: Install amavis and its decoders
+  apt: pkg={{ item }}
+  with_items:
+    - amavisd-new
+    - libnet-ldap-perl
+    - libauthen-sasl-perl
+    - gzip
+    - bzip2
+    - xz-utils
+    - lzop
+    - rpm2cpio
+    - pax
+    - binutils
+    - p7zip-full
+    - unrar-free
+    - arj
+    - nomarch
+    - zoo
+    - ripole
+    - cabextract
+    - unar
+    - tnef
+  notify:
+    - Restart Amavis
+
+- name: Add 'clamav' to the group 'amavis'
+  user: name=clamav groups=amavis append=yes
+  register: r1
+  notify:
+    - Restart ClamAV
+    - Restart Amavis
+
+- name: Configure Amavis (1)
+  copy: src=etc/amavis/conf.d/05-domain_id
+        dest=/etc/amavis/conf.d/05-domain_id
+        owner=root group=root
+        mode=0644
+  register: r2
+  notify:
+    - Restart Amavis
+
+- name: Configure Amavis (2)
+  template: src=etc/amavis/conf.d/{{ item }}.j2
+            dest=/etc/amavis/conf.d/{{ item }}
+            owner=root group=root
+            mode=0644
+  register: r3
+  with_items:
+    - 15-content_filter_mode
+    - 50-user
+  notify:
+    - Restart Amavis
+
+- name: Start Amavis
+  service: name=amavis state=started
+  when: not (r1.changed or r2.changed or r3.changed)

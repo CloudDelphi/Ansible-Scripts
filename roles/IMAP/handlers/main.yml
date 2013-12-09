@@ -7,3 +7,22 @@
 
 - name: Reload Postfix
   service: name=postfix state=reloaded
+
+- name: Restart ClamAV
+  service: name=clamav-daemon state=restarted
+
+- name: Restart Amavis
+  service: name=amavis state=restarted
+
+- name: Copy SQL tables for spamassassin
+  copy: src=tmp/spamassassin.sql
+        dest=/tmp/spamassassin.sql
+        owner=root group=root
+        mode=0600
+
+- name: Create SQL tables for spamassassin
+  # see https://svn.apache.org/repos/asf/spamassassin/trunk/sql/
+  # for the original
+  mysql_db: name=spamassassin state=import
+            target=/tmp/spamassassin.sql
+            encoding=latin1 collation=latin1_unicode_ci

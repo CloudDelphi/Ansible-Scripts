@@ -53,18 +53,31 @@
             owner=root group=root
             mode=0600
 
-- name: Copy fripost schema
-  copy: src=etc/ldap/schema/fripost.ldif
-        dest=/etc/ldap/schema/fripost.ldif
+- name: Copy fripost & amavis' schema
+  copy: src=etc/ldap/schema/{{ item }}
+        dest=/etc/ldap/schema/{{ item }}
         owner=root group=root
         mode=0644
+  # It'd certainly be nicer if we didn't have to deploy amavis' schema
+  # everywhere, but we need the 'objectClass' in our replicates, hence
+  # they need to be aware of the 'amavisAccount' class.
+  with_items:
+    - fripost.ldif
+    - amavis.schema
+  tags:
+    - amavis
 
 - name: Load fripost's schema and configure the database
   openldap: target=/etc/ldap/{{ item }} state=present
   with_items:
     - schema/fripost.ldif
-    # TODO load other required schemas *before* loading the database
     - fripost/database.ldif
+
+- name: Load amavis' schema
+  openldap: target=/etc/ldap/schema/amavis.schema state=present
+            format=slapd.conf name=amavis
+  tags:
+    - ldap
 
 - name: Start slapd
   service: name=slapd state=started

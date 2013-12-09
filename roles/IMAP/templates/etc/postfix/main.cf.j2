@@ -50,9 +50,10 @@ default_transport = error:5.1.1 Transport unavailable
 
 # Virtual transport (the alias resolution is already done by the MX:es)
 virtual_transport       = lmtp:unix:private/dovecot-lmtpd
+lmtp_bind_address       = 127.0.0.1
 virtual_mailbox_domains = ldap:$config_directory/virtual/mailbox_domains.cf
 virtual_mailbox_maps    = ldap:$config_directory/virtual/mailbox_maps.cf
-mailbox_transport_maps  = ldap:$config_directory/virtual/transport_content_filter_maps.cf
+transport_maps          = ldap:$config_directory/virtual/transport_content_filter_maps.cf
 
 # Don't rewrite remote headers
 local_header_rewrite_clients =

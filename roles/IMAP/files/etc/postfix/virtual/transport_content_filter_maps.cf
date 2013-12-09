@@ -3,6 +3,6 @@ version          = 3
 search_base      = fvl=%u,fvd=%d,ou=virtual,o=mailHosting,dc=fripost,dc=org
 scope            = base
 bind             = none
-query_filter     = (&(ObjectClass=AmavisAccount)(fvl=%u))
+query_filter     = (&(objectClass=FripostVirtualUser)(objectClass=AmavisAccount)(fvl=%u))
 result_attribute = fvl
-result_format    = amavisfeed:unix:public/amavisfeed-contentfilter
+result_format    = amavisfeed:[127.0.0.1]:10041

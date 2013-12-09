@@ -73,7 +73,13 @@ olcDbIndex: entryCSN,entryUUID eq
 # - http://www.openldap.org/doc/admin24/replication.html#Syncrepl
 # - http://www.zytrax.com/books/ldap/ch7/#ol-syncrepl-rap
 #
-{% if 'LDAP-provider' not in group_names %}
+{% if 'LDAP-provider' in group_names %}
+olcLimits: dn.exact="cn=MX-replicate,ou=services,o=mailHosting,dc=fripost,dc=org"
+  time.soft=unlimited
+  time.hard=unlimited
+  size.soft=unlimited
+  size.hard=unlimited
+{% elif 'MX' in group_names %}
 olcSyncrepl: rid=000
   provider=ldap://{{ LDAP_provider }}
   type=refreshAndPersist
@@ -128,6 +134,20 @@ olcAccess: to dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org"
     by dn.exact="cn=Postfix,ou=services,o=mailHosting,dc=fripost,dc=org" =rsd
     by dn.exact="username=postfix,cn=peercred,cn=external,cn=auth" =rsd
     by users =0 break
+#
+# The following is required for the content filter
+{% if 'MDA' in group_names %}
+olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
+        attrs=entry
+        filter=(&(objectClass=FripostVirtualDomain)(fripostIsStatusActive=TRUE))
+    by dn.exact="username=amavis,cn=peercred,cn=external,cn=auth" =s
+    by users =0 break
+olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
+        attrs=entry,objectClass,fvl,@AmavisAccount
+        filter=(&(objectClass=FripostVirtualUser)(objectClass=AmavisAccount)(fripostIsStatusActive=TRUE))
+    by dn.exact="username=amavis,cn=peercred,cn=external,cn=auth" =rsd
+    by users =0 break
+{% endif %}
 #
 # Anonymous can authenticate into the services. (But not read or write the password.)
 olcAccess: to dn.one="ou=services,o=mailHosting,dc=fripost,dc=org"
