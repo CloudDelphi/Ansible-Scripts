@@ -3,6 +3,6 @@ version          = 3
 search_base      = fvd=%s,ou=virtual,o=mailHosting,dc=fripost,dc=org
 scope            = base
 bind             = none
-query_filter     = (&(ObjectClass=FripostVirtualDomain)(fvd=%s))
+query_filter     = (&(objectClass=FripostVirtualDomain)(fvd=%s))
 result_attribute = fvd
 result_format    = OK

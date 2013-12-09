@@ -56,7 +56,7 @@
 # - nis.schema
 
 
-dn: cn=fripost-master,cn=schema,cn=config
+dn: cn=fripost,cn=schema,cn=config
 objectClass: olcSchemaConfig
 #
 # Attributes: 1.3.6.1.4.1.40011.1.1

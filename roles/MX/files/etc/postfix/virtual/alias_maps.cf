@@ -2,5 +2,5 @@ server_host      = ldapi://%2Fprivate%2Fldapi/
 version          = 3
 search_base      = fvl=%u,fvd=%d,ou=virtual,o=mailHosting,dc=fripost,dc=org
 scope            = base
-query_filter     = (&(ObjectClass=FripostVirtualAlias)(fvl=%u))
+query_filter     = (&(objectClass=FripostVirtualAlias)(fvl=%u))
 result_attribute = fripostMaildrop

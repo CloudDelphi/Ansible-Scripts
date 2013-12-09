@@ -3,5 +3,5 @@ version          = 3
 search_base      = fvl=%u,fvd=%d,ou=virtual,o=mailHosting,dc=fripost,dc=org
 scope            = base
 bind             = none
-query_filter     = (&(|(ObjectClass=FripostVirtualList)(ObjectClass=FripostVirtualListCommand))(fvl=%u)(fripostLocalAlias=%u#%d))
+query_filter     = (&(|(objectClass=FripostVirtualList)(objectClass=FripostVirtualListCommand))(fvl=%u)(fripostLocalAlias=%u#%d))
 result_attribute = fripostLocalAlias

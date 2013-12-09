@@ -89,8 +89,8 @@ olcSyncrepl: rid=000
   scope=sub
   schemachecking=off
   bindmethod=simple
-  binddn="cn=Postfix,ou=services,o=mailHosting,dc=fripost,dc=org"
-  credentials=postfix
+  binddn="cn=MX-replicate,ou=services,o=mailHosting,dc=fripost,dc=org"
+  credentials=mx
 {% endif %}
 #
 #
@@ -117,7 +117,7 @@ olcSyncrepl: rid=000
 olcAccess: to dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org"
         attrs=entry,objectClass,fvd,fvl,fripostMaildrop,fripostOptionalMaildrop,fripostLocalAlias
         filter=(&(|(objectClass=FripostVirtualDomain)(objectClass=FripostVirtualUser)(objectClass=FripostVirtualAlias)(objectClass=FripostVirtualList)(objectClass=FripostVirtualListCommand))(!(objectClass=FripostPendingEntry))(!(fripostIsStatusActive=FALSE)))
-    by dn.exact="cn=Postfix,ou=services,o=mailHosting,dc=fripost,dc=org" =rsd
+    by dn.exact="cn=MX-replicate,ou=services,o=mailHosting,dc=fripost,dc=org" =rsd
     by realanonymous =rsd
     by users =0 break
 #
@@ -131,7 +131,7 @@ olcAccess: to dn.exact="ou=virtual,o=mailHosting,dc=fripost,dc=org"
 olcAccess: to dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org"
         attrs=entry,objectClass,fvd,fvl,fripostPostmaster,fripostOwner
         filter=(&(objectClass=FripostVirtualDomain)(!(objectClass=FripostPendingEntry))(!(fripostIsStatusActive=FALSE)))
-    by dn.exact="cn=Postfix,ou=services,o=mailHosting,dc=fripost,dc=org" =rsd
+    by dn.exact="cn=MX-replicate,ou=services,o=mailHosting,dc=fripost,dc=org" =rsd
     by dn.exact="username=postfix,cn=peercred,cn=external,cn=auth" =rsd
     by users =0 break
 #
@@ -163,7 +163,7 @@ olcAccess: to dn.exact="cn=AdminWebPanel,ou=services,o=mailHosting,dc=fripost,dc
 {% if 'LDAP-provider' in group_names %}
 olcAccess: to dn.subtree="ou=virtual,o=mailHosting,dc=fripost,dc=org"
         attrs=entry,objectClass,structuralObjectClass,createTimestamp,creatorsName,entryDN,entryUUID,modifiersName,modifyTimestamp,hasSubordinates,subschemaSubentry
-    by dn.exact="cn=Postfix,ou=services,o=mailHosting,dc=fripost,dc=org" =rsd
+    by dn.exact="cn=MX-replicate,ou=services,o=mailHosting,dc=fripost,dc=org" =rsd
     by users =0 break
 {% endif %}
 #
