@@ -23,7 +23,7 @@ passdb {
 #  args = /etc/dovecot/dovecot-ldap-userdb.conf.ext
 #  
 #  # Default fields can be used to specify defaults that LDAP may override
-#  #default_fields = home=/home/virtual/%u
+#  default_fields = home=/home/mail/%d/%n
 #}
 
 # If you don't have any user-specific settings, you can avoid the userdb LDAP

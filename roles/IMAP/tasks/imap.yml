@@ -5,6 +5,7 @@
     - dovecot-ldap
     - dovecot-imapd
     - dovecot-lmtpd
+    - dovecot-antispam
 
 - name: Create a user 'vmail'
   user: name=vmail system=yes
@@ -42,6 +43,14 @@
     - recent
     - unseen
 
+- name: Create directory /home/mail/spamspool
+  # There is no possibility for a name clash, since 'spamspool' isn't a
+  # valid domain
+  file: path=/home/mail/spamspool
+        state=directory
+        owner=vmail group=vmail
+        mode=0700
+
 - name: Configure Dovecot
   copy: src=etc/dovecot/{{ item }}
         dest=/etc/dovecot/{{ item }}
@@ -55,9 +64,12 @@
     - conf.d/10-master.conf
     - conf.d/10-ssl.conf
     - conf.d/15-mailboxes.conf
+    - conf.d/20-imap.conf
     - conf.d/20-lmtp.conf
+    - conf.d/90-plugin.conf
     - conf.d/auth-ldap.conf.ext
     - dovecot-ldap.conf.ext
+    - dovecot-ldap-userdb.conf.ext
   notify:
     - Restart Dovecot
 

@@ -147,6 +147,13 @@ olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost
         filter=(&(objectClass=FripostVirtualUser)(objectClass=AmavisAccount)(fripostIsStatusActive=TRUE))
     by dn.exact="username=amavis,cn=peercred,cn=external,cn=auth" =rsd
     by users =0 break
+#
+# The following is required for the userdb
+olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
+        attrs=entry,objectClass
+        filter=(objectClass=FripostVirtualUser)
+    by dn.exact="username=dovecot,cn=peercred,cn=external,cn=auth" =rsd
+    by users =0 break
 {% endif %}
 #
 # Anonymous can authenticate into the services. (But not read or write the password.)

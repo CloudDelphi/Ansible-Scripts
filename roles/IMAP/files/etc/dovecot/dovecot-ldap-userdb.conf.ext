@@ -1,0 +1,84 @@
+# This file is opened as root, so it should be owned by root and mode 0600.
+#
+# http://wiki2.dovecot.org/AuthDatabase/LDAP/Userdb
+
+# Space separated list of LDAP hosts to use. host:port is allowed too.
+#hosts =
+
+# LDAP URIs to use. You can use this instead of hosts list. Note that this
+# setting isn't supported by all LDAP libraries.
+uris = ldapi://
+
+# Distinguished Name - the username used to login to the LDAP server.
+# Leave it commented out to bind anonymously.
+#dn =
+
+# Password for LDAP server, if dn is specified.
+#dnpass =
+
+# Use SASL binding instead of the simple binding. Note that this changes
+# ldap_version automatically to be 3 if it's lower. Also note that SASL binds
+# and auth_bind=yes don't work together.
+sasl_bind = yes
+# SASL mechanism name to use.
+sasl_mech = EXTERNAL
+# SASL realm to use.
+#sasl_realm =
+# SASL authorization ID, ie. the dnpass is for this "master user", but the
+# dn is still the logged in user. Normally you want to keep this empty.
+#sasl_authz_id =
+
+# Use TLS to connect to the LDAP server.
+#tls = no
+# TLS options, currently supported only with OpenLDAP:
+#tls_ca_cert_file =
+#tls_ca_cert_dir =
+#tls_cipher_suite =
+# TLS cert/key is used only if LDAP server requires a client certificate.
+#tls_cert_file =
+#tls_key_file =
+# Valid values: never, hard, demand, allow, try
+#tls_require_cert =
+
+# Use the given ldaprc path.
+#ldaprc_path =
+
+# LDAP library debug level as specified by LDAP_DEBUG_* in ldap_log.h.
+# -1 = everything. You may need to recompile OpenLDAP with debugging enabled
+# to get enough output.
+#debug_level = 0
+
+# LDAP protocol version to use. Likely 2 or 3.
+ldap_version = 3
+
+# LDAP base. %variables can be used here.
+# For example: dc=mail, dc=example, dc=org
+base = fvl=%n,fvd=%d,ou=virtual,o=mailHosting,dc=fripost,dc=org
+
+# Dereference: never, searching, finding, always
+deref = never
+
+# Search scope: base, onelevel, subtree
+scope = base
+
+# User attributes are given in LDAP-name=dovecot-internal-name list. The
+# internal names are:
+#   uid - System UID
+#   gid - System GID
+#   home - Home directory
+#   mail - Mail location
+#
+# There are also other special fields which can be returned, see
+# http://wiki2.dovecot.org/UserDatabase/ExtraFields
+user_attrs = =mail_plugins=antispam
+
+# Filter for user lookup. Some variables can be used (see
+# http://wiki2.dovecot.org/Variables for full list):
+#   %u - username
+#   %n - user part in user@domain, same as %u if there's no domain
+#   %d - domain part in user@domain, empty if user there's no domain
+user_filter = (&(objectClass=FripostVirtualUser)(objectClass=AmavisAccount))
+
+# Attributes and filter to get a list of all users
+#iterate_attrs = uid=user
+#iterate_filter = (objectClass=posixAccount)
