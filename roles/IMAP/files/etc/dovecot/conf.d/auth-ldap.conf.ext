@@ -33,5 +33,5 @@ userdb {
   driver = static
   # The MTA has already verified the existence of users when doing alias resolution,
   # so we can skip the passdb lookup here.
-  args = home=/home/mail/mailboxes/%d/%n allow_all_users=yes
+  args = home=/home/mail/%d/%n allow_all_users=yes
 }

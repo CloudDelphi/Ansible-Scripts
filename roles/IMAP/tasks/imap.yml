@@ -13,15 +13,34 @@
         password=!
         state=present
 
-- name: Create directories for user 'vmail'
-  file: path=/home/mail{{ item }}
-        owner=vmail group=vmail
+- name: Create a home directory for user 'vmail'
+  file: path=/home/mail
         state=directory
+        owner=vmail group=vmail
         mode=0700
+
+- name: Create virtual mailbox directories
+  file: path=/etc/dovecot/virtual{{ item }}
+        state=directory
+        owner=root group=root
+        mode=0755
   with_items:
     - /
-    - /mailboxes
-    - /sieve
+    - /all
+    - /flagged
+    - /recent
+    - /unseen
+
+- name: Create virtual mailboxes
+  copy: src=etc/dovecot/virtual/{{ item }}/dovecot-virtual
+        dest=/etc/dovecot/virtual/{{ item }}/dovecot-virtual
+        owner=root group=root
+        mode=0644
+  with_items:
+    - all
+    - flagged
+    - recent
+    - unseen
 
 - name: Configure Dovecot
   copy: src=etc/dovecot/{{ item }}
