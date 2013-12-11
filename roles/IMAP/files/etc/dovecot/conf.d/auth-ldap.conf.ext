@@ -20,8 +20,9 @@ passdb {
 #  driver = ldap
 #  # This should be a different file from the passdb's, in order to perform
 #  # asynchronous requests.
+#
 #  args = /etc/dovecot/dovecot-ldap-userdb.conf.ext
-#  
+#
 #  # Default fields can be used to specify defaults that LDAP may override
 #  default_fields = home=/home/mail/%d/%n
 #}
@@ -31,6 +32,7 @@ passdb {
 # <doc/wiki/UserDatabase.Static.txt>
 userdb {
   driver = static
+
   # The MTA has already verified the existence of users when doing alias resolution,
   # so we can skip the passdb lookup here.
   args = home=/home/mail/%d/%n allow_all_users=yes

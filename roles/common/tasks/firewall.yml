@@ -7,8 +7,8 @@
 
 - name: Create directory /etc/iptables
   file: path=/etc/iptables
-        owner=root group=root
         state=directory
+        owner=root group=root
         mode=0755
 
 - name: Generate /etc/iptables/services

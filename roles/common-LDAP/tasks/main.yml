@@ -27,8 +27,8 @@
 
 - name: Create directory /var/lib/ldap/fripost
   file: path=/var/lib/ldap/fripost
-        owner=openldap group=openldap
         state=directory
+        owner=openldap group=openldap
         mode=0700
 
 - name: Copy /var/lib/ldap/fripost/DB_CONFIG
@@ -43,8 +43,8 @@
 
 - name: Create directory /etc/ldap/fripost
   file: path=/etc/ldap/fripost
-        owner=root group=root
         state=directory
+        owner=root group=root
         mode=0755
 
 - name: Copy fripost database definition

@@ -15,8 +15,8 @@
 
 - name: Create directory /etc/postfix-.../virtual
   file: path=/etc/postfix-{{ postfix_instance[inst].name }}/virtual
-        owner=root group=root
         state=directory
+        owner=root group=root
         mode=0755
 
 - name: Copy lookups tables
