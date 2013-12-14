@@ -28,12 +28,15 @@
   notify:
     - Restart Amavis
 
-- name: Ensure SpamAssassin is not auto-started at boot time
+- name: Provision /etc/default/spamassassin
   lineinfile: dest=/etc/default/spamassassin
-              regexp='^(\s*#)?\s*ENABLED='
-              line='ENABLED=0'
+              regexp='^(\s*#)?\s*{{ item.var }}='
+              "line={{ item.var }}={{ item.value }}"
               owner=root group=root
               mode=0644
+  with_items:
+    - { var: ENABLED, value: 0 }
+    - { var: CRON,    value: 1 }
 
 - name: Create a 'amavis' SQL user
   # This *must* be the user we run spamd as
