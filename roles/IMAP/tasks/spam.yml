@@ -5,7 +5,12 @@
     - spamassassin
     - spamc
     - libdbi-perl
+    - re2c
+    - libc6-dev
+    - gcc
+    - make
   notify:
+    - Compile Spamassassin rules
     - Restart Amavis
 
 - name: Create a 'spamassassin' database
@@ -25,6 +30,7 @@
   with_items:
     - spamassassin/local.cf
     - spamassassin/v310.pre
+    - spamassassin/v320.pre
   notify:
     - Restart Amavis
 

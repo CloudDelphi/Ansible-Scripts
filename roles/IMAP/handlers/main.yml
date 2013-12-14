@@ -11,6 +11,12 @@
 - name: Restart ClamAV
   service: name=clamav-daemon state=restarted
 
+- name: Compile Spamassassin rules
+  sudo_user: debian-spamd
+  # it might take a while...
+  command: /usr/bin/sa-compile --quiet
+           chdir=/var/lib/spamassassin/
+
 - name: Restart Amavis
   service: name=amavis state=restarted
 
