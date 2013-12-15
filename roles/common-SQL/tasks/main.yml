@@ -9,6 +9,19 @@
     - mysql-server
     - python-mysqldb
 
+- name: Copy MySQL's configuration
+  copy: src=etc/mysql/my.cnf
+        dest=/etc/mysql/my.cnf
+        owner=root group=root
+        mode=0644
+  register: r
+  notify:
+    - Restart MySQL
+
+# We need to restart now and load the relevant authplugin before we
+# connect to the database.
+- meta: flush_handlers
+
 - name: Force root to use UNIX permissions
   mysql_user: name=root auth_plugin=auth_socket
               state=present
