@@ -1,0 +1,10 @@
+# cf. http://wiki.nginx.org/Pitfalls#Passing_Uncontrolled_Requests_to_PHP
+try_files $uri $uri/ =404;
+
+include 		fastcgi/params;
+# required if PHP was built with --enable-force-cgi-redirect
+fastcgi_param	REDIRECT_STATUS	200;
+
+fastcgi_intercept_errors 	on;
+fastcgi_read_timeout 		14400; 
+fastcgi_pass				unix:/var/run/php5-fpm.sock;

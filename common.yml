@@ -32,3 +32,10 @@
   tags: slapd,ldap
   roles:
     - LDAP-provider
+
+- name: Configure the Web servers
+  hosts: webmail
+  gather_facts: False
+  tags: nginx,www,web
+  roles:
+    - common-web
