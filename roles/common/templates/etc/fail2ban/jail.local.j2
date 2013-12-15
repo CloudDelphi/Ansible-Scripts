@@ -81,3 +81,13 @@ port     = submission
 filter   = sasl
 logpath  = /var/log/mail.warn
 {% endif %}
+
+
+{% if 'webmail' in group_names %}
+[roundcube]
+
+enabled  = true
+port     = http,https
+filter   = roundcube
+logpath  = /var/log/roundcube/errors
+{% endif %}

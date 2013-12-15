@@ -25,3 +25,6 @@ in      tcp     993                                     # IMAPS
 {% if 'MSA' in group_names %}
 in      tcp     587                                     # SMTP-AUTH
 {% endif %}
+{% if 'webmail' in group_names %}
+in     tcp      80,443                                  # HTTP/HTTPS
+{% endif %}

@@ -1,17 +1,28 @@
 - name: Install fail2ban
   apt: pkg=fail2ban
 
+- name: Add addititional filters
+  copy: src=etc/fail2ban/filter.d/{{ item }}
+        dest=/etc/fail2ban/filter.d/{{ item }}
+        owner=root group=root
+        mode=0644
+  register: r1
+  with_items:
+    - roundcube.conf
+  notify:
+    - Restart fail2ban
+
 - name: Configure fail2ban
   template: src=etc/fail2ban/jail.local.j2
             dest=/etc/fail2ban/jail.local
             owner=root group=root
             mode=0644
-  register: r
+  register: r2
   notify:
     - Restart fail2ban
 
 - name: Start fail2ban
   service: name=fail2ban state=started
-  when: not r.changed
+  when: not (r1.changed or r2.changed)
 
 - meta: flush_handlers

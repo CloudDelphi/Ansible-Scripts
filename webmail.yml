@@ -1,0 +1,5 @@
+---
+- name: Configure the webmail
+  hosts: webmail
+  roles:
+    - { role: webmail, inst: webmail }

@@ -1,0 +1,69 @@
+server {
+
+    listen      80;
+    listen [::]:80 ipv6only=on;
+
+    server_name  mail.fripost.org;
+
+    access_log  /var/log/nginx/roundcube.access.log;
+    error_log   /var/log/nginx/roundcube.error.log info;
+
+    return 301 https://$http_host$request_uri;
+}
+
+
+server {
+    listen      443;
+    listen [::]:443 ipv6only=on;
+
+    server_name  mail.fripost.org;
+    root         /var/lib/roundcube;
+
+    include ssl/config;
+    ssl_certificate     /etc/ssl/certs/ssl-cert-snakeoil.pem;
+    ssl_certificate_key /etc/ssl/private/ssl-cert-snakeoil.key;
+
+    location = /favicon.ico {
+        root          /usr/share/roundcube/skins/default/images;
+        log_not_found off;
+        access_log    off;
+        expires       max;
+    }
+
+    location = /robots.txt {
+        allow         all;
+        log_not_found off;
+        access_log    off;
+    }
+
+    # Deny all attempts to access hidden files, or files under hidden
+    # directories.
+    location ~ /\. { return 404; }
+
+    access_log  /var/log/nginx/roundcube.access.log;
+    error_log   /var/log/nginx/roundcube.error.log info;
+
+    index index.php;
+    location = /index.php {
+        include fastcgi/php;
+        include fastcgi/php-ssl;
+
+        # From /var/lib/roundcube/.htaccess
+        fastcgi_param PHP_VALUE "upload_max_filesize=25M
+                                 post_max_size=30M
+                                 memory_limit=64M
+                                 session.gc_maxlifetime=21600
+                                 session.gc_divisor=500
+                                 session.gc_probability=1";
+        fastcgi_param PHP_ADMIN_VALUE "open_basedir=$document_root:/usr/share/roundcube:/etc/roundcube:/var/log/roundcube:/usr/share/php:/usr/share/misc/magic
+                                       upload_tmp_dir=$document_root/temp";
+    }
+
+    # Security rules
+    location ~ ^/(README|INSTALL|LICENSE|CHANGELOG|UPGRADING)$ {
+        return 404;
+    }
+    location ~ ^/(bin|SQL)/ {
+        return 404;
+    }
+}
