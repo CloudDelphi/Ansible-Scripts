@@ -19,11 +19,17 @@
 
 # Look up postfix configuration variable
 def postconf(k, instance=None):
-    cmd = [ os.path.join(os.sep, 'usr', 'sbin', 'postconf') ]
     if instance:
-        config = os.path.join(os.sep, 'etc', 'postfix-%s' % instance)
-        cmd.extend([ '-c', config ])
-    cmd.extend([ '-h', k ])
+        cmd = [ os.path.join(os.sep, 'usr', 'sbin', 'postmulti')
+              , '-x'
+              , '-i', instance
+              , '--'
+              ]
+    else:
+        cmd = []
+
+    cmd.extend([ os.path.join(os.sep, 'usr', 'sbin', 'postconf')
+               , '-h', k ])
     return subprocess.check_output(cmd, stderr=subprocess.STDOUT).rstrip()
 
 

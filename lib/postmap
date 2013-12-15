@@ -27,11 +27,16 @@ except ImportError:
 # pick the default_detabase_type of the given instance instead.
 def file_suffix(instance, db):
     if not db:
-        cmd = [ os.path.join(os.sep, 'usr', 'sbin', 'postconf') ]
         if instance:
-            config = os.path.join(os.sep, 'etc', 'postfix-%s' % instance)
-            cmd.extend([ '-c', config ])
-        cmd.extend([ '-h', 'default_database_type' ])
+            cmd = [ os.path.join(os.sep, 'usr', 'sbin', 'postmulti')
+                  , '-x'
+                  , '-i', instance
+                  , '--'
+                  ]
+        else:
+            cmd = []
+        cmd.extend([ os.path.join(os.sep, 'usr', 'sbin', 'postconf')
+                   , '-h', 'default_database_type' ])
         null = open (os.devnull, 'wb')
         db = subprocess.check_output(cmd, stderr=null).rstrip()
         null.closed
