@@ -1,8 +1,6 @@
 !INBOX
--JUNK
--JUNK/*
--SPAM
--SPAM/*
--TRASH
+-Junk
+-Junk/*
+-Trash
 *
-  all
+  ALL
