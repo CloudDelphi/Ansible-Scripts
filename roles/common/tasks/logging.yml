@@ -31,6 +31,8 @@
         dest=/etc/logrotate.d/fripost-mail
         owner=root group=root
         mode=0644
+  tags:
+    - logrotate
 
 # TODO: We also have specialized per-role logcheck rulesets, per-role
 # logrotate configuration (/etc/logrotate.d), and per-role rsyslog
