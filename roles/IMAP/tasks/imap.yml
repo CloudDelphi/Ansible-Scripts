@@ -6,6 +6,8 @@
     - dovecot-imapd
     - dovecot-lmtpd
     - dovecot-antispam
+    - dovecot-managesieved
+    - dovecot-sieve
 
 - name: Create a user 'vmail'
   user: name=vmail system=yes
@@ -67,6 +69,7 @@
     - conf.d/20-imap.conf
     - conf.d/20-lmtp.conf
     - conf.d/90-plugin.conf
+    - conf.d/90-sieve.conf
     - conf.d/auth-ldap.conf.ext
     - dovecot-ldap.conf.ext
     - dovecot-ldap-userdb.conf.ext

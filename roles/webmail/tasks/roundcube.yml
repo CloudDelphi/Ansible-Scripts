@@ -37,7 +37,7 @@
     - { var: username_domain,        value: "'fripost.org'"                           }
     - { var: product_name,           value: "'Fripost'"                               }
     # Plugins
-    - { var: plugins,                value: "array('password','additional_message_headers')" }
+    - { var: plugins,                value: "array('additional_message_headers','managesieve','password')" }
     # User Interface
     - { var: language,               value: "'sv_SE'" }
     - { var: create_default_folders, value: "TRUE"    }
@@ -60,8 +60,9 @@
             owner=root group=root
             mode=0644
   with_items:
-    - password
     - additional_message_headers
+    - managesieve
+    - password
 
 - name: Start php5-fpm
   service: name=php5-fpm state=started
