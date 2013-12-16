@@ -14,3 +14,4 @@ LDA:     { IPv4: lda.fripost.org,      port: 2526 }
 
 LDAP_provider: host1.libvirt.guilhem.org
 NTP_master: host1.libvirt.guilhem.org
+IMAP: host1.libvirt.guilhem.org

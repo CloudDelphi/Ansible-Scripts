@@ -1,0 +1,18 @@
+# Smart IMAP proxying with imapc storage
+# 
+# http://dovecot.org/pipermail/dovecot/2011-January/056975.html
+# http://wiki2.dovecot.org/HowTo/ImapcProxy
+# http://wiki2.dovecot.org/Migration/Dsync
+
+imapc_host = {{ IMAP }}
+imapc_port = 143
+imapc_user = %u
+
+# Read multiple mails in parallel, improves performance
+mail_prefetch_count = 20
+
+# The list of valid features can be found there
+# http://hg.dovecot.org/dovecot-2.1/file/f572fbafb445/src/lib-storage/index/imapc/imapc-settings.c
+# (in the struct 'imapc_feature_list imapc_feature_list')
+imapc_features = rfc822.size
+

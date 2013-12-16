@@ -1,0 +1,17 @@
+# Authentication via remote IMAP server. Included from auth.conf.
+#
+# <doc/wiki/PasswordDatabase.IMAP.txt>
+
+passdb {
+  driver         = imap
+  args           = host={{ IMAP }} port=143
+  default_fields = userdb_imapc_user=%u userdb_imapc_password=%w
+}
+
+# "prefetch" user database means that the passdb already provided the
+# needed information and there's no need to do a separate userdb lookup.
+# <doc/wiki/UserDatabase.Prefetch.txt>
+userdb {
+  driver         = prefetch
+  default_fields = home=/home/imapproxy/%d/%n
+}

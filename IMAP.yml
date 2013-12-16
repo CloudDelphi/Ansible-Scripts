@@ -3,3 +3,11 @@
   hosts: IMAP
   roles:
     - { role: IMAP, inst: IMAP }
+
+- name: Configure IMAP proxies
+  hosts: webmail:!IMAP
+  roles:
+    - IMAP-proxy
+  tags:
+    - imap
+    - dovecot
