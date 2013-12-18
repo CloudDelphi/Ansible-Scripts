@@ -73,22 +73,7 @@ olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.2 NAME 'fvl'
     SUBSTR caseIgnoreIA5SubstringsMatch
     SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{64} SINGLE-VALUE )
 #
-# This is redundant since we always use DNs of the form
-#     fvl=localpart,fvd=domainpart.tld,...
-# (But Postfix doesn't allow the use of '%u' and '%d' from the query in
-# its 'result_format'.)
-# It is a priori insecure to allow arbitrary values here since users
-# will modify this value themselves, however our Postfix will only
-# accept well-formed values, enforced by a custom filter:
-#    query_filter = (&...(fripostLocalAlias=%u#%d))
-#    result_attribute = fripostLocalAlias
-olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.3 NAME 'fripostLocalAlias'
-    DESC 'A local alias, typically localpart#domainpart.tld'
-    EQUALITY caseIgnoreIA5Match
-    SUBSTR caseIgnoreIA5SubstringsMatch
-    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{64} SINGLE-VALUE )
-#
-olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.4 NAME 'fripostMaildrop'
+olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.3 NAME 'fripostMaildrop'
     DESC 'An email address the virtual alias should be mapped to'
     EQUALITY caseIgnoreIA5Match
     SUBSTR caseIgnoreIA5SubstringsMatch
@@ -97,48 +82,48 @@ olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.4 NAME 'fripostMaildrop'
 # We are creating a new attribute, optional in virtual domains and
 # users, because the presence index should *not* apply to the
 # mandatory attribute above.
-olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.5 NAME 'fripostOptionalMaildrop'
+olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.4 NAME 'fripostOptionalMaildrop'
     DESC 'An optional email address for catch-all aliases on domains and users'
     EQUALITY caseIgnoreIA5Match
     SUBSTR caseIgnoreIA5SubstringsMatch
     SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} )
 #
-olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.6 NAME 'fripostIsStatusActive'
+olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.5 NAME 'fripostIsStatusActive'
     DESC 'When present, a token locking the entry in an inactive state'
     EQUALITY booleanMatch
     SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE )
 #
-olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.7 NAME 'fripostPendingToken'
+olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.6 NAME 'fripostPendingToken'
     DESC 'Is the entry pending?'
     EQUALITY caseExactMatch
     SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{64} SINGLE-VALUE )
 #
-olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.8 NAME 'fripostUserQuota'
+olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.7 NAME 'fripostUserQuota'
     DESC 'The quota on a user e.g., "50MB"'
     EQUALITY caseExactMatch
     SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{32} SINGLE-VALUE )
 #
-olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.9 NAME 'fripostCanAddDomain'
+olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.8 NAME 'fripostCanAddDomain'
     DESC 'A user/domain that can add domains'
     SUP distinguishedName )
 #
-olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.10 NAME 'fripostCanAddAlias'
+olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.9 NAME 'fripostCanAddAlias'
     DESC 'A user/domain that can add aliases under the parent domain'
     SUP distinguishedName )
 #
-olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.11 NAME 'fripostCanAddList'
+olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.10 NAME 'fripostCanAddList'
     DESC 'A user/domain that can add lists under the parent domain'
     SUP distinguishedName )
 #
-olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.12 NAME 'fripostOwner'
+olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.11 NAME 'fripostOwner'
     DESC 'A user that owns under parent domain'
     SUP distinguishedName )
 #
-olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.13 NAME 'fripostPostmaster'
+olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.12 NAME 'fripostPostmaster'
     DESC 'A user that is a postmaster of the parent domain'
     SUP distinguishedName )
 #
-olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.14 NAME 'fripostListManager'
+olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.13 NAME 'fripostListManager'
     DESC 'The list manager'
     EQUALITY caseIgnoreMatch
     SUBSTR caseIgnoreSubstringsMatch
@@ -176,13 +161,13 @@ olcObjectClasses: ( 1.3.6.1.4.1.40011.1.2.4 NAME 'FripostVirtualAlias'
 olcObjectClasses: ( 1.3.6.1.4.1.40011.1.2.5 NAME 'FripostVirtualList'
     SUP top STRUCTURAL
     DESC 'Virtual list'
-    MUST ( fvl $ fripostListManager $ fripostIsStatusActive $ fripostLocalAlias )
+    MUST ( fvl $ fripostListManager $ fripostIsStatusActive )
     MAY ( fripostOwner $ description ) )
 #
 olcObjectClasses: ( 1.3.6.1.4.1.40011.1.2.6 NAME 'FripostVirtualListCommand'
     SUP top STRUCTURAL
     DESC 'Virtual list command'
-    MUST ( fvl $ fripostLocalAlias ) )
+    MUST ( fvl ) )
 #
 olcObjectClasses: ( 1.3.6.1.4.1.40011.1.2.7 NAME 'FripostPendingEntry'
     SUP top AUXILIARY

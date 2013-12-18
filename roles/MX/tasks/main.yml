@@ -49,11 +49,10 @@
     - mailbox_domains.cf
     - reserved_maps.pcre
     - alias_maps.cf
-    - lists_maps.cf
     - alias_catchall_maps.cf
     - mailbox_maps.cf
-    - reserved_transport_maps
     - transport_lists_maps.cf
+    - reserved_transport_maps
 
 - name: Compile the Reserved Transport Maps
   postmap: cmd=postalias instance={{ postfix_instance[inst].name }}
