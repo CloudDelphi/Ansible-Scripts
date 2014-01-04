@@ -1,0 +1,12 @@
+- name: Install ClamAV
+  apt: pkg={{ item }}
+  with_items:
+    - clamav
+    - clamav-daemon
+    - clamav-freshclam
+
+- name: Start ClamAV
+  service: name={{ item }} state=started
+  with_items:
+    - clamav-daemon
+    - clamav-freshclam

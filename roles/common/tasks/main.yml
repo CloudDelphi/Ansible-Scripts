@@ -5,6 +5,7 @@
 - include: firewall.yml tags=firewall,iptables
 - include: samhain.yml  tags=samhain
 - include: rkhunter.yml tags=rkhunter
+- include: clamav.yml   tags=clamav
 - include: fail2ban.yml tags=fail2ban
 - include: smart.yml    tags=smartmontools,smart
 - include: ipsec.yml    tags=strongswan,ipsec
@@ -16,9 +17,6 @@
   apt: pkg={{ item }}
   with_items:
     - ca-certificates
-    - clamav
-    - clamav-daemon
-    - clamav-freshclam
     - daemontools
     - etckeeper
     - ethtool
