@@ -8,6 +8,7 @@
 - include: clamav.yml   tags=clamav
 - include: fail2ban.yml tags=fail2ban
 - include: smart.yml    tags=smartmontools,smart
+- include: haveged.yml  tags=haveged,entropy
 - include: ipsec.yml    tags=strongswan,ipsec
 - include: logging.yml  tags=logging
 - include: ntp.yml      tags=ntp
