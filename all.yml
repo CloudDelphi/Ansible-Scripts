@@ -7,3 +7,4 @@
 - include: MX.yml
 - include: MSA.yml
 - include: webmail.yml
+- include: lists.yml

@@ -1,0 +1,78 @@
+- name: Install MLMMJ
+  apt: pkg={{ item }}
+  with_items:
+    - mlmmj
+
+# Weird the debian package doesn't do it by itself...
+- name: Create a user 'mlmmj'
+  user: name=mlmmj system=yes
+        home=/var/spool/mlmmj
+        shell=/bin/false
+        password=!
+        state=present
+
+- name: Add 'www-data' to the group 'mlmmj'
+  user: name=www-data groups=mlmmj append=yes
+
+- name: Create a home directory for user 'mlmmj'
+  file: path=/var/spool/mlmmj
+        state=directory
+        owner=mlmmj group=mlmmj
+        mode=0700
+
+- name: Create /var/lib/mlmmj
+  file: path=/var/lib/mlmmj
+        state=directory
+        owner=mlmmj group=mlmmj
+        mode=0750
+
+- name: Auto-maintain mlmmj's spool directory
+  copy: src=etc/cron.d/mlmmj
+        dest=/etc/cron.d/mlmmj
+        owner=root group=root
+        mode=0644
+
+- name: Copy mlmmj-newlist.sh and mhonarc-scan.sh
+  copy: src=usr/local/bin/{{ item }}
+        dest=/usr/local/bin/{{ item }}
+        owner=root group=root
+        mode=0755
+  with_items:
+    - mlmmj-newlist.sh
+    - mhonarc-scan.sh
+
+- name: Copy /etc/mhonarc.rc
+  copy: src=etc/mhonarc.rc
+        dest=/etc/mhonarc.rc
+        owner=root group=root
+        mode=0644
+
+- name: Create /var/lib/mlmmj/...
+  file: path=/var/lib/mlmmj/{{ item }}
+        state=directory
+        owner=root group=root
+        mode=0755
+  with_items:
+    - static
+    - static/css
+    - static/fonts
+
+- name: Copy CSS files
+  copy: src=var/lib/mlmmj/static/css/{{ item }}
+        dest=/var/lib/mlmmj/static/css/{{ item }}
+        owner=root group=root
+        mode=0644
+  with_items:
+    - bootstrap.min.css
+    - fripost.css
+
+- name: Copy Glyphicon Halflings
+  copy: src=var/lib/mlmmj/static/fonts/{{ item }}
+        dest=/var/lib/mlmmj/static/fonts/{{ item }}
+        owner=root group=root
+        mode=0644
+  with_items:
+    - glyphicons-halflings-regular.eot
+    - glyphicons-halflings-regular.svg
+    - glyphicons-halflings-regular.ttf
+    - glyphicons-halflings-regular.woff

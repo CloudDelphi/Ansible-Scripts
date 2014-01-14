@@ -1,0 +1,63 @@
+html, body {
+  height: 100%;
+  max-width: 1024px;
+}
+#wrap {
+  min-height: 100%;
+  height: auto;
+  margin: -1.6em auto;
+  padding: 1.6em 0;
+  width: 100%;
+}
+#main {
+  margin: 0 15px;
+  padding: 0;
+  width: auto;
+}
+#header, #footer {
+  margin: 0 15px;
+  height: 1.5em;
+  overflow: hidden;
+  padding: 0;
+}
+#header {
+  border-bottom: 1px solid #c0c0c0;
+}
+#footer {
+  border-top: 1px solid #c0c0c0;
+}
+h1.msg.subject {
+  margin-bottom: 1.5ex;
+}
+.msg.header {
+  width: auto;
+  padding: 0;
+  margin-bottom: 2ex;
+}
+.msg.header table {
+  margin: 10px;
+}
+.msg.header table tr td:first-child {
+  font-weight: bold;
+  padding-right: 1ex;
+}
+.msg.body pre {
+  background: none;
+  border: none;
+  padding: 0 10px;
+}
+.dummy {
+  list-style: none;
+  font-style: italic;
+  color: gray;
+}
+.msg.footer {
+  margin-top: 1ex;
+  padding: 10px;
+}
+.msg.footer > ul {
+  margin-bottom: 0;
+}
+#main ul.index {
+  margin: 2ex 0;
+}

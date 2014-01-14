@@ -1,0 +1,35 @@
+- name: Install Postfix
+  apt: pkg={{ item }}
+  with_items:
+    - postfix
+    - postfix-ldap
+
+- name: Configure Postfix
+  template: src=etc/postfix/main.cf.j2
+            dest=/etc/postfix-{{ postfix_instance[inst].name }}/main.cf
+            owner=root group=root
+            mode=0644
+  register: r
+  notify:
+    - Restart Postfix
+
+- name: Create directory /etc/postfix-.../virtual
+  file: path=/etc/postfix-{{ postfix_instance[inst].name }}/virtual
+        state=directory
+        owner=root group=root
+        mode=0755
+
+- name: Copy lookup tables
+  copy: src=etc/postfix/virtual/{{ item }}
+        dest=/etc/postfix-{{ postfix_instance[inst].name }}/virtual/{{ item }}
+        owner=root group=root
+        mode=0644
+  with_items:
+    - mailbox_domains.cf
+    - transport_lists_maps.cf
+
+- name: Start Postfix
+  service: name=postfix state=started
+  when: not r.changed
+
+- meta: flush_handlers

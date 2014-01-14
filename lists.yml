@@ -1,0 +1,5 @@
+---
+- name: Configure the list managers
+  hosts: lists
+  roles:
+    - { role: lists, inst: lists }

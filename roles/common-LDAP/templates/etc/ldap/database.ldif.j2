@@ -97,6 +97,8 @@ olcSyncrepl: rid=000
   binddn="cn=MX-replicate,ou=services,o=mailHosting,dc=fripost,dc=org"
   credentials=mx
 {% elif 'lists' in group_names %}
+# XXX: mlmmj is not compatible with the MX, see
+# http://mlmmj.org/bugs/bug.php?id=51
 olcSyncrepl: rid=001
   provider=ldap://{{ LDAP_provider }}
   type=refreshAndPersist

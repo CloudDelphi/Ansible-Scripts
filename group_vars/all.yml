@@ -8,9 +8,11 @@ postfix_instance:
   MTA-out: { name: mta-out,group: mta }
   MSA:     { name: msa                }
   webmail: { name: webmail            }
+  lists:   { name: lists              }
 
 MTA_out: { host: outgoing.fripost.org, port: 2525 }
 LDA:     { host: lda.fripost.org,      port: 2526 }
+lists:   { host: lists.fripost.org,    port: 2527 }
 
 LDAP_provider: host1.libvirt.guilhem.org
 NTP_master: host1.libvirt.guilhem.org

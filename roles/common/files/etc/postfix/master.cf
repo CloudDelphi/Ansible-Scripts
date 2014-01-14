@@ -40,14 +40,19 @@ anvil     unix  -       -       -       -       1       anvil
 scache    unix  -       -       -       -       1       scache
 127.0.0.1:16132 inet n  -       -       -       -       smtpd
 127.0.0.1:2526 inet n   -       -       -       -       smtpd
-127.0.0.1:2527 inet n   -       -       -       -       smtpd
+2527      inet  n       -       -       -       -       smtpd
+  -o mynetworks=0.0.0.0/0
 127.0.0.1:2580 inet n   -       -       -       -       smtpd
 127.0.0.1:2599 inet n   -       -       -       -       smtpd
   -o cleanup_service_name=cleanup-catchall
 cleanup-catchall unix n -       -       -       0       cleanup
   -o virtual_alias_maps=cdb:$config_directory/virtual/reserved_alias_maps,ldap:$config_directory/virtual/alias_maps.cf,ldap:/etc/postfix-mx/virtual/catchall_maps.cf
+127.0.0.1:smtp inet n   -       -       -       -       smtpd
+  -o inet_interfaces=127.0.0.1
 reserved-alias unix  -  n       n       -       -       pipe
   flags=Rhu user=nobody argv=/usr/local/sbin/reserved-alias.pl ${sender} ${original_recipient} @fripost.org
+mlmmj     unix  -       n       n       -       -       pipe
+  flags=Rhu user=mlmmj argv=/usr/bin/mlmmj-receive -L /var/spool/mlmmj/${domain}/${user}
 amavisfeed unix -       -       n       -       2       lmtp
   -o lmtp_destination_recipient_limit=1000
   -o lmtp_send_xforward_command=yes

@@ -1,0 +1,1 @@
+0 */2 * * * mlmmj /usr/bin/test -x /usr/bin/mlmmj-maintd && /usr/bin/mlmmj-maintd -F -d /var/spool/mlmmj
