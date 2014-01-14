@@ -43,7 +43,11 @@ relay_domains =
 
 # Tunnel everything through IPSec
 smtp_tls_security_level  = none
+{% if 'MTA-out' in group_names %}
+smtp_bind_address        = 127.0.0.1
+{% else %}
 smtp_bind_address        = 172.16.0.1
+{% endif %}
 smtpd_tls_security_level = none
 
 # Turn off all TCP/IP listener ports except that dedicated to

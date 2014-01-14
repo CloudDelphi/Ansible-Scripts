@@ -64,7 +64,11 @@ header_checks  = pcre:$config_directory/anonymize_sender.pcre
 
 # Tunnel everything through IPSec
 smtp_tls_security_level = none
+{% if 'MTA-out' in group_names %}
+smtp_bind_address       = 127.0.0.1
+{% else %}
 smtp_bind_address       = 172.16.0.1
+{% endif %}
 
 # TLS
 smtpd_tls_security_level        = encrypt
