@@ -40,23 +40,24 @@
         owner=root group=root
         mode=0755
 
-- name: Copy lookups tables
-  copy: src=etc/postfix/virtual/{{ item }}
-        dest=/etc/postfix-{{ postfix_instance[inst].name }}/virtual/{{ item }}
-        owner=root group=root
-        mode=0644
+- name: Copy lookup tables
+  template: src=etc/postfix/virtual/{{ item }}.j2
+            dest=/etc/postfix-{{ postfix_instance[inst].name }}/virtual/{{ item }}
+            owner=root group=root
+            mode=0644
   with_items:
     - mailbox_domains.cf
-    - reserved_maps.pcre
+    - reserved_alias_maps
     - alias_maps.cf
-    - alias_catchall_maps.cf
-    - mailbox_maps.cf
+    - catchall_maps.cf
+    - transport_reserved_maps.pcre
+    - transport_mailbox_maps.cf
     - transport_lists_maps.cf
-    - reserved_transport_maps
+    - transport_catchall_maps.cf
 
 - name: Compile the Reserved Transport Maps
-  postmap: cmd=postalias instance={{ postfix_instance[inst].name }}
-           src=/etc/postfix-{{ postfix_instance[inst].name }}/virtual/reserved_transport_maps db=cdb
+  postmap: instance={{ postfix_instance[inst].name }}
+           src=/etc/postfix-{{ postfix_instance[inst].name }}/virtual/reserved_alias_maps db=cdb
            owner=root group=root
            mode=0644
 

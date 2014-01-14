@@ -5,4 +5,8 @@ scope            = base
 bind             = none
 query_filter     = (&(objectClass=FripostVirtualUser)(fvl=%u))
 result_attribute = fvl
-result_format    = OK
+{% if 'LDA' in group_names %}
+result_format    = smtpl:[127.0.0.1]:{{ LDA.port }}
+{% else %}
+result_format    = smtps:[{{ LDA.host }}]:{{ LDA.port }}
+{% endif %}

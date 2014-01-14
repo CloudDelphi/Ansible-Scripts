@@ -1,1 +1,1 @@
-../../../../../MX/files/etc/postfix/virtual/mailbox_domains.cf
+../../../../../MX/templates/etc/postfix/virtual/mailbox_domains.cf.j2

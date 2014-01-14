@@ -19,7 +19,7 @@ append_dot_mydomain = no
 
 # Turn off all TCP/IP listener ports except that necessary for the mail
 # exchange.
-master_service_disable = !smtp.inet inet
+master_service_disable = !smtp.inet !127.0.0.1:2599.inet inet
 
 queue_directory       = /var/spool/postfix-{{ postfix_instance[inst].name }}
 data_directory        = /var/lib/postfix-{{ postfix_instance[inst].name }}
@@ -52,24 +52,23 @@ relay_domains =
 
 # Virtual transport
 {% if 'LDA' in group_names %}
-virtual_transport = smtp:[127.0.0.1]:{{ LDA.port }}
+virtual_transport = smtpl:[127.0.0.1]:{{ LDA.port }}
 {% else %}
-virtual_transport = smtp:[{{ LDA.IPv4 }}]:{{ LDA.port }}
+virtual_transport = smtps:[{{ LDA.host }}]:{{ LDA.port }}
 {% endif %}
-transport_maps = ldap:$config_directory/virtual/transport_lists_maps.cf
+# It's a bit stupid to include part of the virtual_mailbox_maps here,
+# but we need to tell postfix to accept the recipient
+# (virtual_mailbox_maps) *before* sending away to the right machine
+# (transport_maps)
+transport_maps = pcre:$config_directory/virtual/transport_reserved_maps.pcre
+                 ldap:$config_directory/virtual/transport_mailbox_maps.cf
+                 ldap:$config_directory/virtual/transport_lists_maps.cf
+                 ldap:$config_directory/virtual/transport_catchall_maps.cf
 
 virtual_mailbox_domains = ldap:$config_directory/virtual/mailbox_domains.cf
-virtual_alias_maps      = pcre:$config_directory/virtual/reserved_maps.pcre
+virtual_alias_maps      = cdb:$config_directory/virtual/reserved_alias_maps
                           ldap:$config_directory/virtual/alias_maps.cf
-                          ldap:$config_directory/virtual/alias_catchall_maps.cf
-virtual_mailbox_maps    = ldap:$config_directory/virtual/mailbox_maps.cf
-                          # it's a bit stupid to lookup for lists here
-                          # and in transport, but we need to tell
-                          # postfix to accept the recipient
-                          # (virtual_mailbox_maps) *before* sending away
-                          # to the list server (transport_maps)
-                          ldap:$config_directory/virtual/transport_lists_maps.cf
-mailbox_transport_maps  = cdb:$config_directory/virtual/reserved_transport_maps
+virtual_mailbox_maps    = $transport_maps
 
 # Don't rewrite remote headers
 local_header_rewrite_clients     =

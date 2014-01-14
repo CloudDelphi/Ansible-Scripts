@@ -5,7 +5,8 @@ scope            = base
 bind             = none
 query_filter     = (&(|(objectClass=FripostVirtualList)(objectClass=FripostVirtualListCommand))(fvl=%u))
 result_attribute = fvl
-# We use these maps for both virtual mailboxes and transport (in the
-# former case the result is ignored, only the existence of a match
-# matters.)
-result_format    = smtp:[127.0.0.1]:2345
+{% if 'lists' in group_names %}
+result_format    = smtpl:[127.0.0.1]:{{ lists.port }}
+{% else %}
+result_format    = smtps:[{{ lists.host }}]:{{ lists.port }}
+{% endif %}

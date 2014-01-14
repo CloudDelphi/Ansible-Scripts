@@ -1,0 +1,6 @@
+if !/@fripost\.org$/
+# For other domains, RFC 822 section 6.3 and RFC 2142 section 4
+# mandatory aliases are forwarded to OUR admin team and to the domain
+# owner or postmaster, if there are any.
+/^(?:postmaster|abuse)(?:\+.*)?@/   reserved-alias:
+endif

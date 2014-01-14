@@ -20,10 +20,11 @@ use strict;
 use Net::LDAPI;
 use Net::LDAP::Util qw/escape_filter_value ldap_explode_dn escape_dn_value/;
 use Authen::SASL;
+use Net::SMTP;
 
 if (!@ARGV or grep { $_ eq '-h' or $_ eq '--help' } @ARGV) {
     # Help
-    print STDERR "Usage: $0 [original recipient] [additional recipient ...]\n";
+    print STDERR "Usage: $0 {original sender} {original recipient} [additional recipient ...]\n";
     print STDERR "\n";
     print STDERR "The message read from the standard input is redirected to 'additional recipient',\n";
     print STDERR "and also forwarded to the domain owner if any. If the 'additional recipient' begins\n";
@@ -35,10 +36,13 @@ if (!@ARGV or grep { $_ eq '-h' or $_ eq '--help' } @ARGV) {
     exit;
 }
 
+# The original sender
+my $sender = shift;
+
 # The original recipient
 my $orig = shift;
 $orig =~ /^([^@]+)\@(.+)$/
-    or warn "Non fully qualified: $orig";
+    or warn "Warning: Non fully qualified: $orig";
 my ($local,$domain) = ($1,$2);
 
 # The new recipient (typically, the admin site)
@@ -60,13 +64,11 @@ my @recipients = grep { $_ and $orig ne $_ }
 die "Error: Aborted delivery to '$orig' in attempt to break an alias expansion loop.\n"
     unless @recipients;
 
-my @sendmail = ('/usr/sbin/sendmail', '-i', '-bm');
-
 if (defined $domain) {
-    # Look for the domain owner/postmaster
+    # Look for the domain owner or postmaster
     my $ldap = Net::LDAPI->new();
     $ldap->bind( sasl => Authen::SASL->new(mechanism => 'EXTERNAL') )
-        or die "Couldn't bind";
+        or die "Error: Couldn't bind";
 
     my @attrs = ( 'fripostPostmaster', 'fripostOwner' );
     my $mesg = $ldap->search( base => 'fvd='.escape_dn_value($domain).','
@@ -79,16 +81,16 @@ if (defined $domain) {
                             , attrs => \@attrs
                             );
     if ($mesg->code) {
-        warn $mesg->error;
+        warn "Warning: ".$mesg->error;
     }
     elsif ($mesg->count != 1) {
         # Note: this may happen for "$mydestination", but these mails
         # are unlikely. We'll get a harmless warning at worst.
-        warn "Something weird happened when looking up domain '".$domain.
+        warn "Warning: Something weird happened when looking up domain '".$domain.
              "'. Check your ACL.";
     }
     else {
-        my $entry = $mesg->pop_entry() // die "Cannot pop entry.";
+        my $entry = $mesg->pop_entry() // die "Error: Cannot pop entry.";
         foreach (@attrs) {
             my $v = $entry->get_value($_, asref => 1) or next;
             foreach my $dn (@$v) {
@@ -99,7 +101,7 @@ if (defined $domain) {
                     push @recipients, $l.'@'.$d;
                 }
                 else {
-                    warn "Invalid DN: $dn"
+                    warn "Warning: Invalid DN: $dn"
                 }
             }
         }
@@ -107,4 +109,8 @@ if (defined $domain) {
     $ldap->unbind;
 }
 
-exec (@sendmail, @recipients);
+my $smtp = Net::SMTP->new( 'localhost:25', Timeout => 1200 );
+$smtp->mail($sender);
+$smtp->to(@recipients, { Notify => ['FAILURE','DELAY'], SkipBad => 1 });
+$smtp->data(<STDIN>);
+$smtp->quit;

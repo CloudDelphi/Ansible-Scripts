@@ -1,1 +1,8 @@
-../../../../../MX/files/etc/postfix/virtual/mailbox_maps.cf
+server_host      = ldapi://%2Fprivate%2Fldapi/
+version          = 3
+search_base      = fvl=%u,fvd=%d,ou=virtual,o=mailHosting,dc=fripost,dc=org
+scope            = base
+bind             = none
+query_filter     = (&(objectClass=FripostVirtualUser)(fvl=%u))
+result_attribute = fvl
+result_format    = OK

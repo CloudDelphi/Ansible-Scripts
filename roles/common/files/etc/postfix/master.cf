@@ -26,6 +26,10 @@ flush     unix  n       -       -       1000?   0       flush
 proxymap  unix  -       -       n       -       -       proxymap
 proxywrite unix -       -       n       -       1       proxymap
 smtp      unix  -       -       -       -       -       smtp
+smtpl     unix  -       -       -       -       -       smtp
+  -o smtp_bind_address=127.0.0.1
+smtps     unix  -       -       -       -       -       smtp
+  -o smtp_bind_address=172.16.0.1
 relay     unix  -       -       -       -       -       smtp
 #       -o smtp_helo_timeout=5 -o smtp_connect_timeout=5
 showq     unix  n       -       -       -       -       showq
@@ -37,8 +41,12 @@ virtual   unix  -       n       n       -       -       virtual
 lmtp      unix  -       -       -       -       -       lmtp
 anvil     unix  -       -       -       -       1       anvil
 scache    unix  -       -       -       -       1       scache
+127.0.0.1:2599 inet n   -       -       -       -       smtpd
+  -o cleanup_service_name=cleanup-catchall
+cleanup-catchall unix n -       -       -       0       cleanup
+  -o virtual_alias_maps=cdb:$config_directory/virtual/reserved_alias_maps,ldap:$config_directory/virtual/alias_maps.cf,ldap:/etc/postfix-mx/virtual/catchall_maps.cf
 reserved-alias unix  -  n       n       -       -       pipe
-  flags=Rhu user=mail argv=/usr/local/sbin/reserved-alias.pl ${original_recipient} @fripost.org
+  flags=Rhu user=nobody argv=/usr/local/sbin/reserved-alias.pl ${sender} ${original_recipient} @fripost.org
 amavisfeed unix -       -       n       -       2       lmtp
   -o lmtp_destination_recipient_limit=1000
   -o lmtp_send_xforward_command=yes
