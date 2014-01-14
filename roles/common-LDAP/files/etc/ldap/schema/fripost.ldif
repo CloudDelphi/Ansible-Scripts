@@ -164,12 +164,7 @@ olcObjectClasses: ( 1.3.6.1.4.1.40011.1.2.5 NAME 'FripostVirtualList'
     MUST ( fvl $ fripostListManager $ fripostIsStatusActive )
     MAY ( fripostOwner $ description ) )
 #
-olcObjectClasses: ( 1.3.6.1.4.1.40011.1.2.6 NAME 'FripostVirtualListCommand'
-    SUP top STRUCTURAL
-    DESC 'Virtual list command'
-    MUST ( fvl ) )
-#
-olcObjectClasses: ( 1.3.6.1.4.1.40011.1.2.7 NAME 'FripostPendingEntry'
+olcObjectClasses: ( 1.3.6.1.4.1.40011.1.2.6 NAME 'FripostPendingEntry'
     SUP top AUXILIARY
     DESC 'Virtual pending entry'
     MAY ( fripostPendingToken ) )

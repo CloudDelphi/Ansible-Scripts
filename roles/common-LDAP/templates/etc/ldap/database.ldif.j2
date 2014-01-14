@@ -79,6 +79,11 @@ olcLimits: dn.exact="cn=MX-replicate,ou=services,o=mailHosting,dc=fripost,dc=org
   time.hard=unlimited
   size.soft=unlimited
   size.hard=unlimited
+olcLimits: dn.exact="cn=lists-replicate,ou=services,o=mailHosting,dc=fripost,dc=org"
+  time.soft=unlimited
+  time.hard=unlimited
+  size.soft=unlimited
+  size.hard=unlimited
 {% elif 'MX' in group_names %}
 olcSyncrepl: rid=000
   provider=ldap://{{ LDAP_provider }}
@@ -91,6 +96,18 @@ olcSyncrepl: rid=000
   bindmethod=simple
   binddn="cn=MX-replicate,ou=services,o=mailHosting,dc=fripost,dc=org"
   credentials=mx
+{% elif 'lists' in group_names %}
+olcSyncrepl: rid=001
+  provider=ldap://{{ LDAP_provider }}
+  type=refreshAndPersist
+  retry="5 5 300 +"
+  searchbase="ou=virtual,o=mailHosting,dc=fripost,dc=org"
+  attrs=objectClass,fvd,fvl,fripostListManager,fripostOwner
+  scope=sub
+  schemachecking=off
+  bindmethod=simple
+  binddn="cn=lists-replicate,ou=services,o=mailHosting,dc=fripost,dc=org"
+  credentials=lists
 {% endif %}
 #
 #
@@ -116,7 +133,7 @@ olcSyncrepl: rid=000
 # alias resolution.
 olcAccess: to dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org"
         attrs=entry,objectClass,fvd,fvl,fripostMaildrop,fripostOptionalMaildrop
-        filter=(&(|(objectClass=FripostVirtualDomain)(objectClass=FripostVirtualUser)(objectClass=FripostVirtualAlias)(objectClass=FripostVirtualList)(objectClass=FripostVirtualListCommand))(!(objectClass=FripostPendingEntry))(!(fripostIsStatusActive=FALSE)))
+        filter=(&(|(objectClass=FripostVirtualDomain)(objectClass=FripostVirtualUser)(objectClass=FripostVirtualAlias)(objectClass=FripostVirtualList))(!(objectClass=FripostPendingEntry))(!(fripostIsStatusActive=FALSE)))
     by dn.exact="cn=MX-replicate,ou=services,o=mailHosting,dc=fripost,dc=org" =rsd
     by realanonymous =rsd
     by users =0 break
@@ -126,14 +143,22 @@ olcAccess: to dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org"
         attrs=entry,objectClass,fvd,fvl,fripostPostmaster,fripostOwner
         filter=(&(objectClass=FripostVirtualDomain)(!(objectClass=FripostPendingEntry))(!(fripostIsStatusActive=FALSE)))
     by dn.exact="cn=MX-replicate,ou=services,o=mailHosting,dc=fripost,dc=org" =rsd
-    by dn.exact="username=postfix,cn=peercred,cn=external,cn=auth" =rsd
+    by dn.exact="username=nobody,cn=peercred,cn=external,cn=auth" =rsd
+    by users =0 break
+#
+# List replicates
+olcAccess: to dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org"
+        attrs=entry,objectClass,fvd,fvl,fripostListManager,fripostOwner
+        filter=(&(|(objectClass=FripostVirtualDomain)(objectClass=FripostVirtualList))(!(objectClass=FripostPendingEntry))(!(fripostIsStatusActive=FALSE)))
+    by dn.exact="cn=lists-replicate,ou=services,o=mailHosting,dc=fripost,dc=org" =rsd
+    by realanonymous =rsd
     by users =0 break
 #
 # The following is required for the content filter
 {% if 'MDA' in group_names %}
 olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
         attrs=entry
-        filter=(&(objectClass=FripostVirtualDomain)(fripostIsStatusActive=TRUE))
+        filter=(&(objectClass=FripostVirtualDomain)(!(fripostIsStatusActive=FALSE)))
     by dn.exact="username=amavis,cn=peercred,cn=external,cn=auth" =s
     by users =0 break
 olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
@@ -162,9 +187,16 @@ olcAccess: to dn.exact="cn=AdminWebPanel,ou=services,o=mailHosting,dc=fripost,dc
 #
 # The following is required for Sync Replication.
 {% if 'LDAP-provider' in group_names %}
-olcAccess: to dn.subtree="ou=virtual,o=mailHosting,dc=fripost,dc=org"
-        attrs=entry,objectClass,structuralObjectClass,createTimestamp,creatorsName,entryDN,entryUUID,modifiersName,modifyTimestamp,hasSubordinates,subschemaSubentry
+olcAccess: to dn.exact="ou=virtual,o=mailHosting,dc=fripost,dc=org"
+        attrs=entry,objectClass
+        filter=(objectClass=FripostVirtual)
     by dn.exact="cn=MX-replicate,ou=services,o=mailHosting,dc=fripost,dc=org" =rsd
+    by dn.exact="cn=lists-replicate,ou=services,o=mailHosting,dc=fripost,dc=org" =rsd
+    by users =0 break
+olcAccess: to dn.subtree="ou=virtual,o=mailHosting,dc=fripost,dc=org"
+        attrs=structuralObjectClass,createTimestamp,creatorsName,entryDN,entryUUID,modifiersName,modifyTimestamp,hasSubordinates,subschemaSubentry
+    by dn.exact="cn=MX-replicate,ou=services,o=mailHosting,dc=fripost,dc=org" =rsd
+    by dn.exact="cn=lists-replicate,ou=services,o=mailHosting,dc=fripost,dc=org" =rsd
     by users =0 break
 {% endif %}
 #
@@ -214,7 +246,7 @@ olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
 #
 # The list creation service can delete the 'pending' status on lists and list commands.
 olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
-        filter=(&(|(objectClass=FripostVirtualList)(objectClass=FripostVirtualListCommand))(objectClass=FripostPendingEntry))
+        filter=(&(objectClass=FripostVirtualList)(objectClass=FripostPendingEntry))
         attrs=objectClass val=FripostPendingEntry
     by dn.exact="cn=CreateList,ou=services,o=mailHosting,dc=fripost,dc=org" =z break
     by * +0 break
@@ -235,7 +267,7 @@ olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
 #
 # The list creation service can delete the 'pending' status on lists and list commands.
 olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
-        filter=(&(|(objectClass=FripostVirtualList)(objectClass=FripostVirtualListCommand))(objectClass=FripostPendingEntry))
+        filter=(&(objectClass=FripostVirtualList)(objectClass=FripostPendingEntry))
         attrs=fripostPendingToken
     by dn.exact="cn=CreateList,ou=services,o=mailHosting,dc=fripost,dc=org" +z
     by * +0
@@ -482,21 +514,6 @@ olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripos
     by set.exact="this/-1/fripostCanAddList & (user | user/-1)" +a break
     by dn.exact="cn=CreateList,ou=services,o=mailHosting,dc=fripost,dc=org" +rd
     by * +0 break
-#
-# 1. The domain owner can create and delete list commands, but only those with a 'pending' status
-# 2. So can the domain postmaster.
-# 3. The entry creator can delete pending list commands (needed to be able to rollback).
-# 4. People with "canAddList" access can create list commands, but only with a 'pending' status.
-# 5. The list creation service can search and browse the entry.
-olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org)$"
-        filter=(&(objectClass=FripostVirtualListCommand)(objectClass=FripostPendingEntry))
-        attrs=entry
-    by group/FripostVirtualDomain/fripostOwner.expand="$1" +w
-    by group/FripostVirtualDomain/fripostPostmaster.expand="$1" +w
-    by dnattr=creatorsName +z continue
-    by set.exact="this/-1/fripostCanAddList & (user | user/-1)" +a
-    by dn.exact="cn=CreateList,ou=services,o=mailHosting,dc=fripost,dc=org" +rd
-    by * +0
 #
 # 1. The list owners can read the entry.
 # 2. So can the domain's Owner.
