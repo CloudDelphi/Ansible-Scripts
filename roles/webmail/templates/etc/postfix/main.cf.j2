@@ -18,7 +18,7 @@ mydomain            = {{ ansible_domain }}
 append_dot_mydomain = no
 
 # Turn off all TCP/IP listener ports except that necessary for the webmail.
-master_service_disable = !2580.inet inet
+master_service_disable = !127.0.0.1:2580.inet inet
 
 queue_directory       = /var/spool/postfix-{{ postfix_instance[inst].name }}
 data_directory        = /var/lib/postfix-{{ postfix_instance[inst].name }}
