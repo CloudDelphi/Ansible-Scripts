@@ -113,7 +113,7 @@ $interface_policy{'10041'} = 'INBOUND';
 {% if 'MTA-out' in group_names %}
 $notify_method  = 'smtp:[127.0.0.1]:{{ MTA_out.port }}';
 {% else %}
-$notify_method  = 'smtp:[{{ MTA_out.IPv4 }}]:{{ MTA_out.port }}';
+$notify_method  = 'smtp:[{{ MTA_out.host }}]:{{ MTA_out.port }}';
 {% endif %}
 $forward_method = 'lmtp:/var/run/dovecot/lmtp';
 $requeue_method = $forward_method;
