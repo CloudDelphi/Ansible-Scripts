@@ -55,7 +55,7 @@ relayhost     = [{{ MTA_out.host }}]:{{ MTA_out.port }}
 relay_domains =
 
 # Virtual transport (the alias resolution is already done by the MX:es)
-transport_maps = ldap:$config_directory/virtual/transport_lists_maps.cf
+transport_maps = ldap:$config_directory/virtual/transport_list.cf
 mlmmj_destination_recipient_limit = 1
 
 # Don't rewrite remote headers

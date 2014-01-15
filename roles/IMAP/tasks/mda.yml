@@ -26,8 +26,8 @@
         mode=0644
   with_items:
     - mailbox_domains.cf
-    - mailbox_maps.cf
-    - transport_content_filter_maps.cf
+    - mailbox.cf
+    - transport_content_filter.cf
 
 - name: Start Postfix
   service: name=postfix state=started
