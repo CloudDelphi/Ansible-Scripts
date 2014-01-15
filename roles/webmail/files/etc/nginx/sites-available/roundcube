@@ -8,7 +8,7 @@ server {
     access_log  /var/log/nginx/roundcube.access.log;
     error_log   /var/log/nginx/roundcube.error.log info;
 
-    return 301 https://$http_host$request_uri;
+    return 301 https://$host$request_uri;
 }
 
 

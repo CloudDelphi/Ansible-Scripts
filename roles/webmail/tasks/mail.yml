@@ -1,8 +1,5 @@
 - name: Install Postfix
-  apt: pkg={{ item }}
-  with_items:
-    - postfix
-    - postfix-pcre
+  apt: pkg=postfix
 
 - name: Configure Postfix
   template: src=etc/postfix/main.cf.j2
