@@ -83,7 +83,7 @@ olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.3 NAME 'fripostMaildrop'
 # users, because the presence index should *not* apply to the
 # mandatory attribute above.
 olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.4 NAME 'fripostOptionalMaildrop'
-    DESC 'An optional email address for catch-all aliases on domains and users'
+    DESC 'An optional email address for catch-all or domain aliases'
     EQUALITY caseIgnoreIA5Match
     SUBSTR caseIgnoreIA5SubstringsMatch
     SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} )
@@ -145,26 +145,32 @@ olcObjectClasses: ( 1.3.6.1.4.1.40011.1.2.2 NAME 'FripostVirtualDomain'
           fripostOwner $ fripostPostmaster $
           fripostOptionalMaildrop $ description ) )
 #
+# Domain alias (for the domain given by fripostMaildrop). Children are ignored.
+olcObjectClasses: ( 1.3.6.1.4.1.40011.1.2.3 NAME 'FripostVirtualAliasDomain'
+    SUP FripostVirtualDomain STRUCTURAL
+    DESC 'Virtual alias domain'
+    MUST ( fripostMaildrop ) )
+#
 # | TODO: add limits here
-olcObjectClasses: ( 1.3.6.1.4.1.40011.1.2.3 NAME 'FripostVirtualUser'
+olcObjectClasses: ( 1.3.6.1.4.1.40011.1.2.4 NAME 'FripostVirtualUser'
     SUP top STRUCTURAL
     DESC 'Virtual user'
     MUST ( fvl $ userPassword $ fripostIsStatusActive )
-    MAY ( fripostUserQuota $ fripostOptionalMaildrop $ description) )
+    MAY ( fripostUserQuota $ description) )
 #
-olcObjectClasses: ( 1.3.6.1.4.1.40011.1.2.4 NAME 'FripostVirtualAlias'
+olcObjectClasses: ( 1.3.6.1.4.1.40011.1.2.5 NAME 'FripostVirtualAlias'
     SUP top STRUCTURAL
     DESC 'Virtual alias'
     MUST ( fvl $ fripostMaildrop $ fripostIsStatusActive )
     MAY ( fripostOwner $ description ) )
 #
-olcObjectClasses: ( 1.3.6.1.4.1.40011.1.2.5 NAME 'FripostVirtualList'
+olcObjectClasses: ( 1.3.6.1.4.1.40011.1.2.6 NAME 'FripostVirtualList'
     SUP top STRUCTURAL
     DESC 'Virtual list'
     MUST ( fvl $ fripostListManager $ fripostIsStatusActive )
     MAY ( fripostOwner $ description ) )
 #
-olcObjectClasses: ( 1.3.6.1.4.1.40011.1.2.6 NAME 'FripostPendingEntry'
+olcObjectClasses: ( 1.3.6.1.4.1.40011.1.2.7 NAME 'FripostPendingEntry'
     SUP top AUXILIARY
     DESC 'Virtual pending entry'
     MAY ( fripostPendingToken ) )

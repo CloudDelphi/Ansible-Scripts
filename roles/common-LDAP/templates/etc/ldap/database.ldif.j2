@@ -289,7 +289,7 @@ olcAccess: to dn.subtree="ou=virtual,o=mailHosting,dc=fripost,dc=org"
 #
 # We're giving away create/delete access on the children attributes, but we will be carefull
 # with the 'entry' permissions.
-olcAccess: to dn.base="ou=virtual,o=mailHosting,dc=fripost,dc=org"
+olcAccess: to dn.exact="ou=virtual,o=mailHosting,dc=fripost,dc=org"
         filter=(objectClass=FripostVirtual)
         attrs=children
     by dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org" =w
@@ -300,7 +300,7 @@ olcAccess: to dn.one="ou=virtual,o=mailHosting,dc=fripost,dc=org"
     by dn.exact="cn=DeletePendingEntries,ou=services,o=mailHosting,dc=fripost,dc=org" =z
     by * break
 olcAccess: to dn.one="ou=virtual,o=mailHosting,dc=fripost,dc=org"
-        filter=(&(objectClass=FripostVirtualDomain)(!(objectClass=FripostPendingEntry)))
+        filter=(&(objectClass=FripostVirtualDomain)(!(objectClass=FripostPendingEntry))(!(objectClass=FripostVirtualAliasDomain)))
         attrs=children
     by dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org" =w
 #
@@ -534,11 +534,11 @@ olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripos
 #
 # Users with "canAddDomain" access can see that they have the right
 # to create domains.
-olcAccess: to dn.base="ou=virtual,o=mailHosting,dc=fripost,dc=org"
+olcAccess: to dn.exact="ou=virtual,o=mailHosting,dc=fripost,dc=org"
         filter=(objectClass=FripostVirtual)
         attrs=entry
     by dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org" +rd
-olcAccess: to dn.base="ou=virtual,o=mailHosting,dc=fripost,dc=org"
+olcAccess: to dn.exact="ou=virtual,o=mailHosting,dc=fripost,dc=org"
         filter=(objectClass=FripostVirtual)
         attrs=fripostCanAddDomain
     by set.exact="this/fripostCanAddDomain & (user | user/-1)" =rscd

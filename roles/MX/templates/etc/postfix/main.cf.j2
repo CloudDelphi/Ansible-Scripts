@@ -19,7 +19,7 @@ append_dot_mydomain = no
 
 # Turn off all TCP/IP listener ports except that necessary for the mail
 # exchange.
-master_service_disable = !smtp.inet !127.0.0.1:2599.inet inet
+master_service_disable = !smtp.inet inet
 
 queue_directory       = /var/spool/postfix-{{ postfix_instance[inst].name }}
 data_directory        = /var/lib/postfix-{{ postfix_instance[inst].name }}
@@ -56,19 +56,20 @@ virtual_transport = smtpl:[127.0.0.1]:{{ LDA.port }}
 {% else %}
 virtual_transport = smtps:[{{ LDA.host }}]:{{ LDA.port }}
 {% endif %}
-# It's a bit stupid to include part of the virtual_mailbox_maps here,
-# but we need to tell postfix to accept the recipient
-# (virtual_mailbox_maps) *before* sending away to the right machine
-# (transport_maps)
-transport_maps = pcre:$config_directory/virtual/transport_reserved_maps.pcre
-                 ldap:$config_directory/virtual/transport_mailbox_maps.cf
-                 ldap:$config_directory/virtual/transport_lists_maps.cf
-                 ldap:$config_directory/virtual/transport_catchall_maps.cf
 
 virtual_mailbox_domains = ldap:$config_directory/virtual/mailbox_domains.cf
-virtual_alias_maps      = cdb:$config_directory/virtual/reserved_alias_maps
-                          ldap:$config_directory/virtual/alias_maps.cf
-virtual_mailbox_maps    = $transport_maps
+virtual_alias_maps      = pcre:$config_directory/virtual/reserved_alias.pcre
+                          ldap:$config_directory/virtual/alias.cf
+                          # stop the alias resolution (by making finding
+                          # an A -> A alias) before searching for
+                          # catch-alls and domain aliases
+                          $virtual_mailbox_maps
+                          ldap:$config_directory/virtual/alias_domains.cf
+                          ldap:$config_directory/virtual/catchall.cf
+virtual_mailbox_maps    = ldap:$config_directory/virtual/mailbox.cf
+                          ldap:$config_directory/virtual/list.cf
+transport_maps          = cdb:$config_directory/virtual/transport_reserved_alias
+                          ldap:$config_directory/virtual/transport_list.cf
 
 # Don't rewrite remote headers
 local_header_rewrite_clients     =

@@ -4,6 +4,5 @@ search_base      = fvl=%u,fvd=%d,ou=virtual,o=mailHosting,dc=fripost,dc=org
 domain           = static:all
 scope            = base
 bind             = none
-query_filter     = (&(objectClass=FripostVirtualUser)(fvl=%u))
-result_attribute = fvl
-result_format    = OK
+query_filter     = (&(objectClass=FripostVirtualAlias)(fvl=%u))
+result_attribute = fripostMaildrop
