@@ -47,8 +47,8 @@
         owner=root group=root
         mode=0644
 
-- name: Create /var/lib/mlmmj/...
-  file: path=/var/lib/mlmmj/{{ item }}
+- name: Create /usr/share/mlmmj/...
+  file: path=/usr/share/mlmmj/{{ item }}
         state=directory
         owner=root group=root
         mode=0755
@@ -58,8 +58,8 @@
     - static/fonts
 
 - name: Copy CSS files
-  copy: src=var/lib/mlmmj/static/css/{{ item }}
-        dest=/var/lib/mlmmj/static/css/{{ item }}
+  copy: src=usr/share/mlmmj/static/css/{{ item }}
+        dest=/usr/share/mlmmj/static/css/{{ item }}
         owner=root group=root
         mode=0644
   with_items:
@@ -67,8 +67,8 @@
     - fripost.css
 
 - name: Copy Glyphicon Halflings
-  copy: src=var/lib/mlmmj/static/fonts/{{ item }}
-        dest=/var/lib/mlmmj/static/fonts/{{ item }}
+  copy: src=usr/share/mlmmj/static/fonts/{{ item }}
+        dest=/usr/share/mlmmj/static/fonts/{{ item }}
         owner=root group=root
         mode=0644
   with_items:
