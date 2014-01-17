@@ -47,15 +47,14 @@
         owner=root group=root
         mode=0644
 
-- name: Create /usr/share/mlmmj/...
-  file: path=/usr/share/mlmmj/{{ item }}
+- name: Create /usr/share/mlmmj/static/{css,fonts}
+  file: path=/usr/share/mlmmj/static/{{ item }}
         state=directory
         owner=root group=root
         mode=0755
   with_items:
-    - static
-    - static/css
-    - static/fonts
+    - css
+    - fonts
 
 - name: Copy CSS files
   copy: src=usr/share/mlmmj/static/css/{{ item }}
@@ -76,3 +75,9 @@
     - glyphicons-halflings-regular.svg
     - glyphicons-halflings-regular.ttf
     - glyphicons-halflings-regular.woff
+
+- name: Create /usr/lib/cgi-bin/mlmmj
+  file: path=/usr/lib/cgi-bin/mlmmj
+        state=directory
+        owner=root group=root
+        mode=0755

@@ -23,16 +23,15 @@
         mode=0700
 
 - name: Create virtual mailbox directories
-  file: path=/etc/dovecot/virtual{{ item }}
+  file: path=/etc/dovecot/virtual/{{ item }}
         state=directory
         owner=root group=root
         mode=0755
   with_items:
-    - 
-    - /all
-    - /flagged
-    - /recent
-    - /unseen
+    - all
+    - flagged
+    - recent
+    - unseen
 
 - name: Create virtual mailboxes
   copy: src=etc/dovecot/virtual/{{ item }}/dovecot-virtual
