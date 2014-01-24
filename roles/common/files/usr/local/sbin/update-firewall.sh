@@ -253,6 +253,7 @@ run() {
     # DROP bogus TCP packets.
     iptables -A INPUT -p tcp -m tcp --tcp-flags FIN,SYN FIN,SYN -j DROP
     iptables -A INPUT -p tcp -m tcp --tcp-flags SYN,RST SYN,RST -j DROP
+    iptables -A INPUT -p tcp \! --syn -m state --state NEW      -j DROP
 
     # Allow all input/output to/from the loopback interface.
     local localhost=$(inet46 $f '127.0.0.1/32' '::1/128')
@@ -278,11 +279,12 @@ run() {
         # net.ipv4.icmp_ratemask runtime options).  See icmp(7).
         local t
         for t in  'echo-reply' 'destination-unreachable' 'echo-request'; do
-            iptables -A INPUT  -i $if -p icmp -m icmp --icmp-type $t -j ACCEPT
-            iptables -A OUTPUT -o $if -p icmp -m icmp --icmp-type $t -j ACCEPT
+            iptables -A INPUT  -p icmp -m icmp --icmp-type $t -j ACCEPT
+            iptables -A OUTPUT -p icmp -m icmp --icmp-type $t -j ACCEPT
         done
     elif [ $f = 6 ]; then
-        iptables -A INPUT -i $ip -p icmpv6 -j ACCEPT
+        iptables -A INPUT  -p icmpv6 -j ACCEPT
+        iptables -A OUTPUT -p icmpv6 -j ACCEPT
     fi
 
 
