@@ -8,6 +8,8 @@
     - unhide
     - unhide.rb
 
+# To test the configuration:
+#   ansible all -m command -a '/usr/bin/rkhunter -c --nomow --rwo'
 - name: Configure rkhunter
   copy: src=etc/{{ item }}
         dest=/etc/{{ item }}

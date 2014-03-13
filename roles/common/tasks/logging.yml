@@ -20,6 +20,7 @@
   with_items:
     - logcheck.conf
     - ignore.d.server/common.local
+    - violations.ignore.d/logcheck-sudo
 
 - name: Minimal logging policy (1)
   lineinfile: dest=/etc/logrotate.d/rsyslog

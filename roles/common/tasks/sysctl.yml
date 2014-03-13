@@ -1,4 +1,4 @@
-- sysctl: name={{ item.name }} value={{ item.value }}
+- sysctl: name={{ item.name }} "value={{ item.value }}" sysctl_set=yes
   with_items:
     - { name: 'kernel.domainname', value: '{{ ansible_domain }}' }
 
