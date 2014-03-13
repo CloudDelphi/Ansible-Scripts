@@ -168,8 +168,8 @@ run() {
     fi
 
     # Store the old (current) ruleset
-    local old=$(mktemp -t current-rules.v$f.XXXXXX) \
-          new=$(mktemp -t new-rules.v$f.XXXXXX)
+    local old=$(mktemp --tmpdir current-rules.v$f.XXXXXX) \
+          new=$(mktemp --tmpdir new-rules.v$f.XXXXXX)
     for table in ${tables[$f]}; do
         $ipt-save -ct $table
     done > "$old"
@@ -372,7 +372,7 @@ run() {
 
 
     local rv1=0 rv2=0 persistent=/etc/iptables/rules.v$f
-    local oldz=$(mktemp -t current-rules.v$f.XXXXXX)
+    local oldz=$(mktemp --tmpdir current-rules.v$f.XXXXXX)
 
     # Reset the counters.  They are not useful for comparing and/or
     # storing persistent ruleset.  (We don't use sed -i because we want
