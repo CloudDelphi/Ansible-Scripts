@@ -1,3 +1,5 @@
+# XXX If #742056 gets fixed, we should preseed slapd to use peercreds as
+# RootDN once the fix enters stable.
 - name: Install OpenLDAP
   apt: pkg={{ item }}
   with_items:

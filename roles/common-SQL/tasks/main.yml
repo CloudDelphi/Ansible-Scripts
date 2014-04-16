@@ -1,3 +1,5 @@
+# XXX If #742046 gets fixed, we should preseed mysql-server to use
+# auth_socket as auth_plugin once the fix enters stable.
 - name: Install MySQL
   apt: pkg={{ item }}
   with_items:
@@ -22,6 +24,7 @@
 # connect to the database.
 - meta: flush_handlers
 
+# XXX Dirty fix for #742046
 - name: Force root to use UNIX permissions
   mysql_user: name=root auth_plugin=auth_socket
               state=present
