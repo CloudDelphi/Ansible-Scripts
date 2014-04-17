@@ -1,0 +1,4 @@
+# Restore the original envelope recipient (drop our internal domain).
+# Extensions are preserved as they are included in $2.
+
+/^([^\/]+)\/(.+)@[^@]+$/    $2@$1

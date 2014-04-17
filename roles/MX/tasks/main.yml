@@ -53,12 +53,11 @@
     - list.cf
     - alias_domains.cf
     - catchall.cf
-    - transport_reserved_alias
-    - transport_list.cf
+    - transport
 
 - name: Compile the Reserved Transport Maps
   postmap: instance={{ postfix_instance[inst].name }}
-           src=/etc/postfix-{{ postfix_instance[inst].name }}/virtual/transport_reserved_alias db=cdb
+           src=/etc/postfix-{{ postfix_instance[inst].name }}/virtual/transport db=cdb
            owner=root group=root
            mode=0644
 

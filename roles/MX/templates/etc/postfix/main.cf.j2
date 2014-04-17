@@ -51,25 +51,22 @@ relayhost     = [{{ MTA_out.host }}]:{{ MTA_out.port }}
 relay_domains =
 
 # Virtual transport
-{% if 'LDA' in group_names %}
-virtual_transport = smtpl:[127.0.0.1]:{{ LDA.port }}
-{% else %}
-virtual_transport = smtps:[{{ LDA.host }}]:{{ LDA.port }}
-{% endif %}
-
+# We use a dedicated "virtual" domain to decongestion potential
+# bottlenecks on trivial_rewrite(8) due to slow LDAP lookups in
+# tranport_maps.
+virtual_transport = error:5.1.1 Virtual transport unavailable
 virtual_mailbox_domains = ldap:$config_directory/virtual/mailbox_domains.cf
 virtual_alias_maps      = pcre:$config_directory/virtual/reserved_alias.pcre
+                          # first we do the alias resolution...
                           ldap:$config_directory/virtual/alias.cf
-                          # stop the alias resolution (by making finding
-                          # an A -> A alias) before searching for
-                          # catch-alls and domain aliases
-                          $virtual_mailbox_maps
+                          # ...and unless there is matching mailbox/list...
+                          ldap:$config_directory/virtual/mailbox.cf
+                          ldap:$config_directory/virtual/list.cf
+                          # ...we resolve alias domains and catch alls
                           ldap:$config_directory/virtual/alias_domains.cf
                           ldap:$config_directory/virtual/catchall.cf
-virtual_mailbox_maps    = ldap:$config_directory/virtual/mailbox.cf
-                          ldap:$config_directory/virtual/list.cf
-transport_maps          = cdb:$config_directory/virtual/transport_reserved_alias
-                          ldap:$config_directory/virtual/transport_list.cf
+virtual_mailbox_maps    =
+transport_maps          = cdb:$config_directory/virtual/transport
 
 # Don't rewrite remote headers
 local_header_rewrite_clients     =
@@ -77,6 +74,7 @@ local_header_rewrite_clients     =
 smtp_send_xforward_command       = yes
 # Avoid splitting the envelope and scanning messages multiple times
 smtp_destination_recipient_limit = 1000
+reserved-alias_recipient_limit   = 1
 # Tolerate occasional high latency
 smtp_data_done_timeout           = 1200s
 

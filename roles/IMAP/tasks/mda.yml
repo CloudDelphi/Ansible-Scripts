@@ -29,6 +29,12 @@
     - mailbox.cf
     - transport_content_filter.cf
 
+- name: Copy recipient canonical
+  copy: src=etc/postfix/recipient_canonical.pcre
+        dest=/etc/postfix-{{ postfix_instance[inst].name }}/recipient_canonical.pcre
+        owner=root group=root
+        mode=0644
+
 - name: Start Postfix
   service: name=postfix state=started
   when: not r.changed

@@ -1,0 +1,13 @@
+reserved.locahost.localdomain   reserved-alias:
+
+{% if 'LDA' in group_names %}
+mda.guilhem.org smtpl:[127.0.0.1]:{{ LDA.port }}
+{% else %}
+mda.guilhem.org smtps:[{{ LDA.host }}]:{{ LDA.port }}
+{% endif %}
+
+{% if 'lists' in group_names %}
+lists.guilhem.org smtpl:[127.0.0.1]:{{ lists.port }}
+{% else %}
+lists.guilhem.org smtps:[{{ lists.host }}]:{{ lists.port }}
+{% endif %}

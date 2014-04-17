@@ -55,6 +55,11 @@ virtual_mailbox_domains = ldap:$config_directory/virtual/mailbox_domains.cf
 virtual_mailbox_maps    = ldap:$config_directory/virtual/mailbox.cf
 transport_maps          = ldap:$config_directory/virtual/transport_content_filter.cf
 
+# Restore the original envelope recipient
+relay_domains               = $myhostname
+recipient_canonical_classes = envelope_recipient
+recipient_canonical_maps    = pcre:$config_directory/recipient_canonical.pcre
+
 # Don't rewrite remote headers
 local_header_rewrite_clients =
 # Tolerate occasional high latency
