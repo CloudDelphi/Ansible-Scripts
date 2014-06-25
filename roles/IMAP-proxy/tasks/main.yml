@@ -1,5 +1,5 @@
 - name: Install Dovecot
-  apt: pkg={{ item }}
+  apt: pkg={{ item }} default_release={{ ansible_lsb.codename }}-backports
   with_items:
     - dovecot-core
     - dovecot-imapd
