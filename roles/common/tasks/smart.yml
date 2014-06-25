@@ -11,4 +11,5 @@
 
 - name: Start smartd
   service: name=smartmontools state=started
-  when: ansible_virtualization_role is not defined and ansible_virtualization_type is not defined
+  # smartd can be heavy on VMs, don't bother starting it up if it's down
+  when: not (ansible_processor[0] | search("^QEMU Virtual CPU .*"))
