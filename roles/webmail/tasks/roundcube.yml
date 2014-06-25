@@ -79,7 +79,7 @@
   file: src=../sites-available/roundcube
         dest=/etc/nginx/sites-enabled/roundcube
         owner=root group=root
-        state=link
+        state=link force=yes
   notify:
     - Restart Nginx
 
