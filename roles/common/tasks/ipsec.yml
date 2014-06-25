@@ -1,33 +1,43 @@
 - name: Install strongSwan
   apt: pkg=strongswan-ikev2
 
-- name: Ensure we have our private key
-  file: path=/etc/ipsec.d/private/{{ inventory_hostname }}.key
-        owner=root group=root
-        mode=0600
+- name: Generate a key pair for IPSec
+  command: genkeypair.sh --pubkey=/etc/ipsec.d/certs/{{ inventory_hostname }}.pem
+                         --privkey=/etc/ipsec.d/private/{{ inventory_hostname }}.key
+                         -n {{ inventory_hostname }}
+                         -t ecdsa -b secp521r1 -h sha512
+  register: r1
+  failed_when: r1.rc > 1
+  changed_when: r1.rc == 0
   notify:
-    - Missing IPSec certificate
+    - Restart IPSec
 
-- name: Ensure we have our public key
-  file: path=/etc/ipsec.d/certs/{{ inventory_hostname }}.pem
+- name: Fetch the public part of IPSec's host key
+  sudo: False
+  # Ensure we don't fetch private data
+  fetch: src=/etc/ipsec.d/certs/{{ inventory_hostname }}.pem
+         dest=certs/ipsec/
+         fail_on_missing=yes
+         flat=yes
+
+# Don't copy our pubkey due to a possible race condition.  Only the
+# remote machine has authority regarding its key.
+- name: Copy IPSec host pubkeys (except ours)
+  copy: src=certs/ipsec/{{ item }}.pem
+        dest=/etc/ipsec.d/certs/{{ item }}.pem
         owner=root group=root
         mode=0644
+  with_items: groups.all | difference([inventory_hostname])
+  register: r2
   notify:
-    - Missing IPSec certificate
-
-- name: Ensure we have the CA's public key
-  file: path=/etc/ipsec.d/cacerts/cacert.pem
-        owner=root group=root
-        mode=0644
-  notify:
-    - Missing IPSec certificate
+    - Restart IPSec
 
 - name: Configure IPSec's secrets
   template: src=etc/ipsec.secrets.j2
             dest=/etc/ipsec.secrets
             owner=root group=root
             mode=0600
-  register: r1
+  register: r3
   notify:
     - Restart IPSec
 
@@ -36,13 +46,13 @@
             dest=/etc/ipsec.conf
             owner=root group=root
             mode=0644
-  register: r2
+  register: r4
   notify:
     - Restart IPSec
 
 - name: Start IPSec
   service: name=ipsec state=started
-  when: not (r1.changed or r2.changed)
+  when: not (r1.changed or r2.changed or r3.changed or r4.changed)
 
 - name: Auto-create a dedicated interface for IPSec
   copy: src=etc/network/if-up.d/ipsec

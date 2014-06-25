@@ -9,6 +9,11 @@
 - include: fail2ban.yml tags=fail2ban
 - include: smart.yml    tags=smartmontools,smart
 - include: haveged.yml  tags=haveged,entropy
+- name: Copy genkeypair.sh
+  copy: src=usr/local/bin/genkeypair.sh
+        dest=/usr/local/bin/genkeypair.sh
+        owner=root group=root
+        mode=0755
 - include: ipsec.yml    tags=strongswan,ipsec
 - include: logging.yml  tags=logging
 - include: ntp.yml      tags=ntp

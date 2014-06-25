@@ -17,9 +17,6 @@
 - name: Restart fail2ban
   service: name=fail2ban state=restarted
 
-- name: Missing IPSec certificate
-  fail: msg="strongswan IPsec is lacking public or private keys on '{{ ansible_fqdn }}'."
-
 - name: Restart IPSec
   service: name=ipsec state=restarted
 
