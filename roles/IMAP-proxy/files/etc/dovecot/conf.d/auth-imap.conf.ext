@@ -4,7 +4,7 @@
 
 passdb {
   driver         = imap
-  args           = host={{ IMAP }} port=143
+  args           = host=imap.fripost.org port=143
   default_fields = userdb_imapc_user=%u userdb_imapc_password=%w
 }
 

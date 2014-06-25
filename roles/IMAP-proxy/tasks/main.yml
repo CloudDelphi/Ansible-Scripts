@@ -17,28 +17,18 @@
         owner=imapproxy group=imapproxy
         mode=0700
 
-- name: Configure Dovecot (1)
+- name: Configure Dovecot
   copy: src=etc/dovecot/conf.d/{{ item }}
         dest=/etc/dovecot/conf.d/{{ item }}
         owner=root group=root
         mode=0644
-  register: r1
+  register: r
   with_items:
     - 10-auth.conf
     - 10-logging.conf
     - 10-mail.conf
     - 10-master.conf
     - 15-mailboxes.conf
-  notify:
-    - Restart Dovecot
-
-- name: Configure Dovecot (2)
-  template: src=etc/dovecot/conf.d/{{ item }}.j2
-            dest=/etc/dovecot/conf.d/{{ item }}
-            owner=root group=root
-            mode=0644
-  register: r2
-  with_items:
     - 20-imapc.conf
     - auth-imap.conf.ext
   notify:
@@ -46,6 +36,6 @@
 
 - name: Start Dovecot
   service: name=dovecot state=started
-  when: not (r1.changed or r2.changed)
+  when: not r.changed
 
 - meta: flush_handlers

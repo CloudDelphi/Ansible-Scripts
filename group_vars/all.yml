@@ -3,17 +3,9 @@ postfix_instance:
   # The keys are the group names associated with a Postfix role, and the
   # values are the name and group (optional) of the instance dedicated
   # to that role.
-  IMAP:    { name: mda                }
-  MX:      { name: mx,     group: mta }
-  MTA-out: { name: mta-out,group: mta }
-  MSA:     { name: msa                }
-  webmail: { name: webmail            }
-  lists:   { name: lists              }
-
-MTA_out: { host: outgoing.fripost.org, port: 2525 }
-LDA:     { host: lda.fripost.org,      port: 2526 }
-lists:   { host: lists.fripost.org,    port: 2527 }
-
-LDAP_provider: host1.libvirt.guilhem.org
-NTP_master: host1.libvirt.guilhem.org
-IMAP: host1.libvirt.guilhem.org
+  IMAP:    { name: mda,                port: 2526 }
+  MX:      { name: mx,     group: mta             }
+  MTA-out: { name: mta-out,group: mta, port: 2525 }
+  MSA:     { name: msa                            }
+  webmail: { name: webmail                        }
+  lists:   { name: lists,              port: 2527 }

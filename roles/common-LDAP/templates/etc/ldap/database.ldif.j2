@@ -86,7 +86,7 @@ olcLimits: dn.exact="cn=lists-replicate,ou=services,o=mailHosting,dc=fripost,dc=
   size.hard=unlimited
 {% elif 'MX' in group_names %}
 olcSyncrepl: rid=000
-  provider=ldap://{{ LDAP_provider }}
+  provider=ldap://ldap.fripost.org
   type=refreshAndPersist
   retry="5 5 300 +"
   searchbase="ou=virtual,o=mailHosting,dc=fripost,dc=org"
@@ -100,7 +100,7 @@ olcSyncrepl: rid=000
 # XXX: mlmmj is not compatible with the MX, see
 # http://mlmmj.org/bugs/bug.php?id=51
 olcSyncrepl: rid=001
-  provider=ldap://{{ LDAP_provider }}
+  provider=ldap://ldap.fripost.org
   type=refreshAndPersist
   retry="5 5 300 +"
   searchbase="ou=virtual,o=mailHosting,dc=fripost,dc=org"

@@ -24,7 +24,7 @@ server ntp2.sth.netnod.se iburst
 {% else %}
 # Sychronize to our (stratum 2) NTP server through IPSec, to ensure our
 # network has a consistent time.
-server {{ NTP_master }} iburst
+server ntp.fripost.org iburst
 {% endif %}
 
 

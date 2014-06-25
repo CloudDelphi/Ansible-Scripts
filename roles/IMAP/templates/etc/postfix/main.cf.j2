@@ -14,7 +14,7 @@ maximal_queue_lifetime = 5d
 
 myorigin            = /etc/mailname
 myhostname          = mda{{ imapno | default('') }}.$mydomain
-mydomain            = {{ ansible_domain }}
+mydomain            = fripost.org
 append_dot_mydomain = no
 
 # Turn off all TCP/IP listener ports except that necessary for the MDA.
