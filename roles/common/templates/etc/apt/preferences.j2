@@ -7,20 +7,20 @@ Pin: release a={{ ansible_lsb.codename }}-updates
 Pin-Priority: 990
 
 {% if 'backports' in group_names -%}
-# Automatically install new versions from backports
+# Automatically packages from backports (those manually installed)
 Package: *
 Pin: release a={{ ansible_lsb.codename }}-backports
 Pin-Priority: 200
 {% endif %}
 
 {% if 'non-free' in group_names -%}
-# Install automatically new firmwares from backports
+# Automatically upgrade non-free firmwares (when manually installed)
 Package: firmware-linux-nonfree
 Pin-Priority: 200
 {% endif %}
 
 {% if ansible_processor[0] | search("^Intel.*") -%}
-# Automatically upgrade the microcode
+# Automatically upgrade the microcode (when manually installed)
 Package: intel-microcode iucode-tool
 Pin-Priority: 200
 {% endif %}
