@@ -16,11 +16,11 @@
         password=!
         state=present
 
+# The ownership and permissions ensure that dovecot won't try to
+# deliver mails under an umounted mountpoint.
 - name: Create a home directory for user 'vmail'
   file: path=/home/mail
         state=directory
-        # The ownership and permissions ensure that dovecot won't try to
-        # deliver mails under an umounted mountpoint.
         owner=root group=root
         mode=0755
 
