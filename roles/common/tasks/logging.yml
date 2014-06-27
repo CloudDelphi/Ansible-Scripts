@@ -16,13 +16,17 @@
   copy: src=etc/logcheck/{{ item }}
         dest=/etc/logcheck/{{ item }}
         owner=root group=logcheck
-        mode=0640
+        mode=0644
   with_items:
     - logcheck.conf
     - ignore.d.server/common-local
     - ignore.d.server/dovecot-local
     - ignore.d.server/postfix-local
+    # logcheck-sudo already exists, but changing the filename for our
+    # local modifications would defeat the ruleset
     - violations.ignore.d/logcheck-sudo
+  tags:
+    - logcheck
 
 - name: Minimal logging policy (1)
   lineinfile: dest=/etc/logrotate.d/rsyslog
