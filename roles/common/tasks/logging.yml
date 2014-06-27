@@ -19,7 +19,9 @@
         mode=0640
   with_items:
     - logcheck.conf
-    - ignore.d.server/common.local
+    - ignore.d.server/common-local
+    - ignore.d.server/dovecot-local
+    - ignore.d.server/postfix-local
     - violations.ignore.d/logcheck-sudo
 
 - name: Minimal logging policy (1)
