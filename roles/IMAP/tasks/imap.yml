@@ -19,8 +19,10 @@
 - name: Create a home directory for user 'vmail'
   file: path=/home/mail
         state=directory
-        owner=vmail group=vmail
-        mode=0700
+        # The ownership and permissions ensure that dovecot won't try to
+        # deliver mails under an umounted mountpoint.
+        owner=root group=root
+        mode=0755
 
 - name: Create virtual mailbox directories
   file: path=/etc/dovecot/virtual/{{ item }}
