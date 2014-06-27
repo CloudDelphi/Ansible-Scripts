@@ -29,7 +29,6 @@ multi_instance_enable = yes
 # This server is a Mail Submission Agent
 mynetworks_style = host
 inet_interfaces  = all
-inet_protocols   = all
 
 # No local delivery
 mydestination        =
@@ -86,7 +85,7 @@ smtpd_sasl_local_domain         =
 smtpd_sasl_exceptions_networks  = $mynetworks
 smtpd_sasl_security_options     = noanonymous, noplaintext
 smtpd_sasl_tls_security_options = noanonymous
-broken_sasl_auth_clients        = no
+broken_sasl_auth_clients        = yes
 smtpd_sasl_type                 = dovecot
 smtpd_sasl_path                 = unix:private/dovecot-auth
 
