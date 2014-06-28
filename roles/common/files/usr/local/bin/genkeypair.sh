@@ -1,8 +1,8 @@
 #!/bin/sh
 
-# Generate self-signed server certificates.  Inspired from
-# make-ssl-cert(8).
-# XXX: add support for DKIM and OpenSSH
+# Wrapper around openssl to generate self-signed X.509 server
+# certificates or Certificate Signing Requests, or DKIM private keys.
+# Inspired from make-ssl-cert(8) and opendkim-genkey(8).
 #
 # Copyright © 2014 Guilhem Moulin <guilhem@fripost.org>
 #
@@ -28,7 +28,6 @@ bits=
 hash=
 
 force=
-x509=-x509
 config=
 pubkey=pubkey.pem
 privkey=privkey.pem
@@ -36,8 +35,12 @@ dns=
 
 usage() {
     cat >&2 <<- EOF
-		Usage: $0 [OPTIONS]
-		Generate self-signed server certificates
+		Usage: $0 command [OPTIONS]
+
+		Command:
+		    x509:       generate a self-signed X.509 server certificate
+		    csr:        generate a Certificate Signing Request
+		    dkim:       generate a DKIM private key
 
 		Options:
 		    -t type:    key type (default: rsa)
@@ -45,7 +48,6 @@ usage() {
 		    -h digest:  digest algorithm
 		    --dns CN:   common name (default: \$(hostname --fqdn); can be repeated
 		    -f force:   overwrite key files if they exist
-		    --csr:      generate a Certificate Signing Request instead
 		    --config:   configuration file
 		    --pubkey:   public key file (default: pubkey.pem)
 		    --privkey:  private key file (default: privkey.pem; created with og-rwx)
@@ -56,6 +58,13 @@ usage() {
 		    2  The key generation failed
 	EOF
 }
+
+[ $# -gt 0 ] || { usage; exit 2; }
+cmd="$1"; shift
+case "$cmd" in
+    x509|csr|dkim) ;;
+    *) echo "Unrecognized command: $cmd" >&2; exit 2
+esac
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -73,7 +82,6 @@ while [ $# -gt 0 ]; do
         --pubkey=?*) pubkey="${1#--pubkey=}";;
         --privkey=?*) privkey="${1#--privkey=}";;
 
-        --csr) x509=;;
         --dns=?*) dns="${dns:+$dns,}${1#--dns=}";;
         --config=?*) dns="${1#--config=}";;
 
@@ -98,22 +106,28 @@ case "$type" in
     *) echo "Unrecognized key type: $type" >&2; exit 2
 esac
 
-case "$hash" in
-    md5|rmd160|sha1|sha224|sha256|sha384|sha512|'') ;;
-    *) echo "Invalid digest algorithm: $hash" >&2; exit 2;
-esac
+cn=
+if [ "$cmd" = x509 -o "$cmd" = csr ]; then
+    case "$hash" in
+        md5|rmd160|sha1|sha224|sha256|sha384|sha512|'') ;;
+        *) echo "Invalid digest algorithm: $hash" >&2; exit 2;
+    esac
 
-[ "$dns" ] || dns="$(hostname --fqdn)"
-cn="${dns%%,*}"
-[ ${#cn} -le 64 ] || { echo "CommonName too long: $cn" >&2; exit 2; }
+    [ "$dns" ] || dns="$(hostname --fqdn)"
+    cn="${dns%%,*}"
+    [ ${#cn} -le 64 ] || { echo "CommonName too long: $cn" >&2; exit 2; }
+fi
 
-for file in "$pubkey" "$privkey"; do
-    [ -z "$force" -a -s "$file" ] || continue
-    echo "Error: File exists: $file" >&2
-    exit 1
-done
+[ -s "$privkey" -a -z "$force" ] && force=0
+if [ "$cmd" != dkim ]; then
+    for file in "$pubkey" "$privkey"; do
+        [ "$force" != 1 -a -s "$file" ] || continue
+        echo "Error: File exists: $file" >&2
+        exit 1
+    done
+fi
 
-if [ -z "$config" ]; then
+if [ -z "$config" -a \( "$cmd" = x509 -o "$cmd" = csr \) ]; then
     config=$(mktemp) || exit 2
     trap 'rm -f "$config"' EXIT
 
@@ -144,9 +158,25 @@ if [ -z "$config" ]; then
 	EOF
 fi
 
-# Ensure "$privkey" is created with umask 0077
-mv "$(mktemp)" "$privkey" || exit 2
-chmod og-rwx "$privkey" || exit 2
+if [ "$force" != 0 ]; then
+    # Ensure "$privkey" is created with umask 0077
+    mv "$(mktemp)" "$privkey" || exit 2
+    chmod og-rwx "$privkey" || exit 2
+    openssl $genkey -rand /dev/urandom $genkeyargs >"$privkey" || exit 2
+fi
 
-openssl $genkey -rand /dev/urandom $genkeyargs >"$privkey" || exit 2
-openssl req -config "$config" -new $x509 ${hash:+-$hash} -key "$privkey" >"$pubkey" || exit 2
+if [ "$cmd" = x509 -o "$cmd" = csr ]; then
+    [ "$cmd" = x509 ] && x509=-x509 || x509=
+    openssl req -config "$config" -new $x509 ${hash:+-$hash} -key "$privkey" >"$pubkey" || exit 2
+elif [ "$cmd" = dkim ]; then
+    echo "Add the following TXT record to your DNS zone:" >&2
+    echo "${dns:-$(date +%Y%m%d)}._domainkey\tIN\tTXT ( "
+    # See https://tools.ietf.org/html/rfc4871#section-3.6.1
+    # t=s:      the "i=" domain in signature headers MUST NOT be a subdomain of "d="
+    # s=email:  limit DKIM signing to email
+    openssl pkey -pubout <"$privkey" | sed '/^--.*--$/d' \
+    | { echo -n "v=DKIM1; k=$type; t=s; s=email; p="; tr -d '\n'; } \
+    | fold -w 250 \
+    | { sed 's/.*/\t"&"/'; echo ' )'; }
+    [ "$force" != 0 ] || exit 1
+fi

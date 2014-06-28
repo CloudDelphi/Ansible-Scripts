@@ -1,8 +1,9 @@
 - name: Install strongSwan
   apt: pkg=strongswan-ikev2
 
-- name: Generate a key pair for IPSec
-  command: genkeypair.sh --pubkey=/etc/ipsec.d/certs/{{ inventory_hostname }}.pem
+- name: Generate a private key and a X.509 certificate for IPSec
+  command: genkeypair.sh x509
+                         --pubkey=/etc/ipsec.d/certs/{{ inventory_hostname }}.pem
                          --privkey=/etc/ipsec.d/private/{{ inventory_hostname }}.key
                          --dns {{ inventory_hostname }}
                          -t ecdsa -b secp521r1 -h sha512
