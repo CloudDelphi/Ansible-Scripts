@@ -5,7 +5,6 @@
     - heirloom-mailx
     - postfix
     - postfix-cdb
-    - postfix-pcre
 
 - name: Create Postfix instances
   postmulti: instance={{ postfix_instance[item].name }}
@@ -29,13 +28,10 @@
     - Restart Postfix
 
 - name: Configure Postfix (1)
-  copy: src=etc/postfix/{{ item }}
-        dest=/etc/postfix/{{ item }}
+  copy: src=etc/postfix/master.cf
+        dest=/etc/postfix/master.cf
         owner=root group=root
         mode=0644
-  with_items:
-    - master.cf
-    - generic.pcre
   notify:
     - Reload Postfix
 

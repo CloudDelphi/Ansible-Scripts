@@ -1,3 +1,0 @@
-# Rewrite the whole enveloppe (From: & To: included) to somthing
-# routable on the internet.
-/^(.+)@([^@.]+)\.[^@]+$/    admin+${1}=${2}@fripost.org

@@ -30,9 +30,6 @@ default_database_type = cdb
 virtual_alias_maps    = cdb:/etc/aliases
 alias_database        = $virtual_alias_maps
 
-# Transform local FQDN addresses to addresses routable on the internet
-smtp_generic_maps = pcre:$config_directory/generic.pcre
-
 # Forward everything to our internal mailhub
 {% if 'MTA-out' in group_names %}
 relayhost     = [127.0.0.1]:{{ postfix_instance["MTA-out"].port }}
