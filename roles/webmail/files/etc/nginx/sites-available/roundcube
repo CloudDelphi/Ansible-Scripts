@@ -20,8 +20,8 @@ server {
     root         /var/lib/roundcube;
 
     include ssl/config;
-    ssl_certificate     /etc/ssl/certs/ssl-cert-snakeoil.pem;
-    ssl_certificate_key /etc/ssl/private/ssl-cert-snakeoil.key;
+    ssl_certificate     /etc/nginx/ssl/mail.fripost.org.pem;
+    ssl_certificate_key /etc/nginx/ssl/mail.fripost.org.key;
 
     location = /favicon.ico {
         root          /usr/share/roundcube/skins/default/images;

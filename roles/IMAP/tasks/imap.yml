@@ -62,12 +62,24 @@
         owner=vmail group=vmail
         mode=0700
 
+- name: Generate a private key and a X.509 certificate for Dovecot
+  command: genkeypair.sh x509
+                         --pubkey=/etc/dovecot/ssl/imap.fripost.org.pem
+                         --privkey=/etc/dovecot/ssl/imap.fripost.org.key
+                         --dns imap.fripost.org
+                         -t rsa -b 4096 -h sha512
+  register: r1
+  changed_when: r1.rc == 0
+  failed_when: r1.rc > 1
+  notify:
+    - Restart Dovecot
+
 - name: Configure Dovecot
   copy: src=etc/dovecot/{{ item }}
         dest=/etc/dovecot/{{ item }}
         owner=root group=root
         mode=0644
-  register: r
+  register: r2
   with_items:
     - conf.d/10-auth.conf
     - conf.d/10-logging.conf
@@ -87,6 +99,6 @@
 
 - name: Start Dovecot
   service: name=dovecot state=started
-  when: not r.changed
+  when: not (r1.changed or r2.changed)
 
 - meta: flush_handlers
