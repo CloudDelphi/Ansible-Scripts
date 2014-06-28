@@ -4,7 +4,7 @@
 - name: Generate a key pair for IPSec
   command: genkeypair.sh --pubkey=/etc/ipsec.d/certs/{{ inventory_hostname }}.pem
                          --privkey=/etc/ipsec.d/private/{{ inventory_hostname }}.key
-                         -n {{ inventory_hostname }}
+                         --dns {{ inventory_hostname }}
                          -t ecdsa -b secp521r1 -h sha512
   register: r1
   failed_when: r1.rc > 1

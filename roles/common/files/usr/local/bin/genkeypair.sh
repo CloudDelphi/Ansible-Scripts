@@ -25,11 +25,14 @@ PATH=/usr/bin:/bin
 # Default values
 type=rsa
 bits=
-hash=sha1
+hash=
 
 force=
+x509=-x509
+config=
 pubkey=pubkey.pem
 privkey=privkey.pem
+dns=
 
 usage() {
     cat >&2 <<- EOF
@@ -39,9 +42,11 @@ usage() {
 		Options:
 		    -t type:    key type (default: rsa)
 		    -b bits:    key length or EC curve (default: 2048 for RSA, 1024 for DSA, secp224r1 for ECDSA)
-		    -h digest:  digest algorithm (default: sha1)
-		    -n CN:      common name (default: \$(hostname --fqdn)
+		    -h digest:  digest algorithm
+		    --dns CN:   common name (default: \$(hostname --fqdn); can be repeated
 		    -f force:   overwrite key files if they exist
+		    --csr:      generate a Certificate Signing Request instead
+		    --config:   configuration file
 		    --pubkey:   public key file (default: pubkey.pem)
 		    --privkey:  private key file (default: privkey.pem; created with og-rwx)
 
@@ -52,7 +57,6 @@ usage() {
 	EOF
 }
 
-name=$(hostname --fqdn)
 while [ $# -gt 0 ]; do
     case "$1" in
         -t) shift; type="$1";;
@@ -64,12 +68,14 @@ while [ $# -gt 0 ]; do
         -h) shift; hash="$1";;
         -h*) hash="${1#-h}";;
 
-        -n) shift; name="$1";;
-        -n*) name="${1#-n}";;
 
         -f) force=1;;
-        --pubkey=*) pubkey="${1#--pubkey=}";;
-        --privkey=*) privkey="${1#--privkey=}";;
+        --pubkey=?*) pubkey="${1#--pubkey=}";;
+        --privkey=?*) privkey="${1#--privkey=}";;
+
+        --csr) x509=;;
+        --dns=?*) dns="${dns:+$dns,}${1#--dns=}";;
+        --config=?*) dns="${1#--config=}";;
 
         --help) usage; exit;;
         *) echo "Unrecognized argument: $1" >&2; exit 2
@@ -79,6 +85,8 @@ done
 
 rand=/dev/urandom
 case "$type" in
+    # XXX: genrsa and dsaparam have been deprecated in favor of genpkey.
+    # genpkey can also create explicit EC parameters, but not named.
     rsa) genkey=genrsa; genkeyargs="-f4 ${bits:-2048}";;
     dsa) genkey=dsaparam; genkeyargs="-noout -genkey ${bits:-1024}";;
     # See 'openssl ecparam -list_curves' for the list of supported
@@ -91,38 +99,54 @@ case "$type" in
 esac
 
 case "$hash" in
-    md5|rmd160|sha1|sha224|sha256|sha384|sha512) ;;
+    md5|rmd160|sha1|sha224|sha256|sha384|sha512|'') ;;
     *) echo "Invalid digest algorithm: $hash" >&2; exit 2;
 esac
 
-[ ${#name} -le 64 ] || { echo "Hostname too long: $name" >&2; exit 2; }
+[ "$dns" ] || dns="$(hostname --fqdn)"
+cn="${dns%%,*}"
+[ ${#cn} -le 64 ] || { echo "CommonName too long: $cn" >&2; exit 2; }
+
 for file in "$pubkey" "$privkey"; do
     [ -z "$force" -a -s "$file" ] || continue
     echo "Error: File exists: $file" >&2
     exit 1
 done
 
-config=$(mktemp) || exit 2
-trap 'rm -f "$config"' EXIT
-# see /usr/share/ssl-cert/ssleay.cnf
-cat >"$config" <<- EOF
-	[ req ]
-	distinguished_name  = req_distinguished_name
-	prompt              = no
-	policy			    = policy_anything
-	req_extensions      = v3_req
-	x509_extensions     = v3_req
+if [ -z "$config" ]; then
+    config=$(mktemp) || exit 2
+    trap 'rm -f "$config"' EXIT
 
-	[ req_distinguished_name ]
-	commonName          = $name
+    names=
+    until [ "$dns" = "${dns#*,}" ]; do
+        names=", DNS:${dns##*,}$names"
+        dns="${dns%,*}"
+    done
 
-	[ v3_req ]
-	basicConstraints    = critical, CA:FALSE
-EOF
+    # see /usr/share/ssl-cert/ssleay.cnf
+    cat >"$config" <<- EOF
+		[ req ]
+		distinguished_name  = req_distinguished_name
+		prompt              = no
+		policy              = policy_anything
+		req_extensions      = v3_req
+		x509_extensions     = v3_req
+		default_days        = 3650
+
+		[ req_distinguished_name ]
+		countryName         = SE
+		organizationName    = Fripost
+		commonName          = $cn
+
+		[ v3_req ]
+		subjectAltName      = email:admin@fripost.org, DNS:$cn$names
+		basicConstraints    = critical, CA:FALSE
+	EOF
+fi
 
 # Ensure "$privkey" is created with umask 0077
 mv "$(mktemp)" "$privkey" || exit 2
 chmod og-rwx "$privkey" || exit 2
 
 openssl $genkey -rand /dev/urandom $genkeyargs >"$privkey" || exit 2
-openssl req -config "$config" -new -x509 -days 3650 -"$hash" -key "$privkey" >"$pubkey" || exit 2
+openssl req -config "$config" -new $x509 ${hash:+-$hash} -key "$privkey" >"$pubkey" || exit 2
