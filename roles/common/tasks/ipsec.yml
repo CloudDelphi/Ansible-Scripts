@@ -5,7 +5,7 @@
   command: genkeypair.sh x509
                          --pubkey=/etc/ipsec.d/certs/{{ inventory_hostname }}.pem
                          --privkey=/etc/ipsec.d/private/{{ inventory_hostname }}.key
-                         --dns {{ inventory_hostname }}
+                         --dns={{ inventory_hostname }}
                          -t ecdsa -b secp521r1 -h sha512
   register: r1
   changed_when: r1.rc == 0
