@@ -33,6 +33,10 @@ def postconf(k, instance=None):
     return subprocess.check_output(cmd, stderr=subprocess.STDOUT).rstrip()
 
 
+# To destroy an existing instance:
+#   postmulti -e disable -i mx
+#   postmulti -e destroy -i mx
+
 def main():
     module = AnsibleModule(
         argument_spec = dict(
