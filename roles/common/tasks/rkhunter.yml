@@ -6,7 +6,6 @@
     - iproute
     - lsof
     - unhide
-    - unhide.rb
 
 # To test the configuration:
 #   ansible all -m command -a '/usr/bin/rkhunter -c --nomow --rwo'
