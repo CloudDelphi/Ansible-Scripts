@@ -15,3 +15,20 @@
 		invoke-rc.d rsyslog rotate > /dev/null
 	endscript
 }
+
+# Keep a mapping Postfix's message ID -> SASL username for a month, to
+# find authors of potential abuse emails (if we are shown the header of
+# such emails.)
+/var/log/mail.sasl
+{
+	rotate 4
+	weekly
+	missingok
+	notifempty
+	compress
+	delaycompress
+	sharedscripts
+	postrotate
+		invoke-rc.d rsyslog rotate > /dev/null
+	endscript
+}

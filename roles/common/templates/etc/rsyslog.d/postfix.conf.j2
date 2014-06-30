@@ -1,0 +1,17 @@
+# Create an additional socket in postfix's chroot in order not to break
+# mail logging when rsyslog is restarted.  If the directory is missing,
+# rsyslog will silently skip creating the socket.
+$AddUnixListenSocket /var/spool/postfix/dev/log
+{% for g in postfix_instance.keys() | sort %}
+{% if g in group_names %}
+$AddUnixListenSocket /var/spool/postfix-{{ postfix_instance[g].name }}/dev/log
+{% endif %}
+{% endfor %}
+
+{% if 'MSA' in group_names %}
+# User of our Authenticated SMTP server can choose the envelope from and From:
+# header of their choice.  As the SASL username is not logged in the mail
+# header, we keep a mapping Postfix's message ID -> SASL username in a separate
+# log file that is only rotated monthly.
+if $programname == 'postfix-msa' and $syslogfacility-text == 'mail' and $msg contains 'sasl_username=' then /var/log/mail.sasl
+{% endif %}

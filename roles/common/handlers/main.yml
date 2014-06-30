@@ -26,6 +26,9 @@
   # pattern=init as a dummy assumption.
   service: name=networking pattern=init state=reloaded
 
+- name: Restart rsyslog
+  service: name=rsyslog state=restarted
+
 - name: Restart ntp
   service: name=ntp state=restarted
 

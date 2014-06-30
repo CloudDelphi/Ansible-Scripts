@@ -7,10 +7,35 @@
     - logcheck-database
     - logrotate
 
-- name: Start rsyslog
-  service: name=rsyslog state=started
+- name: Configure rsyslog
+  copy: src=etc/rsyslog.conf
+        dest=/etc/rsyslog.conf
+        owner=root group=root
+        mode=0644
+  register: r1
+  notify:
+    - Restart rsyslog
   tags:
     - syslog
+
+- name: Configure postfix's custom rsyslog rules
+  template: src=etc/rsyslog.d/postfix.conf.j2
+            dest=/etc/rsyslog.d/postfix.conf
+            owner=root group=root
+            mode=0644
+  register: r2
+  notify:
+    - Restart rsyslog
+  tags:
+    - syslog
+
+- name: Start rsyslog
+  service: name=rsyslog state=started
+  when: not (r1.changed or r2.changed)
+  tags:
+    - syslog
+
+- meta: flush_handlers
 
 - name: Configure logcheck
   copy: src=etc/logcheck/{{ item }}
@@ -30,7 +55,7 @@
 
 - name: Minimal logging policy (1)
   lineinfile: dest=/etc/logrotate.d/rsyslog
-              regexp="^/var/log/mail.(log|info)$"
+              regexp="^/var/log/mail\\.(log|info|sasl)$"
               state=absent
 
 - name: Minimal logging policy (2)
@@ -40,7 +65,3 @@
         mode=0644
   tags:
     - logrotate
-
-# TODO: We also have specialized per-role logcheck rulesets, per-role
-# logrotate configuration (/etc/logrotate.d), and per-role rsyslog
-# configuration (/etc/rsyslog.d).
