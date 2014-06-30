@@ -6,7 +6,7 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix(-\w+)?/master[[[:digit:]]+]: reload -- version [.[:digit:]]+, configuration /etc/postfix$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix(-\w+)?/smtpd\[[[:digit:]]+\]: (dis)?connect from [^[:space:]]+$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix(-\w+)?/[ls]mtp\[[[:digit:]]+\]: [[:xdigit:]]{10}: to=<[^[:space:]]+>,( orig_to=<[^[:space:]]+>,)? relay=[._[:alnum:]-]+\[[[:digit:].]{7,15}\](:[[:digit:]]{1,5})?, (conn_use=[[:digit:]]+, )?delay=[.[:digit:]]+(, delays=([.[:digit:]]+/){3}[.[:digit:]]+)?(, dsn=2(\.[[:digit:]]+){2})?, status=sent \(2[[:digit:]][[:digit:]] .+\)$
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix(-\w+)?/anvil\[[[:digit:]]+\]: statistics: max (message|recipient|connection) (count|rate) [/[:digit:]s]+ for \(([.:[:xdigit:]]+)?(smtp(s)?|25|submission|587):([.:[:xdigit:]]+|unknown)\) at \w{3} [ :[:digit:]]{11}$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix(-\w+)?/anvil\[[[:digit:]]+\]: statistics: max (message|recipient|connection) (count|rate) [/[:digit:]s]+ for \(([.:[:xdigit:]]+)?(smtps?|25|submission|587):([.:[:xdigit:]]+|unknown)\) at \w{3} [ :[:digit:]]{11}$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix(-\w+)?/anvil\[[[:digit:]]+\]: statistics: max cache size [[:digit:]]+ at \w{3} [ :[:digit:]]{11}$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix(-\w+)?/smtpd\[[[:digit:]]+\]: [[:alnum:]]+: client=[._[:alnum:]-]+\[[[:xdigit:].:]{3,39}\]$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix(-\w+)?/cleanup\[[[:digit:]]+\]: [[:alnum:]]+: (resent-|)message-id=<?[^>]+>?( \(added by [^[:space:]]+\))?$
@@ -22,4 +22,5 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-(msa|mx)/smtpd\[[[:digit:]]+\]: improper command pipelining after EHLO from [._[:alnum:]-]+\[[[:digit:].]{7,15}\]:\s
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-(msa|mx)/smtpd\[[[:digit:]]+\]: warning: hostname [._[:alnum:]-]+ does not resolve to address [[:xdigit:].:]{3,39}: Name or service not known$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-(msa|mx)/smtpd\[[[:digit:]]+\]: timeout after [-[:upper:]]+( \([[:digit:]]+ bytes\))? from [^[:space:]]+$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-((msa|mx)/smtpd|out/smtp)\[[[:digit:]]+\]: warning: (tls_text_name: [-._[:alnum:]]+\[[.[:digit:]]+\]: )?peer certificate has no (subject CN|issuer Organization)$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mda/lmtp\[[[:digit:]]+\]: [[:xdigit:]]{10}: to=<[^[:space:]]+>,( orig_to=<[^[:space:]]+>,)? relay=[._[:alnum:]-]+\[private/dovecot-lmtpd\], delay=[.[:digit:]]+(, delays=([.[:digit:]]+/){3}[.[:digit:]]+)?(, dsn=2(\.[[:digit:]]+){2})?, status=sent \(2[[:digit:]][[:digit:]] .+\)$
