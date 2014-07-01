@@ -4,9 +4,6 @@
 # direction              protocol     destination port            source port
 # (in|out|inout)[46]?    (tcp|udp|..) (port|port:port|port,port)  (port|port:port|port,port)
 
-inout   udp     500      500                            # ISAKMP
-#inout   udp     4500    4500    # IPSec NAT Traversal
-
 out     tcp     80,443                                  # HTTP/HTTPS
 out     udp     53                                      # DNS
 out     udp     67                                      # DHCP
@@ -20,15 +17,23 @@ in      tcp     {{ ansible_ssh_port|default('22') }}    # SSH
 in      tcp     25                                      # SMTP
 {% endif %}
 {% if 'out' in group_names %}
-#out     tcp     25                                     # SMTP
+in      tcp     {{ postfix_instance.out.port }}
+out     tcp     25                                      # SMTP
+{% else %}
+out     tcp     {{ postfix_instance.out.port }}
 {% endif %}
 {% if 'IMAP' in group_names %}
 in      tcp     993                                     # IMAPS
 in      tcp     4190                                    # ManageSieve
+{% endif %}
+{% if 'MDA' in group_names %}
+in      tcp     {{ postfix_instance.mda.port }}
 {% endif %}
 {% if 'MSA' in group_names %}
 in      tcp     587                                     # SMTP-AUTH
 {% endif %}
 {% if 'webmail' in group_names %}
 in     tcp      80,443                                  # HTTP/HTTPS
+out    tcp      993                                     # IMAP # TODO imapc
+out    tcp      4190
 {% endif %}

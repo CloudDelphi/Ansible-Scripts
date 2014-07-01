@@ -3,11 +3,11 @@ reserved.locahost.localdomain   reserved-alias:
 {% if 'LDA' in group_names %}
 mda.fripost.org smtpl:[127.0.0.1]:{{ postfix_instance.IMAP.port }}
 {% else %}
-mda.fripost.org smtps:[mda.fripost.org]:{{ postfix_instance.IMAP.port }}
+mda.fripost.org smtp:[mda.fripost.org]:{{ postfix_instance.IMAP.port }}
 {% endif %}
 
 {% if 'lists' in group_names %}
 lists.fripost.org smtpl:[127.0.0.1]:{{ postfix_instance.lists.port }}
 {% else %}
-lists.fripost.org smtps:[lists.fripost.org]:{{ postfix_instance.lists.port }}
+lists.fripost.org smtp:[lists.fripost.org]:{{ postfix_instance.lists.port }}
 {% endif %}

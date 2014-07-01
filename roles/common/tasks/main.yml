@@ -15,8 +15,7 @@
         owner=root group=root
         mode=0755
   tags:
-    - genkeypair
-- include: ipsec.yml    tags=strongswan,ipsec
+    - genkey
 - include: logging.yml  tags=logging
 - include: ntp.yml      tags=ntp
 - include: mail.yml     tags=mail,postfix

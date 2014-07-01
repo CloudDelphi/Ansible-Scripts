@@ -1,0 +1,6 @@
+# {{ ansible_managed }}
+
+[outgoing.fripost.org]:{{ postfix_instance.out.port }} fingerprint ciphers=high protocols=TLSv1.2
+{% for x in tls_policy.results %}
+   match={{ x.stdout }}
+{% endfor %}

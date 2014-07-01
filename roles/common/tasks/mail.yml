@@ -44,7 +44,37 @@
   notify:
     - Restart Postfix
 
-- name: Update the static local Postfix database
+- name: Create directory /etc/postfix/ssl
+  file: path=/etc/postfix/ssl
+        state=directory
+        owner=root group=root
+        mode=0755
+  tags:
+    - genkey
+
+- name: Generate a private key and a X.509 certificate for Postfix
+  command: genkeypair.sh x509
+                         --pubkey=/etc/postfix/ssl/{{ ansible_fqdn }}.pem
+                         --privkey=/etc/postfix/ssl/{{ ansible_fqdn }}.key
+                         --dns={{ ansible_fqdn }}
+                         -t ecdsa -b secp384r1 -h sha512
+  register: r4
+  changed_when: r4.rc == 0
+  failed_when: r4.rc > 1
+  tags:
+    - genkey
+
+- name: Fetch Postfix's X.509 certificate
+  # Ensure we don't fetch private data
+  sudo: False
+  fetch: src=/etc/postfix/ssl/{{ ansible_fqdn }}.pem
+         dest=certs/postfix/
+         fail_on_missing=yes
+         flat=yes
+  tags:
+    - genkey
+
+- name: Compile the static local Postfix database
   postmap: cmd=postalias src=/etc/aliases db=cdb
            owner=root group=root
            mode=0644
@@ -53,8 +83,33 @@
 - name: Delete /etc/aliases.db
   file: path=/etc/aliases.db state=absent
 
+- name: Build the Postfix TLS policy map
+  sudo: False
+  # smtp_tls_fingerprint_digest MUST be sha256!
+  local_action: shell openssl x509 -in certs/postfix/{{ item }}.pem -noout -fingerprint -sha256 | cut -d= -f2
+  with_items: groups.out | sort
+  register: tls_policy
+  changed_when: False
+  when: "'out' not in group_names"
+
+- name: Copy the Postfix TLS policy map
+  template: src=etc/postfix/tls_policy.j2
+            dest=/etc/postfix/tls_policy
+            owner=root group=root
+            mode=0644
+  when: "'out' not in group_names"
+
+- name: Compile the Postfix TLS policy map
+  postmap: cmd=postmap src=/etc/postfix/tls_policy db=cdb
+           owner=root group=root
+           mode=0644
+  when: "'out' not in group_names"
+  register: r5
+  notify:
+    - Restart Postfix
+
 - name: Start Postfix
   service: name=postfix state=started
-  when: not (r1.changed or r2.changed or r3.changed)
+  when: not (r1.changed or r2.changed or r3.changed or r5.changed)
 
 - meta: flush_handlers

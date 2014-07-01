@@ -66,11 +66,24 @@ smtp_destination_recipient_limit = 1000
 smtp_data_done_timeout       = 1200s
 smtpd_timeout                = 1200s
 
-# Tunnel everything through IPSec
-smtp_tls_security_level  = none
+
+# Forward everything to our internal outgoing proxy
 {% if 'out' in group_names %}
-smtp_bind_address        = 127.0.0.1
+relayhost     = [127.0.0.1]:{{ postfix_instance.out.port }}
 {% else %}
-smtp_bind_address        = 172.16.0.1
+relayhost     = [outgoing.fripost.org]:{{ postfix_instance.out.port }}
 {% endif %}
-smtpd_tls_security_level = none
+relay_domains =
+
+{% if 'out' in group_names %}
+smtp_tls_security_level         = none
+smtp_bind_address               = 127.0.0.1
+{% else %}
+smtp_tls_security_level         = encrypt
+smtp_tls_cert_file              = $config_directory/ssl/{{ ansible_fqdn }}.pem
+smtp_tls_key_file               = $config_directory/ssl/{{ ansible_fqdn }}.key
+smtp_tls_session_cache_database = btree:$data_directory/smtp_tls_session_cache
+smtp_tls_policy_maps            = cdb:$config_directory/tls_policy
+smtp_tls_fingerprint_digest     = sha256
+{% endif %}
+smtpd_tls_security_level        = none

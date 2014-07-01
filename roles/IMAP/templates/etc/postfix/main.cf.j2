@@ -28,11 +28,8 @@ multi_instance_enable = yes
 
 # This server is a Mail Delivery Agent
 mynetworks_style = host
-inet_interfaces  = 172.16.0.1
-{% if 'MX' in group_names %}
-                   127.0.0.1
-{% endif %}
-inet_protocols   = ipv4
+inet_interfaces  = all
+
 
 # No local delivery
 mydestination        =
@@ -64,3 +61,45 @@ recipient_canonical_maps    = pcre:$config_directory/recipient_canonical.pcre
 local_header_rewrite_clients =
 # Tolerate occasional high latency
 smtpd_timeout                = 1200s
+
+
+relay_clientcerts               = cdb:$config_directory/relay_clientcerts
+smtpd_tls_security_level        = may
+smtpd_tls_cert_file             = /etc/postfix/ssl/{{ ansible_fqdn }}.pem
+smtpd_tls_key_file              = /etc/postfix/ssl/{{ ansible_fqdn }}.key
+smtpd_tls_session_cache_database= btree:$data_directory/smtpd_tls_session_cache
+smtpd_tls_received_header       = yes
+smtpd_tls_ask_ccert             = yes
+smtpd_tls_session_cache_timeout = 3600s
+smtpd_tls_fingerprint_digest    = sha256
+
+
+strict_rfc821_envelopes = yes
+smtpd_delay_reject      = yes
+disable_vrfy_command    = yes
+
+smtpd_client_restrictions =
+    permit_mynetworks
+    permit_tls_clientcerts
+    # We are the only ones using this proxy, but if things go wrong we
+    # want to know why
+    defer
+
+smtpd_helo_required     = yes
+smtpd_helo_restrictions =
+    reject_invalid_helo_hostname
+
+smtpd_sender_restrictions =
+    reject_non_fqdn_sender
+    reject_unknown_sender_domain
+
+smtpd_recipient_restrictions =
+    # RFC requirements
+    reject_non_fqdn_recipient
+    reject_unknown_recipient_domain
+    permit_mynetworks
+    permit_tls_clientcerts
+    reject
+
+smtpd_data_restrictions =
+    reject_unauth_pipelining

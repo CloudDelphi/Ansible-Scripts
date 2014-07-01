@@ -62,6 +62,12 @@
         owner=vmail group=vmail
         mode=0700
 
+- name: Create directory /etc/dovecot/ssl
+  file: path=/etc/dovecot/ssl
+        state=directory
+        owner=root group=root
+        mode=0755
+
 - name: Generate a private key and a X.509 certificate for Dovecot
   command: genkeypair.sh x509
                          --pubkey=/etc/dovecot/ssl/imap.fripost.org.pem
@@ -73,6 +79,8 @@
   failed_when: r1.rc > 1
   notify:
     - Restart Dovecot
+  tags:
+    - genkey
 
 - name: Configure Dovecot
   copy: src=etc/dovecot/{{ item }}

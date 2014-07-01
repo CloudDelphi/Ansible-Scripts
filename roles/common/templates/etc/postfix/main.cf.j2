@@ -17,7 +17,6 @@ append_dot_mydomain = no
 # This server is for internal use only
 mynetworks_style = host
 inet_interfaces  = loopback-only
-inet_protocols   = ipv4
 
 # No local delivery
 mydestination        =
@@ -30,7 +29,7 @@ default_database_type = cdb
 virtual_alias_maps    = cdb:/etc/aliases
 alias_database        = $virtual_alias_maps
 
-# Forward everything to our internal mailhub
+# Forward everything to our internal outgoing proxy
 {% if 'out' in group_names %}
 relayhost     = [127.0.0.1]:{{ postfix_instance.out.port }}
 {% else %}
@@ -38,14 +37,18 @@ relayhost     = [outgoing.fripost.org]:{{ postfix_instance.out.port }}
 {% endif %}
 relay_domains =
 
-# Tunnel everything through IPSec
-smtp_tls_security_level  = none
 {% if 'out' in group_names %}
-smtp_bind_address        = 127.0.0.1
+smtp_tls_security_level         = none
+smtp_bind_address               = 127.0.0.1
 {% else %}
-smtp_bind_address        = 172.16.0.1
+smtp_tls_security_level         = encrypt
+smtp_tls_cert_file              = $config_directory/ssl/{{ ansible_fqdn }}.pem
+smtp_tls_key_file               = $config_directory/ssl/{{ ansible_fqdn }}.key
+smtp_tls_session_cache_database = btree:$data_directory/smtp_tls_session_cache
+smtp_tls_policy_maps            = cdb:$config_directory/tls_policy
+smtp_tls_fingerprint_digest     = sha256
 {% endif %}
-smtpd_tls_security_level = none
+smtpd_tls_security_level        = none
 
 # Turn off all TCP/IP listener ports except that dedicated to
 # samhain(8), which sadly cannot use pickup through the sendmail binary.

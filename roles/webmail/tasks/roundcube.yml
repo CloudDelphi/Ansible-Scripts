@@ -89,6 +89,8 @@
   failed_when: r1.rc > 1
   notify:
     - Restart Nginx
+  tags:
+    - genkey
 
 - name: Copy /etc/nginx/sites-available/roundcube
   copy: src=etc/nginx/sites-available/roundcube

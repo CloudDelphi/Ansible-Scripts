@@ -12,14 +12,18 @@
   failed_when: r1.rc > 1
   notify:
     - Restart IPSec
+  tags:
+    - genkey
 
 - name: Fetch the public part of IPSec's host key
-  sudo: False
   # Ensure we don't fetch private data
+  sudo: False
   fetch: src=/etc/ipsec.d/certs/{{ inventory_hostname }}.pem
          dest=certs/ipsec/
          fail_on_missing=yes
          flat=yes
+  tags:
+    - genkey
 
 # Don't copy our pubkey due to a possible race condition.  Only the
 # remote machine has authority regarding its key.

@@ -40,13 +40,14 @@ local_recipient_maps =
 message_size_limit  = 67108864
 recipient_delimiter = +
 
-# Forward everything to our internal mailhub
+# Forward everything to our internal outgoing proxy
 {% if 'out' in group_names %}
 relayhost     = [127.0.0.1]:{{ postfix_instance.out.port }}
 {% else %}
 relayhost     = [outgoing.fripost.org]:{{ postfix_instance.out.port }}
 {% endif %}
 relay_domains =
+
 
 # Don't rewrite remote headers
 local_header_rewrite_clients     =
@@ -55,17 +56,18 @@ smtp_destination_recipient_limit = 1000
 # Tolerate occasional high latency
 smtp_data_done_timeout           = 1200s
 
-# Pass the mail to the antivirus
-#content_filter = amavisfeed:unix:public/amavisfeed-antivirus
-
-# Tunnel everything through IPSec
-smtp_tls_security_level  = none
 {% if 'out' in group_names %}
-smtp_bind_address        = 127.0.0.1
+smtp_tls_security_level         = none
+smtp_bind_address               = 127.0.0.1
 {% else %}
-smtp_bind_address        = 172.16.0.1
+smtp_tls_security_level         = encrypt
+smtp_tls_cert_file              = /etc/postfix/ssl/{{ ansible_fqdn }}.pem
+smtp_tls_key_file               = /etc/postfix/ssl/{{ ansible_fqdn }}.key
+smtp_tls_session_cache_database = btree:$data_directory/smtp_tls_session_cache
+smtp_tls_policy_maps            = cdb:/etc/postfix/tls_policy
+smtp_tls_fingerprint_digest     = sha256
 {% endif %}
-smtpd_tls_security_level = none
+smtpd_tls_security_level        = none
 
 
 strict_rfc821_envelopes = yes
