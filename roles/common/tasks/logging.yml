@@ -37,7 +37,7 @@
 
 - meta: flush_handlers
 
-- name: Configure logcheck
+- name: Configure logcheck (1)
   copy: src=etc/logcheck/{{ item }}
         dest=/etc/logcheck/{{ item }}
         owner=root group=logcheck
@@ -50,6 +50,20 @@
     # logcheck-sudo already exists, but changing the filename for our
     # local modifications would defeat the ruleset
     - violations.ignore.d/logcheck-sudo
+  tags:
+    - logcheck
+
+- name: Configure logcheck (2)
+  lineinfile: dest=/etc/logcheck/logcheck.logfiles
+              line={{ item }}
+              state=present
+              create=yes
+              owner=root group=logcheck
+              mode=0640
+  with_items:
+    - /var/log/syslog
+    - /var/log/auth.log
+    - /var/log/mail.log
   tags:
     - logcheck
 
