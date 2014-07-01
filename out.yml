@@ -1,0 +1,8 @@
+---
+- name: Configure the outgoing SMTP proxy
+  hosts: out
+  roles:
+    - { role: out, inst: out }
+  tags:
+    - mail
+    - postfix

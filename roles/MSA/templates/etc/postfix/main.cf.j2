@@ -41,10 +41,10 @@ message_size_limit  = 67108864
 recipient_delimiter = +
 
 # Forward everything to our internal mailhub
-{% if 'MTA-out' in group_names %}
-relayhost     = [127.0.0.1]:{{ postfix_instance["MTA-out"].port }}
+{% if 'out' in group_names %}
+relayhost     = [127.0.0.1]:{{ postfix_instance.out.port }}
 {% else %}
-relayhost     = [outgoing.fripost.org]:{{ postfix_instance["MTA-out"].port }}
+relayhost     = [outgoing.fripost.org]:{{ postfix_instance.out.port }}
 {% endif %}
 relay_domains =
 
@@ -61,7 +61,7 @@ header_checks  = pcre:$config_directory/anonymize_sender.pcre
 
 # Tunnel everything through IPSec
 smtp_tls_security_level = none
-{% if 'MTA-out' in group_names %}
+{% if 'out' in group_names %}
 smtp_bind_address       = 127.0.0.1
 {% else %}
 smtp_bind_address       = 172.16.0.1

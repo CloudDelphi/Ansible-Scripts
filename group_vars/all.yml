@@ -3,9 +3,9 @@ postfix_instance:
   # The keys are the group names associated with a Postfix role, and the
   # values are the name and group (optional) of the instance dedicated
   # to that role.
-  IMAP:    { name: mda,                port: 2526 }
-  MX:      { name: mx,     group: mta             }
-  MTA-out: { name: mta-out,group: mta, port: 2525 }
-  MSA:     { name: msa                            }
-  webmail: { name: webmail                        }
-  lists:   { name: lists,              port: 2527 }
+  IMAP:    { name: mda,             port: 2526 }
+  MX:      { name: mx,  group: mta             }
+  out:     { name: out, group: mta, port: 2525 }
+  MSA:     { name: msa                         }
+  webmail: { name: webmail                     }
+  lists:   { name: lists,           port: 2527 }

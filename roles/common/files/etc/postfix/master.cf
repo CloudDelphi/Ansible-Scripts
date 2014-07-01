@@ -39,6 +39,7 @@ lmtp      unix  -       -       -       -       -       lmtp
 anvil     unix  -       -       -       -       1       anvil
 scache    unix  -       -       -       -       1       scache
 127.0.0.1:16132 inet n  -       -       -       -       smtpd
+2525      inet  n       -       -       -       -       smtpd
 2526      inet  n       -       -       -       -       smtpd
 2527      inet  n       -       -       -       -       smtpd
   -o mynetworks=0.0.0.0/0

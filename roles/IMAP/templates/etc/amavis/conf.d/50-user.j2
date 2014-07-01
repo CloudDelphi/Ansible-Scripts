@@ -110,10 +110,10 @@ $inet_socket_port = 10041;
 
 $interface_policy{'10041'} = 'INBOUND';
 
-{% if 'MTA-out' in group_names %}
-$notify_method  = 'smtp:[127.0.0.1]:{{ postfix_instance["MTA-out"].port }}';
+{% if 'out' in group_names %}
+$notify_method  = 'smtp:[127.0.0.1]:{{ postfix_instance.out.port }}';
 {% else %}
-$notify_method  = 'smtp:[outgoing.fripost.org]:{{ postfix_instance["MTA-out"].port }}';
+$notify_method  = 'smtp:[outgoing.fripost.org]:{{ postfix_instance.out.port }}';
 {% endif %}
 $forward_method = 'lmtp:/var/run/dovecot/lmtp';
 $requeue_method = $forward_method;
