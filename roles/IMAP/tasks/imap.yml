@@ -11,6 +11,7 @@
 
 - name: Create a user 'vmail'
   user: name=vmail system=yes
+        createhome=no
         home=/home/mail
         shell=/bin/false
         password=!

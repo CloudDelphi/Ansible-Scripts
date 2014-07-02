@@ -6,6 +6,7 @@
 # Weird the debian package doesn't do it by itself...
 - name: Create a user 'mlmmj'
   user: name=mlmmj system=yes
+        createhome=no
         home=/var/spool/mlmmj
         shell=/bin/false
         password=!

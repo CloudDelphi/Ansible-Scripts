@@ -7,6 +7,7 @@
 
 - name: Create a user 'imapproxy'
   user: name=imapproxy system=yes
+        createhome=no
         home=/home/imapproxy
         shell=/bin/false
         password=!
