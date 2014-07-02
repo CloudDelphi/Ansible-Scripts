@@ -4,7 +4,7 @@
 
 passdb {
   driver         = imap
-  args           = host=imap.fripost.org port=143
+  args           = host=localhost port=993
   default_fields = userdb_imapc_password=%w
 }
 

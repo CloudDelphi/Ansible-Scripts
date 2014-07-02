@@ -82,6 +82,16 @@
   tags:
     - genkey
 
+- name: Fetch Dovecot's X.509 certificate
+  # Ensure we don't fetch private data
+  sudo: False
+  fetch: src=/etc/dovecot/ssl/imap.fripost.org.pem
+         dest=certs/dovecot/
+         fail_on_missing=yes
+         flat=yes
+  tags:
+    - genkey
+
 - name: Configure Dovecot
   copy: src=etc/dovecot/{{ item }}
         dest=/etc/dovecot/{{ item }}
