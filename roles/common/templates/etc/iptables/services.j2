@@ -27,7 +27,7 @@ in      tcp     993                                     # IMAPS
 in      tcp     4190                                    # ManageSieve
 {% endif %}
 {% if 'MDA' in group_names %}
-in      tcp     {{ postfix_instance.mda.port }}
+in      tcp     {{ postfix_instance.IMAP.port }}
 {% endif %}
 {% if 'MSA' in group_names %}
 in      tcp     587                                     # SMTP-AUTH
