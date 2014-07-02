@@ -13,6 +13,9 @@ chain = fail2ban
 # Choose default action.
 action = %(action_)s
 
+# Don't ban ourselves.
+ignoreip = 127.0.0.0/8 {{ groups.all | sort | join(' ') }}
+
 #
 # JAILS
 #
