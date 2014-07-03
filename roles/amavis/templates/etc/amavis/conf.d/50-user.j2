@@ -31,7 +31,7 @@ undef $enable_dkim_signing;
 $enable_dkim_signing = 1;
 # Sign *all* outgoing mails with *our* key (yes, amavis complains, but this is
 # safe as we force our domain with the 'd' tag).
-dkim_key(qr'^', 'outgoing', '/var/lib/dkim/outgoing.'.$mydomain.'.key');
+dkim_key(qr'^', '20140703', '/var/lib/dkim/20140703.'.$mydomain.'.key');
 @dkim_signature_options_bysender_maps = (
     { '.' => { d => $mydomain
              , a => 'rsa-sha256'

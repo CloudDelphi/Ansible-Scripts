@@ -37,7 +37,7 @@
         mode=0755
 
 - name: Generate a private key for DKIM signing
-  command: genkeypair.sh dkim --privkey=/var/lib/dkim/outgoing.fripost.org.key --dns=outgoing -t rsa -b 2048
+  command: genkeypair.sh dkim --privkey=/var/lib/dkim/20140703.fripost.org.key -t rsa -b 1024
   register: dkim
   changed_when: dkim.rc == 0
   failed_when: dkim.rc > 1
