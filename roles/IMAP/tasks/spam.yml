@@ -1,6 +1,9 @@
 - name: Install spamassassin
   apt: pkg={{ item }}
   with_items:
+    # The following two lines are for the policy lookup (made by amavis)
+    - libnet-ldap-perl
+    - libauthen-sasl-perl
     - razor
     - spamassassin
     - spamc

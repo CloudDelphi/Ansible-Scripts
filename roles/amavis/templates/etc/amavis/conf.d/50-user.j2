@@ -1,0 +1,182 @@
+use strict;
+
+#
+# Place your configuration directives here.  They will override those in
+# earlier files.
+#
+# See /usr/share/doc/amavisd-new/ for documentation and examples of
+# the directives you can use in this file
+#
+
+# $max_servers: num of pre-forked children (2..30 is common). It *must*
+# match the number set in /etc/postfix/master.cf "maxproc" column for
+# the amavisfeed service.
+$max_servers = 5;
+$recipient_delimiter = '+';
+
+$mydomain = 'fripost.org';
+$X_HEADER_LINE = "Debian $myproduct_name at $mydomain";
+undef $undecipherable_subject_tag;
+
+@mynetworks_maps = ();
+@remove_existing_spam_headers_maps = ();
+@bypass_virus_checks_maps = (); # load virus checking code
+
+
+$enable_dkim_verification = 1; # load DKIM signing/verifying code
+{% if 'out' not in group_names %}
+undef $enable_dkim_signing;
+@bypass_spam_checks_maps = (); # load spam checking code
+{% else %}
+$enable_dkim_signing = 1;
+# Sign *all* outgoing mails with *our* key (yes, amavis complains, but this is
+# safe as we force our domain with the 'd' tag).
+dkim_key(qr'^', 'outgoing', '/var/lib/dkim/outgoing.'.$mydomain.'.key');
+@dkim_signature_options_bysender_maps = (
+    { '.' => { d => $mydomain
+             , a => 'rsa-sha256'
+             , ttl => 21*24*3600
+             , c => 'relaxed/simple' } } );
+# Conform to RFC 4871 and don't sign Received: headers.
+$signed_header_fields{received} = 0;
+{% endif %}
+
+
+
+# Defang viruses only
+%defang_maps_by_ccat = ( CC_VIRUS, 1
+                       , CC_CATCHALL, undef
+                       );
+
+# Never BCC / DSN; don't forget to disallow setting amavisSpamDsnCutoffLevel
+# and amavis*Admin, also
+%always_bcc_by_ccat = ( CC_CATCHALL, undef );
+%dsn_bcc_by_ccat    = ( CC_CATCHALL, undef );
+
+# Never warn sender or recipient; don't forget to disallow setting
+# amavisWarn*Recip, also
+%warnsender_by_ccat     = ( CC_CATCHALL, undef );
+%warnrecip_maps_by_ccat = ( CC_CATCHALL, undef );
+
+
+# A couple of common banned rules one might can refer by their name
+%banned_rules = (
+  'NO-MS-EXEC'=> new_RE( qr'^\.exe-ms$' ),
+  'PASSALL'   => new_RE( [qr'^' => 0] ),
+  'ALLOW_EXE' => new_RE( qr'.\.(vbs|pif|scr|bat)$'i, [qr'^\.exe$' => 0] ),
+  'ALLOW_VBS' => new_RE( [qr'.\.vbs$' => 0] ),
+);
+
+
+{% if 'MDA' in group_names %}
+$enable_ldap  = 1; # Load Net::LDAP
+$default_ldap = {
+    hostname      => 'ldapi://',
+    sasl          => 1,
+    sasl_mech     => 'EXTERNAL',
+    deref         => 'never',
+    timeout       => 5,
+    scope         => 'one',
+    base          => 'fvd=%d,ou=virtual,o=mailHosting,dc=fripost,dc=org',
+    # XXX: ideally we would use %u in the base and the query_filter, but
+    # it's not supported as of amavis 2.7 (see the 'lookup_ldap'
+    # subroutine in /usr/sbin/amavisd-new)
+    query_filter  => '(&(objectClass=amavisAccount)(ObjectClass=FripostVirtualUser)(fvl=%m))'
+};
+{% endif %}
+
+
+# http://www.ijs.si/software/amavisd/amavisd-new-docs.html#pbanks-ex
+
+$protocol = 'LMTP';
+$inet_socket_port = [];
+
+{% if 'out' in group_names %}
+push @$inet_socket_port, 10040;
+$interface_policy{'10040'} = 'OUTGOING';
+{% endif %}
+{% if 'MDA' in group_names %}
+push @$inet_socket_port, 10041;
+$interface_policy{'10041'} = 'INCOMING';
+{% endif %}
+
+$QUARANTINEDIR  = "$MYHOME/virusmails";
+$notify_method  = 'smtp:[127.0.0.1]:16132'; # notifications
+$forward_method = 'smtp:[127.0.0.1]:10025'; # reinject
+$requeue_method = $notify_method;           # requeue after quarantine
+
+# some defaults for spam checking
+$sa_tag_level_deflt         = undef;
+$sa_tag2_level_deflt        = 5;
+$sa_kill_level_deflt        = 5;
+$sa_dsn_cutoff_level        = undef;
+$sa_quarantine_cutoff_level = undef;
+
+
+# Here is an overall picture (sequence of events) of how pieces fit together
+#
+#   bypass_virus_checks set for all recipients? ==> PASS
+#   no viruses?   ==> PASS
+#   log virus     if $log_templ is nonempty
+#   quarantine    if $virus_quarantine_to is nonempty
+#   notify admin  if $virus_admin (lookup) nonempty
+#   notify recips if $warnvirusrecip and (recipient is local or $warn_offsite)
+#   add address extensions for local recipients (when enabled)
+#   send (non-)delivery notifications
+#      to sender if DSN needed (BOUNCE or ($warnvirussender and D_PASS))
+#   virus_lovers or final_destiny==D_PASS  ==> PASS
+#   DISCARD (2xx) or REJECT (5xx) (depending on final_*_destiny)
+
+
+# Mandatory DKIM signing and virus checking only
+$policy_bank{'OUTGOING'} = {
+  originating              => 1,
+  enable_dkim_verification => 0,
+  smtpd_greeting_banner    => '${helo-name} ${protocol} ${product} OUTGOING service ready',
+  forward_method           => $forward_method,
+
+  # No black or white lists
+  message_size_limit_maps => [],
+  whitelist_sender_maps   => [],
+  blacklist_sender_maps   => [],
+
+  # Check for viruses (regardless of the recipient), but bypass all other checks
+  bypass_virus_checks_maps  => undef,
+  bypass_banned_checks_maps => 1,
+  bypass_header_checks_maps => 1,
+  bypass_spam_checks_maps   => 1,
+
+  # If found, notify postmaster, quarantine and discard
+  quarantine_to_maps_by_ccat => { CC_VIRUS, [$virus_quarantine_to],     CC_CATCHALL, undef  },
+  quarantine_method_by_ccat  => { CC_VIRUS, [$virus_quarantine_method], CC_CATCHALL, undef  },
+  admin_maps_by_ccat         => { CC_VIRUS, ["postmaster\@$mydomain"],  CC_CATCHALL, undef  },
+  addr_extension_maps_by_ccat=> {                                       CC_CATCHALL, undef  },
+  lovers_maps_by_ccat        => { CC_VIRUS, undef,                      CC_CATCHALL, 1      }, 
+  final_destiny_by_ccat      => { CC_VIRUS, D_DISCARD,                  CC_CATCHALL, D_PASS },
+};
+
+$policy_bank{'INCOMING'} = {
+  originating              => 0,
+  enable_dkim_verification => 1,
+  smtpd_greeting_banner    => '${helo-name} ${protocol} ${product} INCOMING service ready',
+  forward_method           => $forward_method,
+  message_size_limit_maps  => [],
+
+  # Per-recipient Bayes Database
+  sa_username_maps => [ new_RE ( [ qr'^(.+@.+)$'i => '$1' ] )
+                      , 'amavis' # catch-all
+                      ],
+
+  # Never quarantine
+  # (Remember to disallow setting amavisSpamQuarantineCutoffLevel and
+  # amavisVirusQuarantine*To in the LDAP schema.)
+  quarantine_method_by_ccat => { CC_CATCHALL, undef },
+  admin_maps_by_ccat        => { CC_CATCHALL, undef },
+
+  # Always deliver messages
+  final_destiny_by_ccat => { CC_CATCHALL, D_PASS },
+  lovers_maps_by_ccat   => { CC_CATCHALL, 1      },
+};
+
+#------------ Do not modify anything below this line -------------
+1;  # ensure a defined return

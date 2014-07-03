@@ -19,7 +19,7 @@ append_dot_mydomain = no
 
 # Turn off all TCP/IP listener ports except that necessary for the
 # outgoing SMTP proxy.
-master_service_disable = !{{ postfix_instance.out.port }}.inet inet
+master_service_disable = !{{ postfix_instance.out.port }}.inet !127.0.0.1:10025.inet inet
 
 queue_directory       = /var/spool/postfix-{{ postfix_instance[inst].name }}
 data_directory        = /var/lib/postfix-{{ postfix_instance[inst].name }}
@@ -91,3 +91,5 @@ smtpd_recipient_restrictions =
 
 smtpd_data_restrictions =
     reject_unauth_pipelining
+
+content_filter = amavisfeed:[127.0.0.1]:10040

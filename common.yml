@@ -39,3 +39,10 @@
   tags: nginx,www,web
   roles:
     - common-web
+
+- name: Configure amavis
+  hosts: MDA:out
+  gather_facts: False
+  tags: amavis
+  roles:
+    - amavis

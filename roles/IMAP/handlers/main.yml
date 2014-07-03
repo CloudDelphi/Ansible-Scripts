@@ -8,9 +8,6 @@
 - name: Reload Postfix
   service: name=postfix state=reloaded
 
-- name: Restart ClamAV
-  service: name=clamav-daemon state=restarted
-
 - name: Compile Spamassassin rules
   sudo_user: debian-spamd
   # it might take a while...

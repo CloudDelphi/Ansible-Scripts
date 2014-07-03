@@ -1,5 +1,4 @@
 ---
 - include: imap.yml   tags=imap,dovecot
 - include: mda.yml    tags=mda,mail,postfix
-- include: amavis.yml tags=amavis
 - include: spam.yml   tags=spam,spamassassin

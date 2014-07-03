@@ -2,8 +2,8 @@
   apt: pkg={{ item }}
   with_items:
     - amavisd-new
-    - libnet-ldap-perl
-    - libauthen-sasl-perl
+    # Mail::DKIM
+    - libmail-dkim-perl
     - gzip
     - bzip2
     - xz-utils
@@ -30,27 +30,33 @@
     - Restart ClamAV
     - Restart Amavis
 
-- name: Configure Amavis (1)
-  copy: src=etc/amavis/conf.d/05-domain_id
-        dest=/etc/amavis/conf.d/05-domain_id
+- name: Create directory /var/lib/dkim
+  file: path=/var/lib/dkim
+        state=directory
         owner=root group=root
-        mode=0644
-  register: r2
+        mode=0755
+
+- name: Generate a private key for DKIM signing
+  command: genkeypair.sh dkim --privkey=/var/lib/dkim/outgoing.fripost.org.key --dns=outgoing -t rsa -b 2048
+  register: dkim
+  changed_when: dkim.rc == 0
+  failed_when: dkim.rc > 1
   notify:
     - Restart Amavis
+    - Publish the public key in the DNS zone
+  tags:
+    - genkey
 
-- name: Configure Amavis (2)
-  template: src=etc/amavis/conf.d/{{ item }}.j2
-            dest=/etc/amavis/conf.d/{{ item }}
+- name: Configure Amavis
+  template: src=etc/amavis/conf.d/50-user.j2
+            dest=/etc/amavis/conf.d/50-user
             owner=root group=root
             mode=0644
   register: r3
-  with_items:
-    - 15-content_filter_mode
-    - 50-user
   notify:
     - Restart Amavis
 
+- meta: flush_handlers
+
 - name: Start Amavis
   service: name=amavis state=started
-  when: not (r1.changed or r2.changed or r3.changed)

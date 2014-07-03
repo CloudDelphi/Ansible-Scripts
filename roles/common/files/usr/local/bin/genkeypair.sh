@@ -40,7 +40,7 @@ usage() {
 		Command:
 		    x509:       generate a self-signed X.509 server certificate
 		    csr:        generate a Certificate Signing Request
-		    dkim:       generate a DKIM private key
+		    dkim:       generate a private key (to use for DKIM signing)
 
 		Options:
 		    -t type:    key type (default: rsa)
@@ -169,7 +169,7 @@ if [ "$cmd" = x509 -o "$cmd" = csr ]; then
     [ "$cmd" = x509 ] && x509=-x509 || x509=
     openssl req -config "$config" -new $x509 ${hash:+-$hash} -key "$privkey" >"$pubkey" || exit 2
 elif [ "$cmd" = dkim ]; then
-    echo "Add the following TXT record to your DNS zone:" >&2
+    echo "Add the following TXT record to your DNS zone:"
     echo "${dns:-$(date +%Y%m%d)}._domainkey\tIN\tTXT ( "
     # See https://tools.ietf.org/html/rfc4871#section-3.6.1
     # t=s:      the "i=" domain in signature headers MUST NOT be a subdomain of "d="

@@ -1,0 +1,10 @@
+---
+- name: Restart ClamAV
+  service: name=clamav-daemon state=restarted
+
+- name: Publish the public key in the DNS zone
+  # See the output of 'sudo genkeypair.sh dkim --privkey=/var/lib/dkim/outgoing.fripost.org.key'
+  fail: "msg={{ dkim.stdout }}"
+
+- name: Restart Amavis
+  service: name=amavis state=restarted
