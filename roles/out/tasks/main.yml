@@ -28,12 +28,9 @@
   postmap: cmd=postmap src=/etc/postfix-{{ postfix_instance[inst].name }}/relay_clientcerts db=cdb
            owner=root group=root
            mode=0644
-  register: r2
-  notify:
-    - Restart Postfix
 
 - name: Start Postfix
   service: name=postfix state=started
-  when: not (r1.changed or r2.changed)
+  when: not r.changed
 
 - meta: flush_handlers

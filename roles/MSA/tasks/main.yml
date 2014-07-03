@@ -14,6 +14,7 @@
     - Restart Postfix
 
 - name: Copy the Regex to anonymize senders
+  # no need to reload upon change, as cleanup(8) is short-running
   copy: src=etc/postfix/anonymize_sender.pcre
         dest=/etc/postfix-{{ postfix_instance[inst].name }}/anonymize_sender.pcre
         owner=root group=root

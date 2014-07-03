@@ -9,7 +9,7 @@
             dest=/etc/postfix-{{ postfix_instance[inst].name }}/main.cf
             owner=root group=root
             mode=0644
-  register: r1
+  register: r
   notify:
     - Restart Postfix
 
@@ -30,6 +30,7 @@
     - transport_content_filter.cf
 
 - name: Copy recipient canonical
+  # no need to reload upon change, as cleanup(8) is short-running
   copy: src=etc/postfix/recipient_canonical.pcre
         dest=/etc/postfix-{{ postfix_instance[inst].name }}/recipient_canonical.pcre
         owner=root group=root
@@ -53,12 +54,9 @@
   postmap: cmd=postmap src=/etc/postfix-{{ postfix_instance[inst].name }}/relay_clientcerts db=cdb
            owner=root group=root
            mode=0644
-  register: r2
-  notify:
-    - Restart Postfix
 
 - name: Start Postfix
   service: name=postfix state=started
-  when: not (r1.changed or r2.changed)
+  when: not r.changed
 
 - meta: flush_handlers

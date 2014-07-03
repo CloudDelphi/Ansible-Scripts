@@ -104,12 +104,9 @@
            owner=root group=root
            mode=0644
   when: "'out' not in group_names"
-  register: r5
-  notify:
-    - Restart Postfix
 
 - name: Start Postfix
   service: name=postfix state=started
-  when: not (r1.changed or r2.changed or r3.changed or r5.changed)
+  when: not (r1.changed or r2.changed or r3.changed)
 
 - meta: flush_handlers
