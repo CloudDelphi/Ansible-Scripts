@@ -2,7 +2,7 @@
   # apt-listbugs complains due to #706909.
   apt: pkg=smartmontools
 
-- name: Configure smartmontools
+- name: Auto-enable smartmontools
   lineinfile: dest=/etc/default/smartmontools
               regexp='^(\s*#)?\s*start_smartd='
               line='start_smartd=yes'

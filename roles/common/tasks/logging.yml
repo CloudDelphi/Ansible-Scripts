@@ -71,6 +71,8 @@
   lineinfile: dest=/etc/logrotate.d/rsyslog
               regexp="^/var/log/mail\\.(log|info|sasl)$"
               state=absent
+              owner=root group=root
+              mode=0644
 
 - name: Minimal logging policy (2)
   copy: src=etc/logrotate.d/fripost-mail
