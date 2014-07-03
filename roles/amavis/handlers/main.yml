@@ -2,7 +2,7 @@
 - name: Restart ClamAV
   service: name=clamav-daemon state=restarted
 
-- name: Publish the public key in the DNS zone
+- name: Publish the public key to the DNS zone
   # See the output of 'sudo genkeypair.sh dkim --privkey=/var/lib/dkim/outgoing.fripost.org.key'
   fail: "msg={{ dkim.stdout }}"
 

@@ -43,7 +43,7 @@
   failed_when: dkim.rc > 1
   notify:
     - Restart Amavis
-    - Publish the public key in the DNS zone
+    - Publish the public key to the DNS zone
   tags:
     - genkey
 
