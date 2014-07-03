@@ -6,9 +6,8 @@
             dest=/etc/postfix-{{ postfix_instance[inst].name }}/main.cf
             owner=root group=root
             mode=0644
-  register: r
   notify:
-    - Restart Postfix
+    - Reload Postfix
 
 - name: Build the Postfix relay clientcerts map
   sudo: False
@@ -29,8 +28,7 @@
            owner=root group=root
            mode=0644
 
+- meta: flush_handlers
+
 - name: Start Postfix
   service: name=postfix state=started
-  when: not r.changed
-
-- meta: flush_handlers

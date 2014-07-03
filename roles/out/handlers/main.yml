@@ -2,8 +2,5 @@
 - name: Restart Postgrey
   service: name=postgrey state=restarted
 
-- name: Restart Postfix
-  service: name=postfix state=restarted
-
 - name: Reload Postfix
   service: name=postfix state=reloaded

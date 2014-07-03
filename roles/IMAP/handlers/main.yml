@@ -2,9 +2,6 @@
 - name: Restart Dovecot
   service: name=dovecot state=restarted
 
-- name: Restart Postfix
-  service: name=postfix state=restarted
-
 - name: Reload Postfix
   service: name=postfix state=reloaded
 

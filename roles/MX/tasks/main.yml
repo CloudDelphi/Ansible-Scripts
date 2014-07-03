@@ -30,9 +30,8 @@
             dest=/etc/postfix-{{ postfix_instance[inst].name }}/main.cf
             owner=root group=root
             mode=0644
-  register: r
   notify:
-    - Restart Postfix
+    - Reload Postfix
 
 - name: Create directory /etc/postfix-.../virtual
   file: path=/etc/postfix-{{ postfix_instance[inst].name }}/virtual
@@ -68,8 +67,7 @@
         owner=root group=root
         mode=0755
 
+- meta: flush_handlers
+
 - name: Start Postfix
   service: name=postfix state=started
-  when: not r.changed
-
-- meta: flush_handlers

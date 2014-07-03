@@ -32,17 +32,17 @@
         dest=/etc/postfix/master.cf
         owner=root group=root
         mode=0644
+  register: r3
   notify:
-    - Reload Postfix
+    - Restart Postfix
 
 - name: Configure Postfix (2)
   template: src=etc/postfix/main.cf.j2
             dest=/etc/postfix/main.cf
             owner=root group=root
             mode=0644
-  register: r3
   notify:
-    - Restart Postfix
+    - Reload Postfix
 
 - name: Create directory /etc/postfix/ssl
   file: path=/etc/postfix/ssl
