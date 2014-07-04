@@ -33,7 +33,7 @@ undef $enable_dkim_signing;
 $enable_dkim_signing = 1;
 # Sign *all* outgoing mails with *our* key (yes, amavis complains, but this is
 # safe as we force our domain with the 'd' tag).
-dkim_key(qr'^', '20140703', '/var/lib/dkim/20140703.'.$mydomain.'.key');
+dkim_key(qr/./, '20140703', '/var/lib/dkim/20140703.'.$mydomain.'.key');
 @dkim_signature_options_bysender_maps = (
     { '.' => { d => $mydomain
              , a => 'rsa-sha256'
@@ -63,10 +63,10 @@ $signed_header_fields{received} = 0;
 
 # A couple of common banned rules one might can refer by their name
 %banned_rules = (
-  'NO-MS-EXEC'=> new_RE( qr'^\.exe-ms$' ),
-  'PASSALL'   => new_RE( [qr'^' => 0] ),
-  'ALLOW_EXE' => new_RE( qr'.\.(vbs|pif|scr|bat)$'i, [qr'^\.exe$' => 0] ),
-  'ALLOW_VBS' => new_RE( [qr'.\.vbs$' => 0] ),
+  'NO-MS-EXEC'=> new_RE( qr/^\.exe-ms$/ ),
+  'PASSALL'   => new_RE( [qr/^/ => 0] ),
+  'ALLOW_EXE' => new_RE( qr/.\.(vbs|pif|scr|bat)$/i, [qr/^\.exe$/ => 0] ),
+  'ALLOW_VBS' => new_RE( [qr/.\.vbs$/ => 0] ),
 );
 
 
@@ -148,7 +148,7 @@ $policy_bank{'OUTGOING'} = {
   bypass_header_checks_maps => 1,
   bypass_spam_checks_maps   => 1,
 
-  # If found, notify postmaster, quarantine and discard
+  # If found, notify postmaster, quarantine, then discard
   quarantine_to_maps_by_ccat => { CC_VIRUS, [$virus_quarantine_to],     CC_CATCHALL, undef  },
   quarantine_method_by_ccat  => { CC_VIRUS, [$virus_quarantine_method], CC_CATCHALL, undef  },
   admin_maps_by_ccat         => { CC_VIRUS, ["postmaster\@$mydomain"],  CC_CATCHALL, undef  },
@@ -165,7 +165,7 @@ $policy_bank{'INCOMING'} = {
   message_size_limit_maps  => [],
 
   # Per-recipient Bayes Database
-  sa_username_maps => [ new_RE ( [ qr'^(.+@.+)$'i => '$1' ] )
+  sa_username_maps => [ new_RE ( [ qr/^(.+\@.+)$/ => '$1' ] )
                       , 'amavis' # catch-all
                       ],
 
