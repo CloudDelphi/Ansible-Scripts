@@ -59,8 +59,6 @@ recipient_canonical_maps    = pcre:$config_directory/recipient_canonical.pcre
 
 # Don't rewrite remote headers
 local_header_rewrite_clients =
-# Tolerate occasional high latency
-smtpd_timeout                = 1200s
 
 
 relay_clientcerts               = cdb:$config_directory/relay_clientcerts
