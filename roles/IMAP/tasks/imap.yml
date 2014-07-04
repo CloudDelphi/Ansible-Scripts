@@ -116,8 +116,22 @@
   notify:
     - Restart Dovecot
 
+- name: Tell Dovecot we have a remote IMAP proxy
+  # XXX: we should have an automatic lookup here
+  lineinfile: dest=/etc/dovecot/dovecot.conf
+              regexp='^(\s*#)?\s*login_trusted_networks\s*='
+              line='login_trusted_networks = 171.25.193.76/32'
+              state=present
+              create=yes
+              owner=root group=root
+              mode=0644
+  register: r3
+  when: "'IMAP' in group_names and 'webmail' not in group_names"
+  notify:
+    - Restart Dovecot
+
 - name: Start Dovecot
   service: name=dovecot state=started
-  when: not (r1.changed or r2.changed)
+  when: not (r1.changed or r2.changed or r3.changed)
 
 - meta: flush_handlers
