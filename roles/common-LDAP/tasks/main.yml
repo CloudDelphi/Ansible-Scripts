@@ -43,18 +43,6 @@
     # Not sure if required
     - Restart slapd
 
-- name: Create directory /etc/ldap/fripost
-  file: path=/etc/ldap/fripost
-        state=directory
-        owner=root group=root
-        mode=0755
-
-- name: Copy fripost database definition
-  template: src=etc/ldap/database.ldif.j2
-            dest=/etc/ldap/fripost/database.ldif
-            owner=root group=root
-            mode=0600
-
 - name: Copy fripost & amavis' schema
   copy: src=etc/ldap/schema/{{ item }}
         dest=/etc/ldap/schema/{{ item }}
@@ -69,17 +57,20 @@
   tags:
     - amavis
 
-- name: Load fripost's schema and configure the database
-  openldap: target=/etc/ldap/{{ item }} state=present
-  with_items:
-    - schema/fripost.ldif
-    - fripost/database.ldif
-
 - name: Load amavis' schema
   openldap: target=/etc/ldap/schema/amavis.schema state=present
             format=slapd.conf name=amavis
   tags:
     - ldap
+
+- name: Load Fripost' schema
+  openldap: target=/etc/ldap/schema/fripost.ldif state=present
+  tags:
+    - ldap
+
+- name: Configure the LDAP database
+  openldap: target=etc/ldap/database.ldif.j2 local=template
+            state=present
 
 - name: Start slapd
   service: name=slapd state=started

@@ -1,12 +1,7 @@
-- name: Copy the syncprov overlay configuration
-  copy: src=etc/ldap/syncprov.ldif
-        dest=/etc/ldap/fripost/syncprov.ldif
-        owner=root group=root
-        mode=0644
-
 - name: Load and configure the syncprov overlay
   openldap: module=syncprov state=present
             suffix=o=mailHosting,dc=fripost,dc=org
-            target=/etc/ldap/fripost/syncprov.ldif
+            target=etc/ldap/syncprov.ldif
+            local=file
 
 # TODO: authz constraint

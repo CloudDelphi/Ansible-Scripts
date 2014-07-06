@@ -351,6 +351,7 @@ def main():
             suffix      = dict( default=None ),
             format      = dict( default="ldif", choices=["ldif","slapd.conf"] ),
             name        = dict( default=None ),
+            local       = dict( default="no", choices=["no","file","template"] ),
         ),
         supports_check_mode=True
     )
@@ -428,7 +429,7 @@ def main():
 
     module.exit_json(changed=changed)
 
+# import module snippets
+from ansible.module_utils.basic import *
 
-# this is magic, see lib/ansible/module_common.py
-#<<INCLUDE_ANSIBLE_MODULE_COMMON>>
 main()
