@@ -32,6 +32,9 @@ config=
 pubkey=pubkey.pem
 privkey=privkey.pem
 dns=
+usage=
+chmod=
+chown=
 
 usage() {
     cat >&2 <<- EOF
@@ -51,6 +54,9 @@ usage() {
 		    --config:   configuration file
 		    --pubkey:   public key file (default: pubkey.pem)
 		    --privkey:  private key file (default: privkey.pem; created with og-rwx)
+		    --usage:    key usage (default: digitalSignature,keyEncipherment)
+		    --chmod:    chmod the private key
+		    --chown:    chown the private key
 
 		Return values:
 		    0  The key pair was successfully generated
@@ -83,7 +89,11 @@ while [ $# -gt 0 ]; do
         --privkey=?*) privkey="${1#--privkey=}";;
 
         --dns=?*) dns="${dns:+$dns,}${1#--dns=}";;
+        --usage=?*) usage="${usage:+$usage,}${1#--usage=}";;
         --config=?*) dns="${1#--config=}";;
+
+        --chmod=?*) chmod="${1#--chmod=}";;
+        --chown=?*) chown="${1#--chown=}";;
 
         --help) usage; exit;;
         *) echo "Unrecognized argument: $1" >&2; exit 2
@@ -155,13 +165,16 @@ if [ -z "$config" -a \( "$cmd" = x509 -o "$cmd" = csr \) ]; then
 		[ v3_req ]
 		subjectAltName      = email:admin@fripost.org, DNS:$cn$names
 		basicConstraints    = critical, CA:FALSE
+		# https://security.stackexchange.com/questions/24106/which-key-usages-are-required-by-each-key-exchange-method
+		keyUsage            = critical, ${usage:-digitalSignature,keyEncipherment}
 	EOF
 fi
 
 if [ "$force" != 0 ]; then
     # Ensure "$privkey" is created with umask 0077
     mv "$(mktemp)" "$privkey" || exit 2
-    chmod og-rwx "$privkey" || exit 2
+    chmod "${chmod:-og-rwx}" "$privkey" || exit 2
+    [ -z "$chown" ] || chown "$chown" "$privkey" || exit 2
     openssl $genkey -rand /dev/urandom $genkeyargs >"$privkey" || exit 2
 fi
 
