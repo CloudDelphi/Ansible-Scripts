@@ -62,6 +62,7 @@ sasl_ext_re = re.compile( r"""(?P<start>\sby\s+dn(?:\.exact)?)=
                               (?P<end>cn=peercred,cn=external,cn=auth)
                               (?P=quote)\s"""
                         , re.VERBOSE )
+multispaces = re.compile( r"\s+" )
 pwd_dict = {}
 
 def acl_sasl_ext(m):
@@ -160,6 +161,11 @@ def flexibleSearch(module, l, dn, entry):
 # directory with disclose/search/write access.
 def processEntry(module, l, dn, entry):
     changed = False
+
+    for x in indexedAttributes.intersection(entry.keys()):
+        # remove useless extra spaces in ACLs etc
+        entry[x] = map( partial(multispaces.sub, ' '), entry[x] )
+
     r = flexibleSearch( module, l, dn, entry )
     if r is None:
         changed = True
