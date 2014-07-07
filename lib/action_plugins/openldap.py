@@ -31,6 +31,9 @@ class ActionModule(object):
     def run(self, conn, tmp, module_name, module_args, inject, complex_args=None, **kwargs):
         ''' handler for file transfer operations '''
 
+        if self.runner.noop_on_check(inject):
+            return ReturnData(conn=conn, comm_ok=True, result=dict(skipped=True))
+
         # load up options
         options  = {}
         if complex_args:

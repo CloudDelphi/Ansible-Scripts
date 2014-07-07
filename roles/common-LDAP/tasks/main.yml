@@ -112,17 +112,25 @@
     - amavis
 
 - name: Load amavis' schema
-  openldap: target=/etc/ldap/schema/amavis.schema state=present
+  openldap: target=/etc/ldap/schema/amavis.schema
             format=slapd.conf name=amavis
   tags:
     - ldap
 
 - name: Load Fripost' schema
-  openldap: target=/etc/ldap/schema/fripost.ldif state=present
+  openldap: target=/etc/ldap/schema/fripost.ldif
   tags:
     - ldap
 
 # We assume a clean (=stock) cn=config
 - name: Configure the LDAP database
   openldap: target=etc/ldap/database.ldif.j2 local=template
-            state=present
+
+# On read-only replicates, you might have to temporarily switch back to
+# read-write, delete the SyncRepl, and delete the DN manually:
+#     sudo ldapdelete -Y EXTERNAL -H ldapi:// cn=admin,dc=fripost,dc=org
+- name: Remove cn=admin,dc=fripost,dc=org
+  openldap: name="cn=admin,dc=fripost,dc=org" delete=entry
+
+- name: Remove the rootDN under the 'config' database
+  openldap: name="olcDatabase={0}config,cn=config" delete=olcRootDN,olcRootPW

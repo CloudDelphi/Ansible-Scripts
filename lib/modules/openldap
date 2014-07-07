@@ -265,31 +265,58 @@ def slapd_to_ldif(src, name):
 def main():
     module = AnsibleModule(
         argument_spec   = dict(
-            state       = dict( default="present", choices=["absent","present"]),
             target      = dict( default=None ),
             module      = dict( default=None ),
             suffix      = dict( default=None ),
             format      = dict( default="ldif", choices=["ldif","slapd.conf"] ),
             name        = dict( default=None ),
             local       = dict( default="no", choices=["no","file","template"] ),
+            delete      = dict( default=None ),
         ),
         supports_check_mode=True
     )
 
     params      = module.params
-    state       = params['state']
     target      = params['target']
     mod         = params['module']
     suffix      = params['suffix']
     form        = params['format']
     name        = params['name']
+    delete      = params['delete']
 
     changed = False
     try:
-        if state == "absent":
-            module.fail_json(msg="OpenLDAP's ansible: unsupported feature")
+        if delete is not None:
+            if name is None:
+                module.fail_json(msg="missing name")
+            l = ldap.initialize( 'ldapi://' )
+            l.sasl_interactive_bind_s('', ldap.sasl.external())
+            if delete == 'entry':
+                filterStr = '(objectClass=*)'
+            else:
+                filterStr = [ '(%s=*)' % x for x in delete.split(',') ]
+                if len(filterStr) > 1:
+                    filterStr = '(|' + ''.join(filterStr) + ')'
+                else:
+                    filterStr = filterStr[0]
 
-        elif state == "present":
+            try:
+                r = l.search_s( name, ldap.SCOPE_BASE, filterStr, attrsonly=1 )
+            except ldap.LDAPError, ldap.NO_SUCH_OBJECT:
+                r = None
+
+            if r:
+                changed = True
+                if module.check_mode:
+                    module.exit_json(changed=changed)
+                if delete == 'entry':
+                    l.delete_s(r[0][0])
+                else:
+                    attrlist = list(set(r[0][1].keys()) & set(delete.split(',')))
+                    l.modify_s(r[0][0], [ (ldap.MOD_DELETE, x, None) for x in attrlist ])
+            l.unbind_s()
+
+        else:
             if form == 'slapd.conf':
                 if name is None:
                     module.fail_json(msg="missing name")
