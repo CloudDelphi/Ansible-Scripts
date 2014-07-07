@@ -160,7 +160,6 @@ if [ -z "$config" -a \( "$cmd" = x509 -o "$cmd" = csr \) ]; then
 		policy             = policy_anything
 		req_extensions     = v3_req
 		x509_extensions    = v3_req
-		default_days       = 3650
 
 		[ req_distinguished_name ]
 		organizationName       = Fripost
@@ -195,6 +194,6 @@ if [ "$cmd" = x509 -o "$cmd" = csr ]; then
         exit 1
     else
         [ "$cmd" = x509 ] && x509=-x509 || x509=
-        openssl req -config "$config" -new $x509 ${hash:+-$hash} -key "$privkey" >"$pubkey" || exit 2
+        openssl req -config "$config" -new $x509 ${hash:+-$hash} -days 3650 -key "$privkey" >"$pubkey" || exit 2
     fi
 fi
