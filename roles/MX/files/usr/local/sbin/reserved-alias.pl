@@ -67,7 +67,7 @@ if (defined $domain) {
 
     my @attrs = ( 'fripostPostmaster', 'fripostOwner' );
     my $mesg = $ldap->search( base => 'fvd='.escape_dn_value($domain).','
-                                     .'ou=virtual,o=mailHosting,dc=fripost,dc=org'
+                                     .'ou=virtual,dc=fripost,dc=org'
                             , scope => 'base'
                             , deref => 'never'
                             , filter => '(&(objectClass=FripostVirtualDomain)'

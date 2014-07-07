@@ -38,6 +38,7 @@ indexedAttributes = frozenset([
     'olcOverlay',
     'olcLimits',
     'olcAuthzRegexp',
+    'olcDbConfig',
 ])
 
 
@@ -89,34 +90,6 @@ class LDIFCallback(LDIFParser):
         b = self.callback(dn,entry)
         if b is not None:
             self.changed |= b
-
-
-# Run slapcat(8) on the given suffix or DB number (suffix takes
-# precedence) with an optional filter.  (This is useful for offline
-# searches, or one needs to bypass ACLs.) Returns an open pipe to the
-# subprocess.
-def slapcat(filter=None, suffix=None, idx=0):
-    cmd = [ os.path.join(os.sep, 'usr', 'sbin', 'slapcat') ]
-
-    if filter is not None:
-        cmd.extend([ '-a', filter ])
-
-    if suffix is not None:
-        if type(suffix) is not str:
-            suffix = dn2str(suffix)
-        cmd.extend([ '-b', suffix ])
-    else:
-        cmd.append( '-n%d' % idx )
-
-    return subprocess.Popen( cmd, stdout=subprocess.PIPE
-                           , stderr=open(os.devnull, 'wb') )
-
-
-# Start / stop / whatever a service.
-def service(name, state):
-    cmd = [ os.path.join(os.sep, 'usr', 'sbin', 'service'), name, state ]
-    subprocess.check_call( cmd, stdout=open(os.devnull, 'wb')
-                         , stderr=subprocess.STDOUT )
 
 
 # Check if the given dn is already present in the directory.
@@ -254,58 +227,6 @@ def getDN_DB(module, l, a, v, attrlist=['']):
                      , attrlist = attrlist )
 
 
-# Clear the given DB directory and delete the associated database.  Fail
-# if non empty, unless all existing DNS are in skipdns.
-def wontRemove(module, skipdns, d, _):
-    if d not in skipdns:
-        module.fail_json(msg="won't remove '%s'" % d)
-def removeDB(module, dbdir, skipdn=None):
-    changed = False
-    if not os.path.exists(dbdir):
-        return False
-
-    l = ldap.initialize( 'ldapi://' )
-    l.sasl_interactive_bind_s('', ldap.sasl.external())
-    r = getDN_DB( module, l, 'olcDbDirectory', dbdir, attrlist=['olcSuffix'] )
-    l.unbind_s()
-
-    if len(r) > 1:
-        module.fail_json(msg="Multiple results found! This is a bug. Please report.")
-    elif r:
-        dn,entry = r.pop()
-        suffix = entry['olcSuffix'][0]
-
-        skipdns = [suffix]
-        if skipdn is not None:
-            skipdns.extend([ "%s,%s" % (s,suffix) for s in skipdn ])
-        # here we need to use slapcat not search_s, because we may
-        # not have read access on the database (even though we're
-        # root!).
-        p = slapcat( suffix=suffix )
-        parser = LDIFCallback( module, p.stdout
-                             , partial(wontRemove,module,skipdns) )
-        parser.parse()
-
-        changed = True
-        if module.check_mode:
-            module.exit_json(changed=changed, msg="remove dir %s" % dbdir)
-
-        # slapd doesn't support database deletion, so we need to turn it
-        # off and remove it from slapd.d manually.
-        service( 'slapd', 'stop' )
-        path = [ os.sep, 'etc', 'ldap', 'slapd.d' ]
-        ldif = explode_dn(dn)[::-1]
-        ldif[-1] += ".ldif"
-        path.extend( ldif )
-        os.unlink( os.path.join(*path) )
-
-        # delete all children in path, but not the path directory itself.
-        for file in os.listdir(dbdir):
-            os.unlink( os.path.join(dbdir, file) )
-        service( 'slapd', 'start' )
-    return changed
-
-
 # Convert a *.schema file into *.ldif format. The algorithm can be found
 # in /etc/ldap/schema/openldap.ldif .
 def slapd_to_ldif(src, name):
@@ -344,9 +265,7 @@ def slapd_to_ldif(src, name):
 def main():
     module = AnsibleModule(
         argument_spec   = dict(
-            dbdirectory = dict( default=None ),
-            ignoredn    = dict( default=None ),
-            state       = dict( default="present", choices=["absent", "present"]),
+            state       = dict( default="present", choices=["absent","present"]),
             target      = dict( default=None ),
             module      = dict( default=None ),
             suffix      = dict( default=None ),
@@ -359,25 +278,16 @@ def main():
 
     params      = module.params
     state       = params['state']
-    dbdirectory = params['dbdirectory']
-    ignoredn    = params['ignoredn']
     target      = params['target']
     mod         = params['module']
     suffix      = params['suffix']
     form        = params['format']
     name        = params['name']
 
-    if ignoredn is not None:
-        ignoredn = ignoredn.split(':')
-
     changed = False
     try:
         if state == "absent":
-            if dbdirectory is not None:
-                changed = removeDB(module,dbdirectory,skipdn=ignoredn)
-            # TODO: might be useful to be able remove DNs
-            else:
-                module.fail_json(msg="missing dbdirectory")
+            module.fail_json(msg="OpenLDAP's ansible: unsupported feature")
 
         elif state == "present":
             if form == 'slapd.conf':

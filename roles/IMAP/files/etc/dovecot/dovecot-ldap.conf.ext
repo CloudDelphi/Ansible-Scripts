@@ -80,14 +80,14 @@ auth_bind = yes
 # For example:
 #   auth_bind_userdn = cn=%u,ou=people,o=org
 #
-auth_bind_userdn = fvl=%n,fvd=%d,ou=virtual,o=mailHosting,dc=fripost,dc=org
+auth_bind_userdn = fvl=%n,fvd=%d,ou=virtual,dc=fripost,dc=org
 
 # LDAP protocol version to use. Likely 2 or 3.
 ldap_version = 3
 
 # LDAP base. %variables can be used here.
 # For example: dc=mail, dc=example, dc=org
-base = fvl=%n,fvd=%d,ou=virtual,o=mailHosting,dc=fripost,dc=org
+base = fvl=%n,fvd=%d,ou=virtual,dc=fripost,dc=org
 
 # Dereference: never, searching, finding, always
 deref = never

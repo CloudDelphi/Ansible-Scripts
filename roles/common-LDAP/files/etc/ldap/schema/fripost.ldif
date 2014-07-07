@@ -20,17 +20,17 @@
 #
 # It will load the schema. To perform modifications, the easiest way is to
 #
-#  * Save the database:      slapcat -b 'o=mailHosting,dc=fripost,dc=dev' > /tmp/db.ldif
+#  * Save the database:      slapcat -b 'dc=fripost,dc=org' > /tmp/db.ldif
 #  * Save the configuration: slapcat -n0 > /tmp/config.ldif
 #  * Backup slap.d:          cp -a /etc/ldap/slapd.d/ /tmp/slap.d_back
 #  * Edit the schema in /tmp/config.ldif
 #  * Load the new config:    mkdir -m 0700 /tmp/slapd.d_new && slapadd -F /tmp/slapd.d_new -n0 -l /tmp/config.ldif
 #  * Stop slapd:             /etc/init.d/slapd stop
 #  * Load the new config:    rm -rf /etc/ldap/slapd.d/ && mv /tmp/slapd.d_new /etc/ldap/slapd.d && chown -R openldap:openldap /etc/ldap/slapd.d
-#  * Create indexes:         sudo -u openldap slapindex -b 'o=mailHosting,dc=fripost,dc=dev'
+#  * Create indexes:         sudo -u openldap slapindex -b 'dc=fripost,dc=org'
 #  * Start slapd:            /etc/init.d/slapd start
 #    If it fails, remove the existing database and see what's wrong
-#                 rm -rf /var/lib/ldap/dev/* && sudo -u openldap slapadd -b 'o=mailHosting,dc=fripost,dc=org' -l /tmp/db.ldif
+#                 rm -rf /var/lib/ldap/dev/* && sudo -u openldap slapadd -b 'dc=fripost,dc=org' -l /tmp/db.ldif
 #
 #
 # /!\ WARN: All modification to the ACL should be reflected to the test

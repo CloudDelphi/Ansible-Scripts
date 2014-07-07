@@ -79,7 +79,7 @@ $default_ldap = {
     deref         => 'never',
     timeout       => 5,
     scope         => 'one',
-    base          => 'fvd=%d,ou=virtual,o=mailHosting,dc=fripost,dc=org',
+    base          => 'fvd=%d,ou=virtual,dc=fripost,dc=org',
     # XXX: ideally we would use %u in the base and the query_filter, but
     # it's not supported as of amavis 2.7 (see the 'lookup_ldap'
     # subroutine in /usr/sbin/amavisd-new)

@@ -1,6 +1,6 @@
 server_host      = ldapi://%2Fprivate%2Fldapi/
 version          = 3
-search_base      = fvd=%s,ou=virtual,o=mailHosting,dc=fripost,dc=org
+search_base      = fvd=%s,ou=virtual,dc=fripost,dc=org
 scope            = base
 bind             = none
 query_filter     = (&(objectClass=FripostVirtualDomain)(fvd=%s))

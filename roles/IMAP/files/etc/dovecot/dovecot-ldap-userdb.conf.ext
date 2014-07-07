@@ -53,7 +53,7 @@ ldap_version = 3
 
 # LDAP base. %variables can be used here.
 # For example: dc=mail, dc=example, dc=org
-base = fvl=%n,fvd=%d,ou=virtual,o=mailHosting,dc=fripost,dc=org
+base = fvl=%n,fvd=%d,ou=virtual,dc=fripost,dc=org
 
 # Dereference: never, searching, finding, always
 deref = never

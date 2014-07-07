@@ -1,6 +1,6 @@
 - name: Load and configure the syncprov overlay
   openldap: module=syncprov state=present
-            suffix=o=mailHosting,dc=fripost,dc=org
+            suffix=dc=fripost,dc=org
             target=etc/ldap/syncprov.ldif
             local=file
 
