@@ -61,6 +61,8 @@
   register: r4
   changed_when: r4.rc == 0
   failed_when: r4.rc > 1
+  notify:
+    - Restart Postfix
   tags:
     - genkey
 
@@ -113,6 +115,6 @@
 
 - name: Start Postfix
   service: name=postfix state=started
-  when: not (r1.changed or r2.changed or r3.changed)
+  when: not (r1.changed or r2.changed or r3.changed or r4.changed)
 
 - meta: flush_handlers
