@@ -35,12 +35,16 @@
         state=directory
         owner=root group=root
         mode=0755
+  when: "'out' in group_names"
+  tags:
+    - genkey
 
 - name: Generate a private key for DKIM signing
   command: genkeypair.sh dkim --privkey=/var/lib/dkim/20140703.fripost.org.key -t rsa -b 1024
   register: dkim
   changed_when: dkim.rc == 0
   failed_when: dkim.rc > 1
+  when: "'out' in group_names"
   notify:
     - Restart Amavis
     - Publish the public key to the DNS zone
