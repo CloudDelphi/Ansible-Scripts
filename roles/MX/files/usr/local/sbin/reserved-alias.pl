@@ -41,7 +41,7 @@ my $sender = shift;
 
 # The original recipient
 my $orig = shift;
-$orig =~ /^([^@]+)\@(.+)$/
+$orig =~ /^(.+)\@([^@]+)$/
     or warn "Warning: Non fully qualified: $orig";
 my ($local,$domain) = ($1,$2);
 
@@ -50,12 +50,7 @@ my @recipients = grep { $_ and $orig ne $_ }
                  # add localparts to domain
                  map { my $x = $_;
                        if ($x =~ /^\@/) {
-                         if ($local) {
-                            $x = $local.$x;
-                         }
-                         else {
-                            undef $x;
-                         }
+                         $x = (defined $local and $local ne '') ? $local.$x : undef;
                        }
                        $x
                      }
@@ -97,7 +92,7 @@ if (defined $domain) {
                 my $dn2 = ldap_explode_dn($dn, casefold => 'lower');
                 my $l = $dn2->[0]->{fvl};
                 my $d = $dn2->[1]->{fvd};
-                if ($l and $d) {
+                if ($l ne '' and $d ne '') {
                     push @recipients, $l.'@'.$d;
                 }
                 else {
