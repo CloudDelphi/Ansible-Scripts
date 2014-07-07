@@ -82,7 +82,7 @@
   command: genkeypair.sh x509
                          --pubkey=/etc/nginx/ssl/mail.fripost.org.pem
                          --privkey=/etc/nginx/ssl/mail.fripost.org.key
-                         --dns=mail.fripost.org
+                         --ou=WWW --cn=mail.fripost.org --dns=mail.fripost.org
                          -t rsa -b 4096 -h sha512
   register: r1
   changed_when: r1.rc == 0

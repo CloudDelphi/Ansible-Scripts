@@ -27,11 +27,13 @@ type=rsa
 bits=
 hash=
 
-force=
+force=0
 config=
 pubkey=pubkey.pem
 privkey=privkey.pem
 dns=
+ou=
+cn=
 usage=
 chmod=
 chown=
@@ -49,8 +51,12 @@ usage() {
 		    -t type:    key type (default: rsa)
 		    -b bits:    key length or EC curve (default: 2048 for RSA, 1024 for DSA, secp224r1 for ECDSA)
 		    -h digest:  digest algorithm
-		    --dns CN:   common name (default: \$(hostname --fqdn); can be repeated
-		    -f force:   overwrite key files if they exist
+		    --ou:       organizational Unit Name; can be repeated
+		    --cn:       common Name (default: \$(hostname --fqdn)
+		    --dns:      hostname for AltName; can be repeated
+		    -f:         force; can be repeated (0: don't overwrite, default;
+		                                        1: reuse private key if it exists;
+		                                        2: overwrite both keys if they exist)
 		    --config:   configuration file
 		    --pubkey:   public key file (default: pubkey.pem)
 		    --privkey:  private key file (default: privkey.pem; created with og-rwx)
@@ -65,6 +71,18 @@ usage() {
 	EOF
 }
 
+dkiminfo() {
+    echo "Add the following TXT record to your DNS zone:"
+    echo "${cn:-$(date +%Y%m%d)}._domainkey\tIN\tTXT ( "
+    # See https://tools.ietf.org/html/rfc4871#section-3.6.1
+    # t=s:      the "i=" domain in signature headers MUST NOT be a subdomain of "d="
+    # s=email:  limit DKIM signing to email
+    openssl pkey -pubout <"$privkey" | sed '/^--.*--$/d' \
+    | { echo -n "v=DKIM1; k=$type; t=s; s=email; p="; tr -d '\n'; } \
+    | fold -w 250 \
+    | { sed 's/.*/\t"&"/'; echo ' )'; }
+}
+
 [ $# -gt 0 ] || { usage; exit 2; }
 cmd="$1"; shift
 case "$cmd" in
@@ -72,6 +90,7 @@ case "$cmd" in
     *) echo "Unrecognized command: $cmd" >&2; exit 2
 esac
 
+nou=1
 while [ $# -gt 0 ]; do
     case "$1" in
         -t) shift; type="$1";;
@@ -83,12 +102,15 @@ while [ $# -gt 0 ]; do
         -h) shift; hash="$1";;
         -h*) hash="${1#-h}";;
 
+        --dns=?*) dns="${dns:+$dns, }DNS:${1#--dns=}";;
+        --cn=?*) cn="${1#--cn=}";;
+        --ou=?*) ou="${ou:+$ou\n}$nou.organizationalUnitName = ${1#--ou=}"
+                 nou=$(( 1 + $nou ));;
 
-        -f) force=1;;
+        -f) force=$(( 1 + $force ));;
         --pubkey=?*) pubkey="${1#--pubkey=}";;
         --privkey=?*) privkey="${1#--privkey=}";;
 
-        --dns=?*) dns="${dns:+$dns,}${1#--dns=}";;
         --usage=?*) usage="${usage:+$usage,}${1#--usage=}";;
         --config=?*) dns="${1#--config=}";;
 
@@ -116,80 +138,63 @@ case "$type" in
     *) echo "Unrecognized key type: $type" >&2; exit 2
 esac
 
-cn=
 if [ "$cmd" = x509 -o "$cmd" = csr ]; then
     case "$hash" in
         md5|rmd160|sha1|sha224|sha256|sha384|sha512|'') ;;
         *) echo "Invalid digest algorithm: $hash" >&2; exit 2;
     esac
 
-    [ "$dns" ] || dns="$(hostname --fqdn)"
-    cn="${dns%%,*}"
+    [ "$cn" ] || cn="$(hostname --fqdn)"
     [ ${#cn} -le 64 ] || { echo "CommonName too long: $cn" >&2; exit 2; }
-fi
-
-[ -s "$privkey" -a -z "$force" ] && force=0
-if [ "$cmd" != dkim ]; then
-    for file in "$pubkey" "$privkey"; do
-        [ "$force" != 1 -a -s "$file" ] || continue
-        echo "Error: File exists: $file" >&2
-        exit 1
-    done
 fi
 
 if [ -z "$config" -a \( "$cmd" = x509 -o "$cmd" = csr \) ]; then
     config=$(mktemp) || exit 2
     trap 'rm -f "$config"' EXIT
 
-    names=
-    until [ "$dns" = "${dns#*,}" ]; do
-        names=", DNS:${dns##*,}$names"
-        dns="${dns%,*}"
-    done
-
     # see /usr/share/ssl-cert/ssleay.cnf
     cat >"$config" <<- EOF
 		[ req ]
-		distinguished_name  = req_distinguished_name
-		prompt              = no
-		policy              = policy_anything
-		req_extensions      = v3_req
-		x509_extensions     = v3_req
-		default_days        = 3650
+		distinguished_name = req_distinguished_name
+		prompt             = no
+		policy             = policy_anything
+		req_extensions     = v3_req
+		x509_extensions    = v3_req
+		default_days       = 3650
 
 		[ req_distinguished_name ]
-		countryName         = SE
-		organizationName    = Fripost
-		commonName          = $cn
+		organizationName       = Fripost
+		organizationalUnitName = SSLcerts
+		$(echo "$ou")
+		commonName             = $cn
 
 		[ v3_req ]
-		subjectAltName      = email:admin@fripost.org, DNS:$cn$names
-		basicConstraints    = critical, CA:FALSE
+		subjectAltName   = email:admin@fripost.org${dns:+, $dns}
+		basicConstraints = critical, CA:FALSE
 		# https://security.stackexchange.com/questions/24106/which-key-usages-are-required-by-each-key-exchange-method
-		keyUsage            = critical, ${usage:-digitalSignature,keyEncipherment}
+		keyUsage         = critical, ${usage:-digitalSignature, keyEncipherment}
 	EOF
 fi
 
-if [ "$force" != 0 ]; then
+if [ -s "$privkey" -a $force -eq 0 ]; then
+    echo "Error: private key exists: $privkey" >&2
+    [ "$cmd" = dkim ] && dkiminfo
+    exit 1
+elif [ ! -s "$privkey" -o $force -ge 2 ]; then
     # Ensure "$privkey" is created with umask 0077
-    mv "$(mktemp)" "$privkey" || exit 2
+    mv -f "$(mktemp)" "$privkey" || exit 2
     chmod "${chmod:-og-rwx}" "$privkey" || exit 2
     [ -z "$chown" ] || chown "$chown" "$privkey" || exit 2
     openssl $genkey -rand /dev/urandom $genkeyargs >"$privkey" || exit 2
+    [ "$cmd" = dkim ] && { dkiminfo; exit; }
 fi
 
 if [ "$cmd" = x509 -o "$cmd" = csr ]; then
-    [ "$cmd" = x509 ] && x509=-x509 || x509=
-    openssl req -config "$config" -new $x509 ${hash:+-$hash} -key "$privkey" >"$pubkey" || exit 2
-elif [ "$cmd" = dkim ]; then
-    echo "Add the following TXT record to your DNS zone:"
-    echo "${dns:-$(date +%Y%m%d)}._domainkey\tIN\tTXT ( "
-    # See https://tools.ietf.org/html/rfc4871#section-3.6.1
-    # t=s:      the "i=" domain in signature headers MUST NOT be a subdomain of "d="
-    # s=email:  limit DKIM signing to email
-    openssl pkey -pubout <"$privkey" | sed '/^--.*--$/d' \
-    | { echo -n "v=DKIM1; k=$type; t=s; s=email; p="; tr -d '\n'; } \
-    | fold -w 250 \
-    | { sed 's/.*/\t"&"/'; echo ' )'; }
-    [ "$force" != 0 ] || exit 1
+    if [ -s "$pubkey" -a $force -eq 0 ]; then
+        echo "Error: public key exists: $pubkey" >&2
+        exit 1
+    else
+        [ "$cmd" = x509 ] && x509=-x509 || x509=
+        openssl req -config "$config" -new $x509 ${hash:+-$hash} -key "$privkey" >"$pubkey" || exit 2
+    fi
 fi
