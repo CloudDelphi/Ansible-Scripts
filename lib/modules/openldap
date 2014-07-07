@@ -37,6 +37,7 @@ indexedAttributes = frozenset([
     'olcSyncrepl',
     'olcOverlay',
     'olcLimits',
+    'olcAuthzRegexp',
 ])
 
 

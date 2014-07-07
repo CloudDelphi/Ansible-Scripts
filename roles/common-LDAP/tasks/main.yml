@@ -43,6 +43,61 @@
     # Not sure if required
     - Restart slapd
 
+- name: Create directory /etc/ldap/ssl
+  file: path=/etc/ldap/ssl
+        state=directory
+        owner=root group=root
+        mode=0755
+  tags:
+    - genkey
+
+- name: Generate a private key and a X.509 certificate for slapd
+  # XXX: GnuTLS (libgnutls26 2.12.20-8+deb7u2, found in Wheezy) doesn't
+  # support ECDSA; and slapd doesn't seem to support DHE (!?) so
+  # we're stuck with "plain RSA" Key-Exchange. Also, there is a bug with
+  # SHA-512.
+  command: genkeypair.sh x509
+                         --pubkey=/etc/ldap/ssl/{{ item.name }}.pem
+                         --privkey=/etc/ldap/ssl/{{ item.name }}.key
+                         --ou=LDAP {{ item.ou }} --cn={{ item.name }}
+                         --usage=digitalSignature,keyEncipherment
+                         -t rsa -b 4096 -h sha256
+                         --chown="root:openldap" --chmod=0640
+  register: r3
+  changed_when: r3.rc == 0
+  failed_when: r3.rc > 1
+  with_items:
+    - { group: 'LDAP-provider', name: ldap.fripost.org, ou:               }
+    - { group: 'MX',            name: mx,               ou: --ou=SyncRepl }
+    - { group: 'lists',         name: lists,            ou: --ou=SyncRepl }
+  when: "item.group in group_names"
+  tags:
+    - genkey
+
+- name: Fetch slapd's X.509 certificate
+  # Ensure we don't fetch private data
+  sudo: False
+  fetch: src=/etc/ldap/ssl/{{ item.name }}.pem
+         dest=certs/ldap/
+         fail_on_missing=yes
+         flat=yes
+  with_items:
+    - { group: 'LDAP-provider', name: ldap.fripost.org }
+    - { group: 'MX',            name: mx               }
+    - { group: 'lists',         name: lists            }
+  when: "item.group in group_names"
+  tags:
+    - genkey
+
+- name: Copy the SyncProv's server certificate
+  copy: src=certs/ldap/ldap.fripost.org.pem
+        dest=/etc/ldap/ssl/ldap.fripost.org.pem
+        owner=root group=root
+        mode=0644
+  tags:
+    - genkey
+  when: "'LDAP-provider' not in group_names"
+
 - name: Copy fripost & amavis' schema
   copy: src=etc/ldap/schema/{{ item }}
         dest=/etc/ldap/schema/{{ item }}
@@ -74,6 +129,6 @@
 
 - name: Start slapd
   service: name=slapd state=started
-  when: not (r1.changed or r2.changed)
+  when: not (r1.changed or r2.changed or r3.changed)
 
 - meta: flush_handlers

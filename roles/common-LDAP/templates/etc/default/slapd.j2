@@ -20,11 +20,11 @@ SLAPD_PIDFILE=
 # service requests on TCP-port 636 (ldaps) and requests via unix
 # sockets.
 SLAPD_SERVICES="ldapi:///"
-{% for i in postfix_instance.keys() | intersect(group_names) | list %}
+{% for i in ['IMAP','MX','lists'] | intersect(group_names) | sort %}
 SLAPD_SERVICES="$SLAPD_SERVICES ldapi://%2Fvar%2Fspool%2Fpostfix-{{ postfix_instance[i].name }}%2Fprivate%2Fldapi/"
 {% endfor %}
 {% if 'LDAP-provider' in group_names %}
-SLAPD_SERVICES="$SLAPD_SERVICES ldap://172.16.0.1:389/"
+SLAPD_SERVICES="$SLAPD_SERVICES ldaps:///"
 {% endif %}
 
 # If SLAPD_NO_START is set, the init script will not start or restart

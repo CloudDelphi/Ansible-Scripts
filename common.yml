@@ -21,7 +21,7 @@
 
 - name: Common LDAP tasks
   hosts: MDA:MSA:lists:LDAP-provider:MX
-  gather_facts: False
+  gather_facts: True
   tags: slapd,ldap
   roles:
     - common-LDAP

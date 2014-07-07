@@ -1,5 +1,5 @@
 # Fripost's LDAP database definition
-# Copyright (c) 2013 Guilhem Moulin <guilhem@fripost.org>
+# Copyright (c) 2013-2014 Guilhem Moulin <guilhem@fripost.org>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,24 +14,66 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# There are a couple of XXX in this file, due to Postfix not supporting
+# SASL binds in Wheezy.
+
+dn: cn=config
+objectClass: olcGlobal
+cn: config
+olcArgsFile: /var/run/slapd/slapd.args
+olcPidFile: /var/run/slapd/slapd.pid
+olcLogLevel: none
+olcToolThreads: 1
+{% if ansible_processor_vcpus > 4 %}
+olcThreads: {{ 2 * ansible_processor_vcpus }}
+{% else %}
+olcThreads: 8
+{% endif %}
+{% if 'LDAP-provider' in group_names %}
+olcTLSCertificateFile: /etc/ldap/ssl/ldap.fripost.org.pem
+olcTLSCertificateKeyFile: /etc/ldap/ssl/ldap.fripost.org.key
+olcTLSCACertificateFile: /etc/ldap/ssl/clients.pem
+olcTLSVerifyClient: allow
+olcAuthzRegexp: "^cn=([^,]+),ou=SyncRepl,ou=LDAP,ou=SSLcerts,o=Fripost$"
+                "cn=$1,ou=replicates,o=mailHosting,dc=fripost,dc=org"
+olcSaslSecProps: minssf=128,noanonymous,noplain,nodict
+# XXX We would like to say 'PFS' here, but Wheezy'z GnuTLS (libgnutls26
+# 2.12.20-8+deb7u2) is too old :-( (Also, DHE/ECDHE are not supported.)
+olcTLSCipherSuite: SECURE128:!CIPHER-ALL:+AES-128-CBC:+AES-256-CBC:!MD5
+{% endif %}
+olcLocalSSF: 128
+# /!\ This is not portable! But we only use glibc's crypt(3), which
+# supports (salted, streched) SHA512
+olcPasswordHash: {CRYPT}
+olcPasswordCryptSaltFormat: $6$%s
+
+
 dn: olcDatabase=hdb,cn=config
 objectClass: olcDatabaseConfig
 objectClass: olcHdbConfig
 olcDbDirectory: /var/lib/ldap/fripost
 olcSuffix: o=mailHosting,dc=fripost,dc=org
+{% if 'LDAP-provider' not in group_names and ('MX' in group_names or 'lists' in group_names) %}
+olcReadOnly: TRUE
+{% endif %}
+{% if 'LDAP-provider' in group_names %}
 olcLastMod: TRUE
 olcDbCheckpoint: 512 15
-# Require LDAPv3 protocol and authentication prior to directory
-# operations.
-olcRequires: LDAPv3
-# TODO: how 'olcAddContentAcl' affects the test suite?
-olcAddContentAcl: TRUE
+{% else %}
+olcLastMod: FALSE
+{% endif %}
 # The root user has all rights on the whole database (when SASL-binding
 # on a UNIX socket).
 olcRootDN: gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth
+# Ensure that all DIT access is made according to the LDAPv3 protocol,
+# and must use 1/ authentication, and 2/ SASL or TLS.  (Local clients
+# should use ldapi:// and SASL/EXERNAL, while remote clients should use
+# TLS.)
+# XXX: olcRequires: none LDAPv3 authc strong
+olcRequires: none LDAPv3 authc
+olcSecurity: simple_bind=128 ssf=128 update_ssf=128
 #
 #
-########################################################################
 ########################################################################
 # Performance considerations
 #
@@ -40,14 +82,23 @@ olcRootDN: gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth
 #  * Reindex        su openldap -c "slapindex -b 'o=mailHosting,dc=fripost,dc=org'"
 #  * Restart slapd  sudo service slapd start
 #
+olcDbIndex: objectClass eq
+# Let us make Postfix's life easier.
+{% if 'MX' in group_names or 'MDA' in group_names %}
+olcDbIndex: fripostIsStatusActive,fvd,fvl eq
+{% endif %}
+{% if 'MX' in group_names %}
+olcDbIndex: fripostOptionalMaildrop pres
+{% endif %}
+{% if ('LDAP-provider' not in group_names and
+       ('MX' in group_names or 'lists' in group_names)) or
+       'LDAP-provider'     in group_names and
+       (groups.MX    | difference([inventory_hostname]) > 1 or
+        groups.lists | difference([inventory_hostname]) > 1) %}
+# SyncProv/SyncRepl specific indexing.
+olcDbIndex: entryCSN,entryUUID eq
+{% endif%}
 #
-# On single- and dual-core systems, change the maximum number of threads
-# to 8. (The default, 16, is fine for 4- and 8-core systems.)
-#
-#     dn: cn=config
-#     changetype: modify
-#     add: olcThreads
-#     olcThreads: 8
 #
 # References
 # - https://wiki.zimbra.com/wiki/OpenLDAP_Performance_Tuning_5.0
@@ -56,68 +107,88 @@ olcRootDN: gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth
 # - http://www.openldap.org/faq/data/cache/136.html
 # - http://www.zytrax.com/books/ldap/apa/indeces.html
 #
-olcDbIndex: objectClass eq
-# Let us make Postfix's life easier. TODO: only if MX, lists.f.o, MDA, etc.
-olcDbIndex: fripostIsStatusActive,fvd,fvl eq
-olcDbIndex: fripostOptionalMaildrop pres
-# SyncProv/SyncRepl specific indexing.
-olcDbIndex: entryCSN,entryUUID eq
 #
-#
-########################################################################
 ########################################################################
 # Sync Replication
-# TODO: replace the simple bind by Kerberos/GSSAPI
 #
 # References:
 # - http://www.openldap.org/doc/admin24/replication.html#Syncrepl
 # - http://www.zytrax.com/books/ldap/ch7/#ol-syncrepl-rap
 #
 {% if 'LDAP-provider' in group_names %}
-olcLimits: dn.exact="cn=MX-replicate,ou=services,o=mailHosting,dc=fripost,dc=org"
+{% if groups.MX | difference([inventory_hostname]) > 1 %}
+olcLimits: dn.exact="cn=mx,ou=replicates,o=mailHosting,dc=fripost,dc=org"
   time.soft=unlimited
   time.hard=unlimited
   size.soft=unlimited
   size.hard=unlimited
-olcLimits: dn.exact="cn=lists-replicate,ou=services,o=mailHosting,dc=fripost,dc=org"
+{% endif %}
+{% if groups.lists | difference([inventory_hostname]) > 1 %}
+olcLimits: dn.exact="cn=lists,ou=replicates,o=mailHosting,dc=fripost,dc=org"
   time.soft=unlimited
   time.hard=unlimited
   size.soft=unlimited
   size.hard=unlimited
-{% elif 'MX' in group_names %}
+{% endif %}
+{% endif %}
+{% if 'MX' in group_names and 'LDAP-provider' not in group_names %}
 olcSyncrepl: rid=000
-  provider=ldap://ldap.fripost.org
+  provider=ldaps://ldap.fripost.org
   type=refreshAndPersist
-  retry="5 5 300 +"
+  retry="10 30 300 +"
   searchbase="ou=virtual,o=mailHosting,dc=fripost,dc=org"
   attrs=objectClass,fvd,fvl,fripostMaildrop,fripostOptionalMaildrop,fripostPostmaster,fripostOwner
   scope=sub
+  sizelimit=unlimited
   schemachecking=off
-  bindmethod=simple
-  binddn="cn=MX-replicate,ou=services,o=mailHosting,dc=fripost,dc=org"
-  credentials=mx
-{% elif 'lists' in group_names %}
-# XXX: mlmmj is not compatible with the MX, see
-# http://mlmmj.org/bugs/bug.php?id=51
+  bindmethod=sasl
+  saslmech=external
+  tls_cert=/etc/ldap/ssl/mx.pem
+  tls_key=/etc/ldap/ssl/mx.key
+  tls_cacert=/etc/ldap/ssl/ldap.fripost.org.pem
+  tls_reqcert=hard
+{% endif %}
+{% if 'lists' in group_names and 'LDAP-provider' not in group_names %}
 olcSyncrepl: rid=001
-  provider=ldap://ldap.fripost.org
+  provider=ldaps://ldap.fripost.org
   type=refreshAndPersist
-  retry="5 5 300 +"
+  retry="10 30 300 +"
   searchbase="ou=virtual,o=mailHosting,dc=fripost,dc=org"
   attrs=objectClass,fvd,fvl,fripostListManager,fripostOwner
   scope=sub
+  sizelimit=unlimited
   schemachecking=off
-  bindmethod=simple
-  binddn="cn=lists-replicate,ou=services,o=mailHosting,dc=fripost,dc=org"
-  credentials=lists
+  bindmethod=sasl
+  saslmech=external
+  tls_cert=/etc/ldap/ssl/lists.pem
+  tls_key=/etc/ldap/ssl/lists.key
+  tls_cacert=/etc/ldap/ssl/ldap.fripost.org.pem
+  tls_reqcert=hard
 {% endif %}
 #
 #
 ########################################################################
-########################################################################
 # Access control
 # /!\ WARN: All modification to the ACL should be reflected to the test
 # /!\ suite as well!
+olcAddContentAcl: TRUE
+#
+# Overview:
+# - Authentication (XXX: strong authentication) is required prior to any DIT
+#   operation (see 'olcRequires').
+# - We force a Security Strength Factor of 128 or above for all operations (see
+#   'olcSecurity'), meaning one must use either a local connection (eg,
+#   ldapi://, possible since we set the 'olcLocalSSF' to 128), or TLS with at
+#   least 128 bits of security.
+# - XXX: Services may not simple bind other than locally on a ldapi:// socket.
+#   If no remote access is needed, they should use SASL/EXTERNAL on a ldapi://
+#   socket whenever possible (if the service itself supports SASL binds).
+#   If remote access is needed, they should use SASL/EXTERNAL on a ldaps://
+#   socket, and their identity should be derived from the CN of the client
+#   certificate only (hence services may not simple bind).
+# - Admins have restrictions similar to that of the services.
+# - User access is only restricted by our global 'olcSecurity' attribute.
+#
 #
 # References:
 # - http://www.openldap.org/doc/admin24/access-control.html
@@ -126,423 +197,323 @@ olcSyncrepl: rid=001
 # - http://www.openldap.org/faq/data/cache/1133.html
 # - man 5 slapd.access
 #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# User Passwords:
 #
-########################################################################
-# Most common services: Postfix, Amavis, Dovecot
-# (Most used ACLs are cheaper when written first.)
-#
-# Postfix have read access to the attribute it needs when eg, doing
-# alias resolution.
-olcAccess: to dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org"
-        attrs=entry,objectClass,fvd,fvl,fripostMaildrop,fripostOptionalMaildrop
-        filter=(&(|(objectClass=FripostVirtualDomain)(objectClass=FripostVirtualUser)(objectClass=FripostVirtualAlias)(objectClass=FripostVirtualList))(!(objectClass=FripostPendingEntry))(!(fripostIsStatusActive=FALSE)))
-    by dn.exact="cn=MX-replicate,ou=services,o=mailHosting,dc=fripost,dc=org" =rsd
-    by realanonymous =rsd
-    by users =0 break
-#
-# Search domain owners / postmasters (used by reserved-alias.pl).
-olcAccess: to dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org"
-        attrs=entry,objectClass,fvd,fvl,fripostPostmaster,fripostOwner
-        filter=(&(objectClass=FripostVirtualDomain)(!(objectClass=FripostPendingEntry))(!(fripostIsStatusActive=FALSE)))
-    by dn.exact="cn=MX-replicate,ou=services,o=mailHosting,dc=fripost,dc=org" =rsd
-    by dn.exact="username=nobody,cn=peercred,cn=external,cn=auth" =rsd
-    by users =0 break
-#
-# List replicates
-olcAccess: to dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org"
-        attrs=entry,objectClass,fvd,fvl,fripostListManager,fripostOwner
-        filter=(&(|(objectClass=FripostVirtualDomain)(objectClass=FripostVirtualList))(!(objectClass=FripostPendingEntry))(!(fripostIsStatusActive=FALSE)))
-    by dn.exact="cn=lists-replicate,ou=services,o=mailHosting,dc=fripost,dc=org" =rsd
-    by realanonymous =rsd
-    by users =0 break
-#
-# The following is required for the content filter
-{% if 'MDA' in group_names %}
-olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
-        attrs=entry
-        filter=(&(objectClass=FripostVirtualDomain)(!(fripostIsStatusActive=FALSE)))
-    by dn.exact="username=amavis,cn=peercred,cn=external,cn=auth" =s
-    by users =0 break
-olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
-        attrs=entry,objectClass,fvl,@AmavisAccount
-        filter=(&(objectClass=FripostVirtualUser)(objectClass=AmavisAccount)(fripostIsStatusActive=TRUE))
-    by dn.exact="username=amavis,cn=peercred,cn=external,cn=auth" =rsd
-    by users =0 break
-#
-# The following is required for the userdb
-olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
-        attrs=entry,objectClass
-        filter=(objectClass=FripostVirtualUser)
-    by dn.exact="username=dovecot,cn=peercred,cn=external,cn=auth" =rsd
-    by users =0 break
-{% endif %}
-#
-# Anonymous can authenticate into the services. (But not read or write the password.)
-olcAccess: to dn.one="ou=services,o=mailHosting,dc=fripost,dc=org"
-        attrs=userPassword
-    by realanonymous =xd
-#
-# The following is required for SASL proxy Authorize the web application.
-olcAccess: to dn.exact="cn=AdminWebPanel,ou=services,o=mailHosting,dc=fripost,dc=org"
-        attrs=entry,objectClass,authzTo
-    by realanonymous =x
-#
-# The following is required for Sync Replication.
-{% if 'LDAP-provider' in group_names %}
-olcAccess: to dn.exact="ou=virtual,o=mailHosting,dc=fripost,dc=org"
-        attrs=entry,objectClass
-        filter=(objectClass=FripostVirtual)
-    by dn.exact="cn=MX-replicate,ou=services,o=mailHosting,dc=fripost,dc=org" =rsd
-    by dn.exact="cn=lists-replicate,ou=services,o=mailHosting,dc=fripost,dc=org" =rsd
-    by users =0 break
-olcAccess: to dn.subtree="ou=virtual,o=mailHosting,dc=fripost,dc=org"
-        attrs=structuralObjectClass,createTimestamp,creatorsName,entryDN,entryUUID,modifiersName,modifyTimestamp,hasSubordinates,subschemaSubentry
-    by dn.exact="cn=MX-replicate,ou=services,o=mailHosting,dc=fripost,dc=org" =rsd
-    by dn.exact="cn=lists-replicate,ou=services,o=mailHosting,dc=fripost,dc=org" =rsd
-    by users =0 break
-{% endif %}
-#
-# 1. The WebPanel itself cannot bind, read or write passwords. This
-# guarantees that, if an attacker gains its priviledge, it will *not* be
-# able to change user passwords (which would allow him/her to read every
-# emails). This is a trick to tackle the absence of 'realgroup'.
-# 2. Anonymous users can bind.
-# 3. Users can change their password (but not read it).
-# 4. The postmaster of a domain can change (replace) his/her users' password (but not read it).
+# * Anonymous users are allowed to simple bind through TLS-protected
+#   connections.
+# * Anonymous users are allowed to simple bind when connecting to a
+#   local ldapi:// socket (when using auth_binds, Dovecot delegates
+#   authentication to the LDAP server).
+# * Authenticated users are allowed to change (ie replace) their
+#   password through TLS-protected connections, but read access is not
+#   granted.
+# * Domain postmasters are allowed to change (ie replace) their users'
+#   password through TLS-protected connections, but read access is not
+#   granted.
+# * The same goes for general admins.
+# * The same goes for local admins.
 olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org)$"
         filter=(objectClass=FripostVirtualUser)
         attrs=userPassword
-    by realdn.exact="uid=AdminWebPanel@fripost.org,cn=auth" =0
-    by realanonymous =xd
-    by realself =w
-    by group/FripostVirtualDomain/fripostPostmaster.expand="$1" =w
-    by dn.onelevel="ou=managers,o=mailHosting,dc=fripost,dc=org" =w
+    by realanonymous                                                tls_ssf=128               =xd
+    by realanonymous                                                sockurl.regex="^ldapi://" =xd
+    by realself                                                     tls_ssf=128               =w
+    by group/FripostVirtualDomain/fripostPostmaster.expand="$1"     tls_ssf=128               =w
+    by dn.onelevel="ou=admins,o=mailHosting,dc=fripost,dc=org"      tls_ssf=128               =w
+    by dn.exact="username=guilhem,cn=peercred,cn=external,cn=auth"  sockurl.regex="^ldapi://" =w
 #
-# A catch-all, to be sure that noone else have access to the passwords.
+# XXX
+# * Anonymous users are allowed to simple bind as Postfix, but only when
+#   using a local ldapi:// listener from one of the Postfix instance
+#   (which should be accessible by the 'postfix' UNIX user only).
+olcAccess: to dn.exact="cn=postfix,ou=services,o=mailHosting,dc=fripost,dc=org"
+        attrs=userPassword
+    by realanonymous sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =xd
+#
+# TODO: are there other services which need to be able to simple bind?
+#
+# * Catch-all: no one else may access the passwords (including simple
+#   bind).
 olcAccess: to dn.subtree="o=mailHosting,dc=fripost,dc=org"
         attrs=userPassword
     by * =0
 #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Base
 #
-########################################################################
-# Virtual subtree, pending token and general access
-#
-# 1. Users need further access. We use a set to deny all access to non-users without
-# having a need for an expensive LDAP search (URL) in the AuthzTo.
-# /!\ The objectClass "FripostVirtualUser" is case-sensitive in this case!
-# 2,3. Services that need particular access on the tree.
-# 4. Managers have read/write access to the "virtual" subtree.
-olcAccess: to dn.subtree="ou=virtual,o=mailHosting,dc=fripost,dc=org"
-    by set.exact="user/objectClass & [FripostVirtualUser]" =0 break
-    by dn.exact="cn=CreateList,ou=services,o=mailHosting,dc=fripost,dc=org" =0 break
-    by dn.exact="cn=DeletePendingEntries,ou=services,o=mailHosting,dc=fripost,dc=org" =0 break
-    by dn.onelevel="ou=managers,o=mailHosting,dc=fripost,dc=org" =wrscd
-#
-# Only the domain Postmasters and Owners can delete the 'pending' status on domains.
-olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
-        filter=(&(objectClass=FripostVirtualDomain)(objectClass=FripostPendingEntry))
-        attrs=objectClass val=FripostPendingEntry
-    by dnattr=fripostPostmaster =z break
-    by dnattr=fripostOwner =z break
-    by * =0 break
-#
-# The list creation service can delete the 'pending' status on lists and list commands.
-olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
-        filter=(&(objectClass=FripostVirtualList)(objectClass=FripostPendingEntry))
-        attrs=objectClass val=FripostPendingEntry
-    by dn.exact="cn=CreateList,ou=services,o=mailHosting,dc=fripost,dc=org" =z break
-    by * +0 break
-#
-# ObjectClass is a public attribute: everyone can read and search it.
-olcAccess: to dn.subtree="ou=virtual,o=mailHosting,dc=fripost,dc=org"
-        attrs=objectClass
-    by * +rscd
-#
-# The pending token is not public, but domain owner and postmasters can check their and
-# delete it (if the token matches, but the check is done on the library side).
-olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
-        filter=(&(objectClass=FripostVirtualDomain)(objectClass=FripostPendingEntry))
-        attrs=fripostPendingToken
-    by dnattr=fripostPostmaster =zcd break
-    by dnattr=fripostOwner =zcd break
-    by * +0 break
-#
-# The list creation service can delete the 'pending' status on lists and list commands.
-olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
-        filter=(&(objectClass=FripostVirtualList)(objectClass=FripostPendingEntry))
-        attrs=fripostPendingToken
-    by dn.exact="cn=CreateList,ou=services,o=mailHosting,dc=fripost,dc=org" +z
-    by * +0
-#
-# The cleaning service can list the (expired) pending entries and delete them.
-olcAccess: to dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org"
-        filter=(objectClass=FripostPendingEntry)
-        attrs=entry
-    by dn.exact="cn=DeletePendingEntries,ou=services,o=mailHosting,dc=fripost,dc=org" =zrd break
-    by * =0 break
-#
-# One can search search everywhere in the virtual tree.
-olcAccess: to dn.subtree="ou=virtual,o=mailHosting,dc=fripost,dc=org"
-        attrs=entry
-    by dn.exact="cn=DeletePendingEntries,ou=services,o=mailHosting,dc=fripost,dc=org" +s
-    by * =s break
-#
-# We're giving away create/delete access on the children attributes, but we will be carefull
-# with the 'entry' permissions.
+# * The SyncRepl replicates may use the base as a searchBase, when using
+#   a TLS-protected connection.
+# * So can Dovecot on the MDA (for the iterate filter), when
+#   SASL-binding using the EXTERNAL mechanism and connecting to a local
+#   ldapi:// socket.
 olcAccess: to dn.exact="ou=virtual,o=mailHosting,dc=fripost,dc=org"
+        attrs=entry,objectClass
         filter=(objectClass=FripostVirtual)
-        attrs=children
-    by dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org" =w
-    by dn.exact="cn=DeletePendingEntries,ou=services,o=mailHosting,dc=fripost,dc=org" =z
-olcAccess: to dn.one="ou=virtual,o=mailHosting,dc=fripost,dc=org"
-        filter=(objectClass=FripostVirtualDomain)
-        attrs=children
-    by dn.exact="cn=DeletePendingEntries,ou=services,o=mailHosting,dc=fripost,dc=org" =z
-    by * break
-olcAccess: to dn.one="ou=virtual,o=mailHosting,dc=fripost,dc=org"
-        filter=(&(objectClass=FripostVirtualDomain)(!(objectClass=FripostPendingEntry))(!(objectClass=FripostVirtualAliasDomain)))
-        attrs=children
-    by dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org" =w
+    {% if 'LDAP-provider' in group_names -%}
+    {% if groups.MX | difference([inventory_hostname]) > 1 -%}
+    by dn.exact="cn=mx,ou=replicates,o=mailHosting,dc=fripost,dc=org"    tls_ssf=128               =rsd
+    {% endif -%}
+    {% if groups.lists | difference([inventory_hostname]) > 1 -%}
+    by dn.exact="cn=lists,ou=replicates,o=mailHosting,dc=fripost,dc=org" tls_ssf=128               =rsd
+    {% endif -%}
+    {% endif -%}
+    {% if 'MDA' in group_names -%}
+    by dn.exact="username=dovecot,cn=peercred,cn=external,cn=auth"       sockurl.regex="^ldapi://" =sd
+    {% endif -%}
+    by users                                                                                       =0 break
 #
-# The cleaning service needs to know when entries have been created.
-olcAccess: to dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org"
-        filter=(objectClass=FripostPendingEntry)
-        attrs=createTimestamp
-    by dn.exact="cn=DeletePendingEntries,ou=services,o=mailHosting,dc=fripost,dc=org" =s
+# * Only SyncRepl replicates may access operational attributes in the
+#   subtree, when using a TLS-protected connection.
+olcAccess: to dn.subtree="ou=virtual,o=mailHosting,dc=fripost,dc=org"
+        attrs=structuralObjectClass,createTimestamp,creatorsName,entryDN,entryUUID,modifiersName,modifyTimestamp,hasSubordinates,subschemaSubentry
+    {% if 'LDAP-provider' in group_names -%}
+    {% if groups.MX | difference([inventory_hostname]) > 1 -%}
+    by dn.exact="cn=mx,ou=replicates,o=mailHosting,dc=fripost,dc=org"    tls_ssf=128 =rsd
+    {% endif -%}
+    {% if groups.lists | difference([inventory_hostname]) > 1 -%}
+    by dn.exact="cn=lists,ou=replicates,o=mailHosting,dc=fripost,dc=org" tls_ssf=128 =rsd
+    {% endif -%}
+    {% endif -%}
+    by *                                                                             =0
 #
-# Users can use these in filters (e.g., to list the entries they have created).
-olcAccess: to dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org"
-        filter=(|(objectClass=FripostVirtualDomain)(objectClass=FripostVirtualUser)(objectClass=FripostVirtualAlias)(objectClass=FripostVirtualList))
-        attrs=fripostOwner,fripostPostmaster,fripostCanAddAlias,fripostCanAddList
-    by dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org" =s break
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Domain entries
 #
-#
-########################################################################
-# Virtual subtree, domains
-#
-# 1. The postmaster of a domain can give (or take back) people the right to create
-# aliases.
-# 2,3. People that can create aliases can list the members of the group.
+# * The SyncRepl replicates have read access to the entry itself, when
+#   using a TLS-protected connection.
+# * So has Postfix, when connecting a local ldapi:// socket from the
+#   'private' directory in one of the non-default instance's chroot.
+# * So has Dovecot on the MDA (for the iterate filter), when
+#   SASL-binding using the EXTERNAL mechanism and connecting to a local
+#   ldapi:// socket.
+# * Amavis may use the entry as searchBase (required to look for the
+#   per-user preferences) but doesn't have read access to the entry.
+# * The 'nobody' UNIX user has read access on the MX:es, when using
+#   SASL-binding using the EXTERNAL mechanism and connecting to a local
+#   ldapi:// socket.  This is required for the 'reserved-alias.pl'
+#   script.
 olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
-        filter=(objectClass=FripostVirtualDomain)
-        attrs=fripostCanAddAlias
-    by dnattr=fripostPostmaster =wrscd
-    by dnattr=fripostOwner =rscd
-    by set.exact="this/fripostCanAddAlias & (user | user/-1)" =rscd
+        attrs=entry,objectClass,fvd
+        filter=(&(objectClass=FripostVirtualDomain)(!(objectClass=FripostPendingEntry)))
+    {% if 'LDAP-provider' in group_names -%}
+    {% if groups.MX | difference([inventory_hostname]) > 1 -%}
+    by dn.exact="cn=mx,ou=replicates,o=mailHosting,dc=fripost,dc=org"    tls_ssf=128                                                                  =rsd
+    {% endif -%}
+    {% if groups.lists | difference([inventory_hostname]) > 1 -%}
+    by dn.exact="cn=lists,ou=replicates,o=mailHosting,dc=fripost,dc=org" tls_ssf=128                                                                  =rsd
+    {% endif -%}
+    {% endif -%}
+    by dn.exact="cn=postfix,ou=services,o=mailHosting,dc=fripost,dc=org" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
+    {% if 'MDA' in group_names -%}
+    by dn.exact="username=dovecot,cn=peercred,cn=external,cn=auth"       sockurl.regex="^ldapi://"                                                    =rsd
+    by dn.exact="username=amavis,cn=peercred,cn=external,cn=auth"        sockurl.regex="^ldapi://"                                                    =sd
+    {% endif -%}
+    {% if 'MX' in group_names -%}
+    by dn.exact="username=nobody,cn=peercred,cn=external,cn=auth"        sockurl.regex="^ldapi://"                                                    =rsd
+    {% endif -%}
+    by users                                                                                                                                          =0 break
 #
-# 1. The postmaster of a domain can give (or take back) people the right to create lists.
-# 2,3. People that can create lists can list the members of the group.
+# * The SyncRepl MX replicates can check whether a virtual domain is
+#   active, and read the destination address for catch-alls, when using
+#   a TLS-protected connection.
+# * So can Postfix on the MX:es, when connecting a local ldapi:// socket
+#   from the 'private' directory in one of the non-default instance's
+#   chroot.
+{% if 'MX' in group_names or ('LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) > 1) %}
 olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
-        filter=(objectClass=FripostVirtualDomain)
-        attrs=fripostCanAddList
-    by dnattr=fripostPostmaster =wrscd
-    by dnattr=fripostOwner =rscd
-    by set.exact="this/fripostCanAddList & (user | user/-1)" =rscd
+        attrs=fripostIsStatusActive,fripostOptionalMaildrop
+        filter=(&(objectClass=FripostVirtualDomain)(!(objectClass=FripostPendingEntry)))
+    {% if 'LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) > 1 -%}
+    by dn.exact="cn=mx,ou=replicates,o=mailHosting,dc=fripost,dc=org"    tls_ssf=128                                                                  =rsd
+    {% endif -%}
+    {% if 'MX' in group_names -%}
+    by dn.exact="cn=postfix,ou=services,o=mailHosting,dc=fripost,dc=org" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
+    {% endif -%}
+    by users                                                                                                                                          =0 break
+{% endif %}
 #
-# 1-3. Noone (but the managers) can appoint domain Owners or Postmasters.
-# But people that can create aliases and lists can list the members of their group.
+# * The 'nobody' UNIX user can list the domain owners and postmasters on
+#   the MX:es, when SASL-binding using the EXTERNAL mechanism and
+#   connecting to a local ldapi:// socket.  This is required for the
+#   'reserved-alias.pl' script.
+{% if 'MX' in group_names %}
 olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
-        filter=(objectClass=FripostVirtualDomain)
         attrs=fripostOwner,fripostPostmaster
-    by dnattr=fripostOwner =rscd
-    by dnattr=fripostPostmaster =rscd
-    by set.exact="(this/fripostCanAddAlias | this/fripostCanAddList) & (user | user/-1)" =rscd
-    by dn.onelevel,expand="$0" +d
-    by * +0
+        filter=(&(objectClass=FripostVirtualDomain)(!(objectClass=FripostPendingEntry)))
+    by dn.exact="username=nobody,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://" =rsd
+    by users =0 break
+{% endif %}
 #
-# 1. Domain owners can edit their entry's attributes.
-# 2. So can domain postmasters.
-# 3. Domain users can read the public domain attributes.
-# 4. So can users with "canAddAlias" or "canAddList" access.
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Alias domain entries
+#
+# * The SyncRepl MX replicates have read access to the entry itself and
+#   the destination domain it aliases to, when using a TLS-protected
+#   connection.
+# * So has Postfix on the MX:es, when connecting a local ldapi:// socket
+#   from the 'private' directory in one of the non-default instance's
+#   chroot.
+{% if 'MX' in group_names or ('LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) > 1) %}
 olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
-        filter=(objectClass=FripostVirtualDomain)
-        attrs=fvd,fripostIsStatusActive,description
-    by dnattr=fripostOwner =wrscd
-    by dnattr=fripostPostmaster =wrscd
-    by dn.onelevel,expand="$0" =rscd
-    by set.exact="(this/fripostCanAddAlias | this/fripostCanAddList) & (user | user/-1)" =rscd
+        attrs=entry,fripostMaildrop
+        filter=(&(objectClass=FripostVirtualAliasDomain)(!(objectClass=FripostPendingEntry)))
+    {% if 'LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) > 1 -%}
+    by dn.exact="cn=mx,ou=replicates,o=mailHosting,dc=fripost,dc=org"    tls_ssf=128                                                                  =rsd
+    {% endif -%}
+    {% if 'MX' in group_names -%}
+    by dn.exact="cn=postfix,ou=services,o=mailHosting,dc=fripost,dc=org" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
+    {% endif -%}
+    by users                                                                                                                                          =0 break
+{% endif %}
 #
-# 1. Domain owners can edit their entry's attributes.
-# 2. So can domain postmasters.
-olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
-        filter=(objectClass=FripostVirtualDomain)
-        attrs=@fripostVirtualDomain
-    by dnattr=fripostOwner =wrscd
-    by dnattr=fripostPostmaster =wrscd
-    by * +0
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# User entries
 #
-# Users with "addDomain" access can create new entries, but only if
-# there is a pending token.
-olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
-        filter=(&(objectClass=FripostVirtualDomain)(objectClass=FripostPendingEntry)(fripostPendingToken=*))
-        attrs=entry
-    by set.exact="this/-1/fripostCanAddDomain & (user | user/-1)" +a break
-    by * +0 break
-#
-# 1. Domain owners can delete their domain (and read the entry).
-# 2. So can domain postmasters.
-# 3. Domain users can read the domain entry (but not delete it).
-# 4. So can users with "canAddAlias" or "canAddList" rights.
-olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
-        filter=(objectClass=FripostVirtualDomain)
-        attrs=entry
-    by dnattr=fripostOwner +zrd
-    by dnattr=fripostPostmaster +zrd
-    by dn.onelevel,expand="$0" +rd
-    by set.exact="(this/fripostCanAddAlias | this/fripostCanAddList) & (user | user/-1)" +rd
-    by dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org" +0
-#
-# Reserved local parts are reserved. /!\ The case must be insensitive
-# - postmaster: RFC 822, appendix C.6
-# - abuse:      RFC 2142, section 4
-olcAccess: to dn.regex="^fvl=(postmaster|abuse),fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
-    by * =0
-#
-#
-########################################################################
-# Virtual subtree, users
-#
-# Users and their postmaster can read the quota (but not change it).
-olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org)$"
+# * The SyncRepl replicates have read access to the entry itself, when
+#   using a TLS-protected connection.
+# * So has Postfix, when connecting a local ldapi:// socket from the
+#   'private' directory in one of the non-default instance's chroot.
+# * So has Dovecot on the MDA (for the iterate filter), when
+#   SASL-binding using the EXTERNAL mechanism and connecting to a local
+#   ldapi:// socket.
+# * So has Amavis on the MDA, when SASL-binding using the EXTERNAL
+#   mechanism and connecting to a local ldapi:// socket.
+olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
+        attrs=entry,objectClass,fvl
         filter=(objectClass=FripostVirtualUser)
+    {% if 'LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) > 1 -%}
+    by dn.exact="cn=mx,ou=replicates,o=mailHosting,dc=fripost,dc=org"    tls_ssf=128                                                                  =rsd
+    {% endif -%}
+    by dn.exact="cn=postfix,ou=services,o=mailHosting,dc=fripost,dc=org" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
+    {% if 'MDA' in group_names -%}
+    by dn.exact="username=dovecot,cn=peercred,cn=external,cn=auth"       sockurl.regex="^ldapi://"                                                    =rsd
+    by dn.exact="username=amavis,cn=peercred,cn=external,cn=auth"        sockurl.regex="^ldapi://"                                                    =rsd
+    {% endif -%}
+    by users                                                                                                                                          =0 break
+#
+# * The SyncRepl MX replicates can check whether a virtual user is
+#   active, when using a TLS-protected connection.
+# * So can Postfix on the MX:es, when connecting a local ldapi:// socket
+#   from the 'private' directory in one of the non-default instance's
+#   chroot.
+{% if 'MX' in group_names or ('LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) > 1) %}
+olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
+        attrs=fripostIsStatusActive
+        filter=(objectClass=FripostVirtualUser)
+    {% if 'LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) > 1 -%}
+    by dn.exact="cn=mx,ou=replicates,o=mailHosting,dc=fripost,dc=org"    tls_ssf=128                                                                  =rsd
+    {% endif -%}
+    {% if 'MX' in group_names -%}
+    by dn.exact="cn=postfix,ou=services,o=mailHosting,dc=fripost,dc=org" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
+    {% endif -%}
+    by users                                                                                                                                          =0 break
+{% endif %}
+{% if 'MDA' in group_names %}
+#
+# * Amavis can look for per-user configuration options, when
+#   SASL-binding using the EXTERNAL mechanism and connecting to a local
+#   ldapi:// socket.
+# TODO: we need a fripostUseContentFilter here
+#       filter=(&(objectClass=FripostVirtualUser)(objectClass=AmavisAccount)(fripostIsStatusActive=TRUE)(fripostUseContentFilter=TRUE))
+# TODO: only allow it to read the configuration options users are allowed
+#       to set and modify.
+olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
+        attrs=@AmavisAccount
+        filter=(&(objectClass=FripostVirtualUser)(objectClass=AmavisAccount)(fripostIsStatusActive=TRUE))
+    by dn.exact="username=amavis,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://" =rsd
+    by users                                                                                =0 break
+#
+# * Dovecot can look for user quotas, when SASL-binding using the
+#   EXTERNAL mechanism and connecting to a local ldapi:// socket.
+olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
         attrs=fripostUserQuota
-    by self =rscd
-    by group/FripostVirtualDomain/fripostPostmaster.expand="$1" =rscd
-#
-# 1. Users can modify their own entry.
-# 2. So can their postmasters.
-olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org)$"
         filter=(objectClass=FripostVirtualUser)
-        attrs=@FripostVirtualUser
-    by self =wrscd
-    by group/FripostVirtualDomain/fripostPostmaster.expand="$1" =wrscd
+    by dn.exact="username=dovecot,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://" =rsd
+    by users                                                                                 =0 break
+{% endif %}
 #
-# 1. Users can read their entry (but not delete it).
-# 2. Postmasters can create users (but not delete them).
-# (Provided that they have +a access to the parent's "children" attribute.)
-olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org)$"
-        filter=(objectClass=FripostVirtualUser)
-        attrs=entry
-    by self +rd
-    by group/FripostVirtualDomain/fripostPostmaster.expand="$1" +ard
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Alias entries
 #
-#
-########################################################################
-# Virtual subtree, aliases
-#
-# 1. The alias owner can list the ownership of the entry.
-# 2. The domain owner can add/delete/change the ownership of the entry.
-# 3. So can the domain postmasters.
-olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org)$"
+# * The SyncRepl MX replicates can read the entry itelf, whether it
+#   is active, and the address(es) it aliases to, when using a
+#   TLS-protected connection.
+# * So can Postfix on the MX:es, when connecting a local ldapi:// socket
+#   from the 'private' directory in one of the non-default instance's
+#   chroot.
+{% if 'MX' in group_names or ('LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) > 1) %}
+olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
+        attrs=entry,objectClass,fvl,fripostMaildrop,fripostIsStatusActive
         filter=(objectClass=FripostVirtualAlias)
-        attrs=fripostOwner
-    by dnattr=fripostOwner =rscd continue
-    by group/FripostVirtualDomain/fripostOwner.expand="$1" =wrscd
-    by group/FripostVirtualDomain/fripostPostmaster.expand="$1" =wrscd
-    by * +0
+    {% if 'LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) > 1 -%}
+    by dn.exact="cn=mx,ou=replicates,o=mailHosting,dc=fripost,dc=org"    tls_ssf=128                                                                  =rsd
+    {% endif -%}
+    {% if 'MX' in group_names -%}
+    by dn.exact="cn=postfix,ou=services,o=mailHosting,dc=fripost,dc=org" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
+    {% endif -%}
+    by users                                                                                                                                          =0 break
+{% endif %}
 #
-# 1. The alias owners can edit the rest of their entry's attributes.
-# 2. So can the domain owners.
-# 3. So can the domain postmasters.
-olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org)$"
-        filter=(objectClass=FripostVirtualAlias)
-        attrs=@FripostVirtualAlias
-    by dnattr=fripostOwner =wrscd
-    by group/FripostVirtualDomain/fripostOwner.expand="$1" =wrscd
-    by group/FripostVirtualDomain/fripostPostmaster.expand="$1" =wrscd
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# List entries
 #
-# 1. The alias owners can read and delete the entry.
-# 2. So can the domain owner.
-# 3. So can the domain postmaster.
-# 4. Users with "canAddAlias" access (either explicitely, or as a wildcard) for the domain can create aliases for that domain.
-# (But *not* delete them, unless also owner.)
-olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org)$"
-        filter=(objectClass=FripostVirtualAlias)
-        attrs=entry
-    by dnattr=fripostOwner +zrd continue
-    by group/FripostVirtualDomain/fripostOwner.expand="$1" +wrd
-    by group/FripostVirtualDomain/fripostPostmaster.expand="$1" +wrd
-    by set.exact="this/-1/fripostCanAddAlias & (user | user/-1)" +a
+# * The SyncRepl replicates can read the entry itelf and the list manager, when
+#   using a TLS-protected connection.
+# * So can Postfix on the MX:es and lists managers, when connecting a local
+#   ldapi:// socket from the 'private' directory in one of the non-default
+#   instance's chroot.
+# XXX: where does sympa enter the picture? we really don't want to reintroduce listcomands...
+{% if 'MX' in group_names or 'lists' in group_names or ('LDAP-provider' in group_names and
+       (groups.lists | difference([inventory_hostname]) > 1 or groups.MX | difference([inventory_hostname]) > 1)) %}
+olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
+        attrs=entry,objectClass,fvl,fripostListManager
+        filter=(&(objectClass=FripostVirtualList)(!(objectClass=FripostPendingEntry)))
+    {% if 'LDAP-provider' in group_names -%}
+    {% if groups.MX | difference([inventory_hostname]) > 1 -%}
+    by dn.exact="cn=mx,ou=replicates,o=mailHosting,dc=fripost,dc=org"    tls_ssf=128                                                                  =rsd
+    {% endif -%}
+    {% if groups.lists | difference([inventory_hostname]) > 1 -%}
+    by dn.exact="cn=lists,ou=replicates,o=mailHosting,dc=fripost,dc=org" tls_ssf=128                                                                  =rsd
+    {% endif -%}
+    {% endif -%}
+    {% if 'MX' in group_names or 'lists' in group_names -%}
+    by dn.exact="cn=postfix,ou=services,o=mailHosting,dc=fripost,dc=org" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
+    {% endif -%}
+    by users                                                                                                                                          =0 break
+{% endif %}
+#
+# * The SyncRepl MX replicates can check whether a virtual list is
+#   active when using a TLS-protected connection.
+# * So can Postfix on the MX:es, when connecting a local ldapi:// socket
+#   from the 'private' directory in one of the non-default instance's
+#   chroot.
+{% if 'MX' in group_names or ('LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) > 1) %}
+olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org$"
+        attrs=fripostIsStatusActive
+        filter=(&(objectClass=FripostVirtualList)(!(objectClass=FripostPendingEntry)))
+    {% if 'LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) > 1 -%}
+    by dn.exact="cn=mx,ou=replicates,o=mailHosting,dc=fripost,dc=org"    tls_ssf=128                                                                  =rsd
+    {% endif -%}
+    {% if 'MX' in group_names -%}
+    by dn.exact="cn=postfix,ou=services,o=mailHosting,dc=fripost,dc=org" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
+    {% endif -%}
+    by users                                                                                                                                          =0 break
+{% endif %}
+{% if 'LDAP-provider' in group_names %}
+#
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# TODO: allow users to edit their entry, etc
+#
+{% endif %}
+#
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# Catch-all
+#
+# * Catch all the breaks above.
+# * Deny any access to everyone else.
+olcAccess: to dn.subtree="o=mailHosting,dc=fripost,dc=org"
     by dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org" +0
-#
-#
-########################################################################
-# Virtual subtree, lists
-#
-# 1. The list owner can list the ownership of the entry.
-# 2. The domain owner can add/delete/change the ownership of the entry.
-# 3. So can the domain postmasters.
-olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org)$"
-        filter=(objectClass=FripostVirtualList)
-        attrs=fripostOwner
-    by dnattr=fripostOwner =rscd continue
-    by group/FripostVirtualDomain/fripostOwner.expand="$1" =wrscd
-    by group/FripostVirtualDomain/fripostPostmaster.expand="$1" =wrscd
-    by * +0
-#
-# 1. The list owner read (but not edit) the transport-related attributes.
-# 2. So can the domain ower.
-# 3. So can the domain postmaster.
-olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org)$"
-        filter=(objectClass=FripostVirtualList)
-        attrs=fripostListManager
-    by dnattr=fripostOwner =rscd
-    by group/FripostVirtualDomain/fripostOwner.expand="$1" =rscd
-    by group/FripostVirtualDomain/fripostPostmaster.expand="$1" =rscd
-#
-# 1. The list owners can edit their entry's attributes.
-# 2. So can the domain owners.
-# 3. So can the domain postmasters.
-olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org)$"
-        filter=(objectClass=FripostVirtualList)
-        attrs=@FripostVirtualList
-    by dnattr=fripostOwner =wrscd
-    by group/FripostVirtualDomain/fripostOwner.expand="$1" =wrscd
-    by group/FripostVirtualDomain/fripostPostmaster.expand="$1" =wrscd
-#
-# 1. The domain owner can create and delete lists, but only those with a 'pending' status
-# 2. So can the domain postmaster.
-# 3. The list owner can delete pending lists.
-# 4. The entry creator can delete pending lists (needed to be able to rollback).
-# 5. People with "canAddList" access can create lists, but only with a 'pending' status.
-# 6. The list creation service can search and browse the entry.
-olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org)$"
-        filter=(&(objectClass=FripostVirtualList)(objectClass=FripostPendingEntry))
-        attrs=entry
-    by group/FripostVirtualDomain/fripostOwner.expand="$1" +w break
-    by group/FripostVirtualDomain/fripostPostmaster.expand="$1" +w break
-    by dnattr=fripostOwner +z continue
-    by dnattr=creatorsName +z continue
-    by set.exact="this/-1/fripostCanAddList & (user | user/-1)" +a break
-    by dn.exact="cn=CreateList,ou=services,o=mailHosting,dc=fripost,dc=org" +rd
-    by * +0 break
-#
-# 1. The list owners can read the entry.
-# 2. So can the domain's Owner.
-# 3. So can the domain's Postmaster.
-olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,o=mailHosting,dc=fripost,dc=org)$"
-        filter=(objectClass=FripostVirtualList)
-        attrs=entry
-    by dnattr=fripostOwner +rd
-    by group/FripostVirtualDomain/fripostOwner.expand="$1" +rd
-    by group/FripostVirtualDomain/fripostPostmaster.expand="$1" +rd
-    by * +0
-#
-#
-########################################################################
-# Catchall
-#
-# Users with "canAddDomain" access can see that they have the right
-# to create domains.
-olcAccess: to dn.exact="ou=virtual,o=mailHosting,dc=fripost,dc=org"
-        filter=(objectClass=FripostVirtual)
-        attrs=entry
-    by dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org" +rd
-olcAccess: to dn.exact="ou=virtual,o=mailHosting,dc=fripost,dc=org"
-        filter=(objectClass=FripostVirtual)
-        attrs=fripostCanAddDomain
-    by set.exact="this/fripostCanAddDomain & (user | user/-1)" =rscd
-# Catch the break above
-olcAccess: to dn.subtree="ou=virtual,o=mailHosting,dc=fripost,dc=org"
-    by dn.children="ou=virtual,o=mailHosting,dc=fripost,dc=org" +0
+    by *                                                        =0
+
 # vim: set filetype=ldif :
