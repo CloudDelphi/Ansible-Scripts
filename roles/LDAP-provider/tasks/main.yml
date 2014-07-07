@@ -11,13 +11,4 @@
               owner=root group=root
               mode=0644
 
-- name: Copy the SyncRepls's client certificates
-  assemble: src=certs/ldap
-            remote_src=no
-            dest=/etc/ldap/ssl/clients.pem
-            owner=root group=root
-            mode=0644
-  tags:
-    - genkey
-
 # TODO: authz constraint

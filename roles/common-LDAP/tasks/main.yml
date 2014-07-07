@@ -32,6 +32,8 @@
   tags:
     - genkey
 
+# XXX: It's ugly to list all roles here, and to prunes them with a
+# conditional...
 - name: Generate a private key and a X.509 certificate for slapd
   # XXX: GnuTLS (libgnutls26 2.12.20-8+deb7u2, found in Wheezy) doesn't
   # support ECDSA; and slapd doesn't seem to support DHE (!?) so
@@ -75,9 +77,25 @@
         dest=/etc/ldap/ssl/ldap.fripost.org.pem
         owner=root group=root
         mode=0644
+  when: "'LDAP-provider' not in group_names"
   tags:
     - genkey
-  when: "'LDAP-provider' not in group_names"
+
+- name: Copy the SyncRepls's client certificates
+  assemble: src=certs/ldap
+            remote_src=no
+            dest=/etc/ldap/ssl/clients.pem
+            owner=root group=root
+            mode=0644
+  when: "'LDAP-provider' in group_names"
+  tags:
+    - genkey
+
+- name: Start slapd
+  service: name=slapd state=started
+  when: not (r1.changed or r2.changed)
+
+- meta: flush_handlers
 
 - name: Copy fripost & amavis' schema
   copy: src=etc/ldap/schema/{{ item }}
@@ -108,9 +126,3 @@
 - name: Configure the LDAP database
   openldap: target=etc/ldap/database.ldif.j2 local=template
             state=present
-
-- name: Start slapd
-  service: name=slapd state=started
-  when: not (r1.changed or r2.changed)
-
-- meta: flush_handlers
