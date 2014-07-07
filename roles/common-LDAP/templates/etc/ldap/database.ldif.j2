@@ -132,6 +132,9 @@ olcLimits: dn.exact="cn=lists,ou=replicates,o=mailHosting,dc=fripost,dc=org"
 {% endif %}
 {% endif %}
 {% if 'MX' in group_names and 'LDAP-provider' not in group_names %}
+# Test it:
+#   LDAPSASL_MECH=external LDAPTLS_CACERT=/etc/ldap/ssl/ldap.fripost.org.pem LDAPTLS_CERT=/etc/ldap/ssl/mx.pem LDAPTLS_KEY=/etc/ldap/ssl/mx.key sudo -u openldap ldapwhoami -H ldaps://ldap.fripost.org/
+#   LDAPSASL_MECH=external LDAPTLS_CACERT=/etc/ldap/ssl/ldap.fripost.org.pem LDAPTLS_CERT=/etc/ldap/ssl/mx.pem LDAPTLS_KEY=/etc/ldap/ssl/mx.key sudo -u openldap ldapsearch -H ldaps://ldap.fripost.org/ -b ou=virtual,o=mailHosting,dc=fripost,dc=org
 olcSyncrepl: rid=000
   provider=ldaps://ldap.fripost.org
   type=refreshAndPersist
