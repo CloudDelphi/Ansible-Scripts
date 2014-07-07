@@ -68,7 +68,7 @@ olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.1 NAME 'fvd'
     SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} SINGLE-VALUE )
 #
 olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.2 NAME 'fvl'
-    DESC 'The local part of a virtual user, alias, list or list command'
+    DESC 'The local part of a virtual user, alias or list'
     EQUALITY caseIgnoreIA5Match
     SUBSTR caseIgnoreIA5SubstringsMatch
     SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{64} SINGLE-VALUE )
@@ -89,7 +89,7 @@ olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.4 NAME 'fripostOptionalMaildrop'
     SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} )
 #
 olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.5 NAME 'fripostIsStatusActive'
-    DESC 'When present, a token locking the entry in an inactive state'
+    DESC 'Is the entry active?'
     EQUALITY booleanMatch
     SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE )
 #
@@ -104,23 +104,23 @@ olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.7 NAME 'fripostUserQuota'
     SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{32} SINGLE-VALUE )
 #
 olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.8 NAME 'fripostCanAddDomain'
-    DESC 'A user/domain that can add domains'
+    DESC 'A user/domain allowed to add domains'
     SUP distinguishedName )
 #
 olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.9 NAME 'fripostCanAddAlias'
-    DESC 'A user/domain that can add aliases under the parent domain'
+    DESC 'A user/domain allowed to add aliases under the parent domain'
     SUP distinguishedName )
 #
 olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.10 NAME 'fripostCanAddList'
-    DESC 'A user/domain that can add lists under the parent domain'
+    DESC 'A user/domain allowed to add lists under the parent domain'
     SUP distinguishedName )
 #
 olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.11 NAME 'fripostOwner'
-    DESC 'A user that owns under parent domain'
+    DESC 'A user being the owner of the parent domain'
     SUP distinguishedName )
 #
 olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.12 NAME 'fripostPostmaster'
-    DESC 'A user that is a postmaster of the parent domain'
+    DESC 'A user being the postmaster of the parent domain'
     SUP distinguishedName )
 #
 olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.13 NAME 'fripostListManager'
@@ -128,6 +128,11 @@ olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.13 NAME 'fripostListManager'
     EQUALITY caseIgnoreMatch
     SUBSTR caseIgnoreSubstringsMatch
     SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{64} SINGLE-VALUE )
+#
+olcAttributeTypes: ( 1.3.6.1.4.1.40011.1.2.1.14 NAME 'fripostUseContentFilter'
+    DESC 'Does the user want to use the content filter?'
+    EQUALITY booleanMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE )
 #
 #
 # Objects: 1.3.6.1.4.1.40011.1.2
@@ -155,7 +160,7 @@ olcObjectClasses: ( 1.3.6.1.4.1.40011.1.2.3 NAME 'FripostVirtualAliasDomain'
 olcObjectClasses: ( 1.3.6.1.4.1.40011.1.2.4 NAME 'FripostVirtualUser'
     SUP top STRUCTURAL
     DESC 'Virtual user'
-    MUST ( fvl $ userPassword $ fripostIsStatusActive )
+    MUST ( fvl $ userPassword $ fripostIsStatusActive $ fripostUseContentFilter )
     MAY ( fripostUserQuota $ description) )
 #
 olcObjectClasses: ( 1.3.6.1.4.1.40011.1.2.5 NAME 'FripostVirtualAlias'

@@ -125,20 +125,11 @@ olcDbIndex: entryCSN,entryUUID eq
 # - http://www.zytrax.com/books/ldap/ch7/#ol-syncrepl-rap
 #
 {% if 'LDAP-provider' in group_names %}
-{% if groups.MX | difference([inventory_hostname]) %}
-olcLimits: dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"
+olcLimits: dn.onelevel="ou=syncRepl,dc=fripost,dc=org"
   time.soft=unlimited
   time.hard=unlimited
   size.soft=unlimited
   size.hard=unlimited
-{% endif %}
-{% if groups.lists | difference([inventory_hostname]) %}
-olcLimits: dn.exact="cn=lists,ou=syncRepl,dc=fripost,dc=org"
-  time.soft=unlimited
-  time.hard=unlimited
-  size.soft=unlimited
-  size.hard=unlimited
-{% endif %}
 {% endif %}
 {% if 'MX' in group_names and 'LDAP-provider' not in group_names %}
 # Test it:
@@ -149,7 +140,7 @@ olcSyncrepl: rid=000
   type=refreshAndPersist
   retry="10 30 300 +"
   searchbase="ou=virtual,dc=fripost,dc=org"
-  attrs=objectClass,fvd,fvl,fripostMaildrop,fripostOptionalMaildrop,fripostPostmaster,fripostOwner
+  attrs=objectClass,fvd,fvl,fripostIsStatusActive,fripostMaildrop,fripostOptionalMaildrop,fripostPostmaster,fripostOwner,fripostUseContentFilter
   scope=sub
   sizelimit=unlimited
   schemachecking=off
@@ -412,7 +403,7 @@ olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
 #   chroot.
 {% if 'MX' in group_names or ('LDAP-provider' in group_names and groups.MX | difference([inventory_hostname])) %}
 olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
-        attrs=fripostIsStatusActive
+        attrs=fripostIsStatusActive,fripostUseContentFilter
         filter=(objectClass=FripostVirtualUser)
     {% if 'LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) -%}
     by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"      tls_ssf=128                                                                  =rsd
@@ -427,13 +418,11 @@ olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
 # * Amavis can look for per-user configuration options, when
 #   SASL-binding using the EXTERNAL mechanism and connecting to a local
 #   ldapi:// socket.
-# TODO: we need a fripostUseContentFilter here
-#       filter=(&(objectClass=FripostVirtualUser)(objectClass=AmavisAccount)(fripostIsStatusActive=TRUE)(fripostUseContentFilter=TRUE))
 # TODO: only allow it to read the configuration options users are allowed
 #       to set and modify.
 olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
         attrs=@AmavisAccount
-        filter=(&(objectClass=FripostVirtualUser)(objectClass=AmavisAccount)(fripostIsStatusActive=TRUE))
+        filter=(&(objectClass=FripostVirtualUser)(objectClass=AmavisAccount)(fripostIsStatusActive=TRUE)(fripostUseContentFilter=TRUE))
     by dn.exact="username=amavis,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://" =rsd
     by users                                                                                =0 break
 #
