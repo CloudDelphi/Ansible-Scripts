@@ -91,6 +91,8 @@
   register: tls_policy
   changed_when: False
   when: "'out' not in group_names"
+  tags:
+    - tls_policy
 
 - name: Copy the Postfix TLS policy map
   template: src=etc/postfix/tls_policy.j2
@@ -98,12 +100,16 @@
             owner=root group=root
             mode=0644
   when: "'out' not in group_names"
+  tags:
+    - tls_policy
 
 - name: Compile the Postfix TLS policy map
   postmap: cmd=postmap src=/etc/postfix/tls_policy db=cdb
            owner=root group=root
            mode=0644
   when: "'out' not in group_names"
+  tags:
+    - tls_policy
 
 - name: Start Postfix
   service: name=postfix state=started
