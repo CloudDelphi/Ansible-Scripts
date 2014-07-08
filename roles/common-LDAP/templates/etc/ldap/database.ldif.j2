@@ -32,8 +32,12 @@ olcThreads: 8
 {% if 'LDAP-provider' in group_names %}
 olcTLSCertificateFile: /etc/ldap/ssl/ldap.fripost.org.pem
 olcTLSCertificateKeyFile: /etc/ldap/ssl/ldap.fripost.org.key
+# If we are being offered a client cert, it has to be trusted (in which
+# case we map the X.509 subject to a DN in our namespace), or we
+# terminate the connection.  Not providing a certificate is fine for
+# TLS-protected simple binds, though.
+olcTLSVerifyClient: try
 olcTLSCACertificateFile: /etc/ldap/ssl/clients.pem
-olcTLSVerifyClient: allow
 olcAuthzRegexp: "^(cn=[^,]+,ou=syncRepl),ou=LDAP,ou=SSLcerts,o=Fripost$"
                 "$1,dc=fripost,dc=org"
 olcSaslSecProps: minssf=128,noanonymous,noplain,nodict
