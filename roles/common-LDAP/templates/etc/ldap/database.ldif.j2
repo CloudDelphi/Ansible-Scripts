@@ -246,40 +246,34 @@ olcAccess: to dn.subtree="dc=fripost,dc=org"
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Base
 #
-# * The SyncRepl replicates may use the base as a searchBase, when using
-#   a TLS-protected connection.
-# * So can Dovecot on the MDA (for the iterate filter), when
-#   SASL-binding using the EXTERNAL mechanism and connecting to a local
-#   ldapi:// socket.
+# * Only SyncRepl replicates may access operational attributes in the
+#   subtree, when using a TLS-protected connection.
+{% if 'LDAP-provider' in group_names -%}
+olcAccess: to dn.subtree="ou=virtual,dc=fripost,dc=org"
+        attrs=entryDN,entryCSN,entryUUID,structuralObjectClass,hasSubordinates,subschemaSubentry
+    by dn.onelevel="ou=syncRepl,dc=fripost,dc=org" tls_ssf=128 =rsd
+    by *                                                       =0
+#
+# * They may also read entries (ie, the attributes they have access to
+#   as per the ACL below) in that subtree, when using a TLS-protected
+#   connection.  Listing entries (their DN) is required to replicate
+#   deletions properly.
+olcAccess: to dn.subtree="ou=virtual,dc=fripost,dc=org"
+        attrs=entry,objectClass
+    by dn.onelevel="ou=syncRepl,dc=fripost,dc=org" tls_ssf=128 =rsd
+    by users                                                   =0   break
+{% endif -%}
+#
+# * Dovecot may use the base as a searchBase on the MDA (for the iterate
+#   filter), when SASL-binding using the EXTERNAL mechanism and
+#   connecting to a local ldapi:// socket.
+{% if 'MDA' in group_names -%}
 olcAccess: to dn.exact="ou=virtual,dc=fripost,dc=org"
         attrs=entry,objectClass
         filter=(objectClass=FripostVirtual)
-    {% if 'LDAP-provider' in group_names -%}
-    {% if groups.MX | difference([inventory_hostname]) -%}
-    by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"              tls_ssf=128               =rsd
-    {% endif -%}
-    {% if groups.lists | difference([inventory_hostname]) -%}
-    by dn.exact="cn=lists,ou=syncRepl,dc=fripost,dc=org"           tls_ssf=128               =rsd
-    {% endif -%}
-    {% endif -%}
-    {% if 'MDA' in group_names -%}
     by dn.exact="username=dovecot,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://" =sd
-    {% endif -%}
     by users                                                                                 =0 break
-#
-# * Only SyncRepl replicates may access operational attributes in the
-#   subtree, when using a TLS-protected connection.
-olcAccess: to dn.subtree="ou=virtual,dc=fripost,dc=org"
-        attrs=structuralObjectClass,createTimestamp,creatorsName,entryDN,entryUUID,modifiersName,modifyTimestamp,hasSubordinates,subschemaSubentry
-    {% if 'LDAP-provider' in group_names -%}
-    {% if groups.MX | difference([inventory_hostname]) -%}
-    by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"    tls_ssf=128 =rsd
-    {% endif -%}
-    {% if groups.lists | difference([inventory_hostname]) -%}
-    by dn.exact="cn=lists,ou=syncRepl,dc=fripost,dc=org" tls_ssf=128 =rsd
-    {% endif -%}
-    {% endif -%}
-    by *                                                             =0
+{% endif -%}
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Domain entries
