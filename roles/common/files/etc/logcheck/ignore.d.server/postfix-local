@@ -40,4 +40,5 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-out/smtp\[[[:digit:]]+\]: [[:upper:][:digit:]]+: enabling PIX <CRLF>\.<CRLF> workaround for [._[:alnum:]-]+\[[[:digit:].]{7,15}\](:[[:digit:]]{1,5})?$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-out/smtp\[[[:digit:]]+\]: [[:upper:][:digit:]]+: enabling PIX workarounds:( (disable_esmtp|delay_dotcrlf))+ for [._[:alnum:]-]+\[[[:digit:].]{7,15}\](:[[:digit:]]{1,5})?$
 #
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ amavis\[[[:digit:]]+\]: \([-[:digit:]]+\) Passed CLEAN {RelayedOutbound}, OUTGOING LOCAL \[(IPv6:)?[[:xdigit:].:]{3,39}\]:[[:digit:]]+( \[[[:xdigit:].:]{3,39}\])? <[^>]*> -> <[^>]*>(,<[^>]*>)*,( Queue-ID: [[:xdigit:]]+,)?( Message-ID: <[^>]+>,)? mail_id: [_-+[:alnum:]]+, Hits: -, size: [[:digit:]]+, queued_as: [[:xdigit:]]+, dkim_new=[-.:[:alnum:]]+, [[:digit:]]+ ms$
+# Amavis
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ amavis\[[[:digit:]]+\]: \([-[:digit:]]+\) Passed (CLEAN|UNCHECKED) {RelayedOutbound}, OUTGOING LOCAL \[(IPv6:)?[[:xdigit:].:]{3,39}\]:[[:digit:]]+( \[[[:xdigit:].:]{3,39}\])? <[^>]*> -> <[^>]*>(,<[^>]*>)*,( Queue-ID: [[:xdigit:]]+,)?( Message-ID: <[^>]+>,)? mail_id: [_-+[:alnum:]]+, Hits: -, size: [[:digit:]]+, queued_as: [[:xdigit:]]+, dkim_new=[-.:[:alnum:]]+, [[:digit:]]+ ms$

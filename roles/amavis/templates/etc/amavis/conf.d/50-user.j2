@@ -18,7 +18,6 @@ $recipient_delimiter = '+';
 
 $mydomain = 'fripost.org';
 $X_HEADER_LINE = "Debian $myproduct_name at $mydomain";
-undef $undecipherable_subject_tag;
 
 @mynetworks_maps = ();
 @remove_existing_spam_headers_maps = ();
@@ -45,20 +44,23 @@ $signed_header_fields{received} = 0;
 
 
 
-# Defang viruses only
-%defang_maps_by_ccat = ( CC_VIRUS, 1
-                       , CC_CATCHALL, undef
+# Defang viruses and nothing else
+%defang_maps_by_ccat = ( &CC_VIRUS    => 1
+                       , &CC_CATCHALL => undef
                        );
+
+# Don't change the subject for unchecked messages (not by-recip)
+delete $subject_tag_maps_by_ccat{+CC_UNCHECKED};
 
 # Never BCC / DSN; don't forget to disallow setting amavisSpamDsnCutoffLevel
 # and amavis*Admin, also
-%always_bcc_by_ccat = ( CC_CATCHALL, undef );
-%dsn_bcc_by_ccat    = ( CC_CATCHALL, undef );
+%always_bcc_by_ccat = ( &CC_CATCHALL => undef );
+%dsn_bcc_by_ccat    = ( &CC_CATCHALL => undef );
 
 # Never warn sender or recipient; don't forget to disallow setting
 # amavisWarn*Recip, also
-%warnsender_by_ccat     = ( CC_CATCHALL, undef );
-%warnrecip_maps_by_ccat = ( CC_CATCHALL, undef );
+%warnsender_by_ccat     = ( &CC_CATCHALL => undef );
+%warnrecip_maps_by_ccat = ( &CC_CATCHALL => undef );
 
 
 # A couple of common banned rules one might can refer by their name
@@ -148,13 +150,13 @@ $policy_bank{'OUTGOING'} = {
   bypass_header_checks_maps => 1,
   bypass_spam_checks_maps   => 1,
 
-  # If found, notify postmaster, quarantine, then discard
-  quarantine_to_maps_by_ccat => { CC_VIRUS, [$virus_quarantine_to],     CC_CATCHALL, undef  },
-  quarantine_method_by_ccat  => { CC_VIRUS, [$virus_quarantine_method], CC_CATCHALL, undef  },
-  admin_maps_by_ccat         => { CC_VIRUS, ["postmaster\@$mydomain"],  CC_CATCHALL, undef  },
-  addr_extension_maps_by_ccat=> {                                       CC_CATCHALL, undef  },
-  lovers_maps_by_ccat        => { CC_VIRUS, undef,                      CC_CATCHALL, 1      }, 
-  final_destiny_by_ccat      => { CC_VIRUS, D_DISCARD,                  CC_CATCHALL, D_PASS },
+  # If a virus is found, notify postmaster, quarantine, then discard.
+  # Treat unchecked mails (eg, encrypted) as clean.
+  quarantine_to_maps_by_ccat => { &CC_VIRUS => [$virus_quarantine_to],     &CC_UNCHECKED => undef, &CC_CLEAN => undef       },
+  quarantine_method_by_ccat  => { &CC_VIRUS => [$virus_quarantine_method], &CC_UNCHECKED => undef, &CC_CLEAN => undef       },
+  admin_maps_by_ccat         => { &CC_VIRUS => ["postmaster\@$mydomain"],  &CC_UNCHECKED => undef                           },
+  lovers_maps_by_ccat        => { &CC_VIRUS => undef,                      &CC_UNCHECKED => 1                               },
+  final_destiny_by_ccat      => { &CC_VIRUS => D_DISCARD,                  &CC_UNCHECKED => D_PASS, &CC_OVERSIZED => D_PASS },
 };
 
 $policy_bank{'INCOMING'} = {
@@ -169,15 +171,16 @@ $policy_bank{'INCOMING'} = {
                       , 'amavis' # catch-all
                       ],
 
-  # Never quarantine
+  # Never quarantine, and never notify.
   # (Remember to disallow setting amavisSpamQuarantineCutoffLevel and
   # amavisVirusQuarantine*To in the LDAP schema.)
-  quarantine_method_by_ccat => { CC_CATCHALL, undef },
-  admin_maps_by_ccat        => { CC_CATCHALL, undef },
+  # XXX: users might want to quarantine messages and get a notification instead
+  quarantine_method_by_ccat => { map {$_ => undef} (CC_VIRUS, CC_BANNED, CC_UNCHECKED, CC_SPAM, CC_BADH, CC_CLEAN) },
+  admin_maps_by_ccat        => { map {$_ => undef} (CC_VIRUS, CC_BANNED, CC_UNCHECKED, CC_SPAM, CC_BADH          ) },
 
   # Always deliver messages
-  final_destiny_by_ccat => { CC_CATCHALL, D_PASS },
-  lovers_maps_by_ccat   => { CC_CATCHALL, 1      },
+  final_destiny_by_ccat  => { map {$_ => D_PASS} (CC_VIRUS, CC_BANNED, CC_UNCHECKED, CC_SPAM,            CC_BADH) },
+  lovers_maps_by_ccat    => { map {$_ => 1     } (CC_VIRUS, CC_BANNED, CC_UNCHECKED, CC_SPAM, CC_SPAMMY, CC_BADH) },
 };
 
 #------------ Do not modify anything below this line -------------
