@@ -45,15 +45,16 @@ recipient_delimiter = +
 relay_transport   = error:5.1.1 Relay unavailable
 default_transport = error:5.1.1 Transport unavailable
 
-# Virtual transport (the alias resolution is already done by the MX:es)
+# Virtual transport (the alias resolution and address validation is
+# performed on the MX:es only)
 virtual_transport       = lmtp:unix:private/dovecot-lmtpd
 lmtp_bind_address       = 127.0.0.1
-virtual_mailbox_domains = ldap:$config_directory/virtual/mailbox_domains.cf
-virtual_mailbox_maps    = ldap:$config_directory/virtual/mailbox.cf
-transport_maps          = ldap:$config_directory/virtual/transport_content_filter.cf
+virtual_mailbox_domains = static:all
+virtual_mailbox_maps    = static:all
+#transport_maps          = cdb:$config_directory/transport
 
 # Restore the original envelope recipient
-relay_domains               = $myhostname
+relay_domains               =
 recipient_canonical_classes = envelope_recipient
 recipient_canonical_maps    = pcre:$config_directory/recipient_canonical.pcre
 

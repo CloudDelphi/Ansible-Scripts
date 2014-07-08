@@ -12,28 +12,15 @@
   notify:
     - Reload Postfix
 
-- name: Create directory /etc/postfix-.../virtual
-  file: path=/etc/postfix-{{ postfix_instance[inst].name }}/virtual
-        state=directory
-        owner=root group=root
-        mode=0755
-
-- name: Copy lookup tables
-  copy: src=etc/postfix/virtual/{{ item }}
-        dest=/etc/postfix-{{ postfix_instance[inst].name }}/virtual/{{ item }}
+- name: Copy the transport and recipient canonical maps
+  copy: src=etc/postfix/{{ item }}
+        dest=/etc/postfix-{{ postfix_instance[inst].name }}/{{ item }}
         owner=root group=root
         mode=0644
   with_items:
-    - mailbox_domains.cf
-    - mailbox.cf
-    - transport_content_filter.cf
-
-- name: Copy recipient canonical
-  # no need to reload upon change, as cleanup(8) is short-running
-  copy: src=etc/postfix/recipient_canonical.pcre
-        dest=/etc/postfix-{{ postfix_instance[inst].name }}/recipient_canonical.pcre
-        owner=root group=root
-        mode=0644
+    # no need to reload upon change, as cleanup(8) is short-running
+    - recipient_canonical.pcre
+    - transport
 
 - name: Build the Postfix relay clientcerts map
   sudo: False
@@ -59,6 +46,14 @@
            mode=0644
   tags:
     - tls_policy
+
+- name: Compile the Postfix transport maps
+  # trivial-rewrite(8) is a long-running process, so it's safer to reload
+  postmap: cmd=postmap src=/etc/postfix-{{ postfix_instance[inst].name }}/transport db=cdb
+           owner=root group=root
+           mode=0644
+  notify:
+    - Reload Postfix
 
 - meta: flush_handlers
 

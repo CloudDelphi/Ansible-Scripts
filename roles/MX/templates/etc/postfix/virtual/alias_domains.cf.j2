@@ -6,6 +6,7 @@ scope            = one
 bind             = yes
 bind_dn          = cn=postfix,ou=services,dc=fripost,dc=org
 bind_pw          = FIXME
+# The domain has already been validated (it's active and not pending)
 query_filter     = (&(objectClass=FripostVirtualAliasDomain)(fvd=%d))
 result_attribute = fripostMaildrop
 result_format    = %U@%s

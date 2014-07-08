@@ -20,6 +20,8 @@ out     tcp     636                                     # LDAPS
 {% endif %}
 {% if 'MX' in group_names %}
 in      tcp     25                                      # SMTP
+out     tcp     {{ postfix_instance.IMAP.port }}
+out     tcp     {{ postfix_instance.lists.port }}
 {% endif %}
 {% if 'out' in group_names %}
 in      tcp     {{ postfix_instance.out.port }}

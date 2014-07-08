@@ -55,11 +55,14 @@
     - catchall.cf
     - transport
 
-- name: Compile the Reserved Transport Maps
+- name: Compile the Postfix transport maps
+  # trivial-rewrite(8) is a long-running process, so it's safer to reload
   postmap: instance={{ postfix_instance[inst].name }}
            src=/etc/postfix-{{ postfix_instance[inst].name }}/virtual/transport db=cdb
            owner=root group=root
            mode=0644
+  notify:
+    - Reload Postfix
 
 - name: Copy reserved-alias.pl
   copy: src=usr/local/sbin/reserved-alias.pl

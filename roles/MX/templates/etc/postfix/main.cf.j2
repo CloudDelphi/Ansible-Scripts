@@ -54,7 +54,7 @@ relay_domains =
 # We use a dedicated "virtual" domain to decongestion potential
 # bottlenecks on trivial_rewrite(8) due to slow LDAP lookups in
 # tranport_maps.
-virtual_transport = error:5.1.1 Virtual transport unavailable
+virtual_transport       = error:5.1.1 Virtual transport unavailable
 virtual_mailbox_domains = ldap:$config_directory/virtual/mailbox_domains.cf
 virtual_alias_maps      = pcre:$config_directory/virtual/reserved_alias.pcre
                           # first we do the alias resolution...

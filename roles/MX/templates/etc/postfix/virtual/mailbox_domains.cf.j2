@@ -5,6 +5,6 @@ scope            = one
 bind             = yes
 bind_dn          = cn=postfix,ou=services,dc=fripost,dc=org
 bind_pw          = FIXME
-query_filter     = (&(objectClass=FripostVirtualDomain)(fvd=%s))
+query_filter     = (&(objectClass=FripostVirtualDomain)(!(objectClass=FripostPendingEntry))(fvd=%s)(fripostIsStatusActive=TRUE))
 result_attribute = fvd
 result_format    = OK

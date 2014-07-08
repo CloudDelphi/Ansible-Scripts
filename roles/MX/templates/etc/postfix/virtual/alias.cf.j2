@@ -6,5 +6,5 @@ scope            = one
 bind             = yes
 bind_dn          = cn=postfix,ou=services,dc=fripost,dc=org
 bind_pw          = FIXME
-query_filter     = (&(objectClass=FripostVirtualAlias)(fvl=%u))
+query_filter     = (&(objectClass=FripostVirtualAlias)(fvl=%u)(fripostIsStatusActive=TRUE))
 result_attribute = fripostMaildrop
