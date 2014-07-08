@@ -8,6 +8,7 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: Disconnecting: Change of username or service not allowed: \(\S+\) -> \(\S+\) \[preauth\]$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: userauth_pubkey: unsupported public key algorithm: [[:alnum:]-]+ \[preauth\]$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: fatal: Write failed: (Connection (timed out|reset by peer)|Broken pipe) \[preauth\]$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (slapd\[[[:digit:]]+\]|slap(acl|add|auth|cat|dn|index)|ldap(add|compare|delete|exop|modify|modrdn|passwd|search|url|whoami)): DIGEST-MD5 common mech free$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sudo:[[:space:]]+[_[:alnum:].-]+ : TTY=(unknown|(pts/|tty|vc/)[[:digit:]]+) ; PWD=[^;]+ ; USER=[._[:alnum:]-]+ (; ENV=([_a-zA-Z]+=\S* )+)?; COMMAND=(/(usr|etc|bin|sbin)/|sudoedit )
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ rsyslogd: \[origin software="rsyslogd" swVersion="[.[:digit:]]+" x-pid="[[:digit:]]+" x-info="http://www.rsyslog.com"\] rsyslogd was HUPed$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ ansible-([a-z]+|<stdin>): Invoked with
