@@ -1,8 +1,10 @@
 server_host      = ldapi://%2Fprivate%2Fldapi/
 version          = 3
-search_base      = fvd=%s,ou=virtual,dc=fripost,dc=org
-scope            = base
-bind             = none
+search_base      = ou=virtual,dc=fripost,dc=org
+scope            = one
+bind             = yes
+bind_dn          = cn=postfix,ou=services,dc=fripost,dc=org
+bind_pw          = FIXME
 query_filter     = (&(objectClass=FripostVirtualDomain)(fvd=%s))
 result_attribute = fvd
 result_format    = OK

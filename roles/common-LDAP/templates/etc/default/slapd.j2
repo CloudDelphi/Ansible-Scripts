@@ -20,7 +20,7 @@ SLAPD_PIDFILE=
 # service requests on TCP-port 636 (ldaps) and requests via unix
 # sockets.
 SLAPD_SERVICES="ldapi:///"
-{% for i in ['IMAP','MX','lists'] | intersect(group_names) | sort %}
+{% for i in group_names | intersect(['MX','lists']) | sort %}
 SLAPD_SERVICES="$SLAPD_SERVICES ldapi://%2Fvar%2Fspool%2Fpostfix-{{ postfix_instance[i].name }}%2Fprivate%2Fldapi/"
 {% endfor %}
 {% if 'LDAP-provider' in group_names %}

@@ -264,16 +264,22 @@ olcAccess: to dn.subtree="ou=virtual,dc=fripost,dc=org"
     by users                                                   =0   break
 {% endif -%}
 #
-# * Dovecot may use the base as a searchBase on the MDA (for the iterate
-#   filter), when SASL-binding using the EXTERNAL mechanism and
-#   connecting to a local ldapi:// socket.
-{% if 'MDA' in group_names -%}
+# * Postfix may use the base as a searchBase on the MX:es, when
+#   connecting a local ldapi:// socket from the 'private' directory in
+#   one of the non-default instance's chroot.
+# * So may Dovecot on the MDA (needed for the iterate filter), when
+#   SASL-binding using the EXTERNAL mechanism and connecting to a local
+#   ldapi:// socket.
 olcAccess: to dn.exact="ou=virtual,dc=fripost,dc=org"
         attrs=entry,objectClass
         filter=(objectClass=FripostVirtual)
-    by dn.exact="username=dovecot,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://" =sd
-    by users                                                                                 =0 break
-{% endif -%}
+    {% if 'MDA' in group_names -%}
+    by dn.exact="username=dovecot,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://"                                            =sd
+    {% endif -%}
+    {% if 'MX' in group_names -%}
+    by dn.exact="cn=postfix,ou=services,dc=fripost,dc=org" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =sd
+    {% endif -%}
+    by users                                                                                                                            =0 break
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Domain entries
@@ -335,13 +341,16 @@ olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
 #   the MX:es, when SASL-binding using the EXTERNAL mechanism and
 #   connecting to a local ldapi:// socket.  This is required for the
 #   'reserved-alias.pl' script.
-{% if 'MX' in group_names %}
 olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
         attrs=fripostOwner,fripostPostmaster
         filter=(&(objectClass=FripostVirtualDomain)(!(objectClass=FripostPendingEntry)))
-    by dn.exact="username=nobody,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://" =rsd
-    by users                                                                                =0 break
-{% endif %}
+    {% if 'LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) -%}
+    by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"                                       tls_ssf=128   =rsd
+    {% endif -%}
+    {% if 'MX' in group_names %}
+    by dn.exact="username=nobody,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://"               =rsd
+    {% endif -%}
+    by users                                                                                              =0 break
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Alias domain entries
