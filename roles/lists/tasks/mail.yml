@@ -24,7 +24,7 @@
         owner=root group=root
         mode=0644
   with_items:
-    - mailbox_domains.cf
+    - domains.cf
     - transport_list.cf
 
 - meta: flush_handlers

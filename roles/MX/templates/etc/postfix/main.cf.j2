@@ -54,19 +54,18 @@ relay_domains =
 # We use a dedicated "virtual" domain to decongestion potential
 # bottlenecks on trivial_rewrite(8) due to slow LDAP lookups in
 # tranport_maps.
-virtual_transport       = error:5.1.1 Virtual transport unavailable
-virtual_mailbox_domains = ldap:$config_directory/virtual/mailbox_domains.cf
-virtual_alias_maps      = pcre:$config_directory/virtual/reserved_alias.pcre
-                          # first we do the alias resolution...
-                          ldap:$config_directory/virtual/alias.cf
-                          # ...and unless there is matching mailbox/list...
-                          ldap:$config_directory/virtual/mailbox.cf
-                          ldap:$config_directory/virtual/list.cf
-                          # ...we resolve alias domains and catch alls
-                          ldap:$config_directory/virtual/alias_domains.cf
-                          ldap:$config_directory/virtual/catchall.cf
-virtual_mailbox_maps    =
-transport_maps          = cdb:$config_directory/virtual/transport
+virtual_transport     = error:5.1.1 Virtual transport unavailable
+virtual_alias_domains = ldap:$config_directory/virtual/domains.cf
+virtual_alias_maps    = pcre:$config_directory/virtual/reserved_alias.pcre
+                        # first we do the alias resolution...
+                        ldap:$config_directory/virtual/alias.cf
+                        # ...and unless there is matching mailbox/list...
+                        ldap:$config_directory/virtual/mailbox.cf
+                        ldap:$config_directory/virtual/list.cf
+                        # ...we resolve alias domains and catch alls
+                        ldap:$config_directory/virtual/alias_domains.cf
+                        ldap:$config_directory/virtual/catchall.cf
+transport_maps        = cdb:$config_directory/virtual/transport
 
 
 # Don't rewrite remote headers

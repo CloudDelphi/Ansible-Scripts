@@ -45,7 +45,7 @@
             owner=root group=root
             mode=0644
   with_items:
-    - mailbox_domains.cf
+    - domains.cf
     # no need to reload upon change, as cleanup(8) is short-running
     - reserved_alias.pcre
     - alias.cf
