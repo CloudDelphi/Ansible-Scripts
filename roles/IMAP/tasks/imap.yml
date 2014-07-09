@@ -33,6 +33,12 @@
         owner=root group=root
         mode=0755
 
+- name: Create /home/mail/virtual
+  file: path=/home/mail/virtual
+        state=directory
+        owner=vmail group=vmail
+        mode=0700
+
 - name: Create virtual mailbox directories
   file: path=/etc/dovecot/virtual/{{ item }}
         state=directory
@@ -56,8 +62,6 @@
     - unseen
 
 - name: Create directory /home/mail/spamspool
-  # There is no possibility for a name clash, since 'spamspool' isn't a
-  # valid domain
   file: path=/home/mail/spamspool
         state=directory
         owner=vmail group=vmail

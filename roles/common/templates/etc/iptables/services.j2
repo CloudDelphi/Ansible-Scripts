@@ -41,6 +41,6 @@ in      tcp     587                                     # SMTP-AUTH
 {% endif %}
 {% if 'webmail' in group_names %}
 in     tcp      80,443                                  # HTTP/HTTPS
-out    tcp      993                                     # IMAP # TODO imapc
+out    tcp      993                                     # IMAP
 out    tcp      4190
 {% endif %}

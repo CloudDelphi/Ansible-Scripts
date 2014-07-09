@@ -24,7 +24,7 @@ passdb {
 #  args = /etc/dovecot/dovecot-ldap-userdb.conf.ext
 #
 #  # Default fields can be used to specify defaults that LDAP may override
-#  default_fields = home=/home/mail/%d/%n
+#  default_fields = home=/home/mail/virtual/%d/%n
 #}
 
 # If you don't have any user-specific settings, you can avoid the userdb LDAP
@@ -35,5 +35,5 @@ userdb {
 
   # The MTA has already verified the existence of users when doing alias resolution,
   # so we can skip the passdb lookup here.
-  args = home=/home/mail/%d/%n allow_all_users=yes
+  args = home=/home/mail/virtual/%d/%n allow_all_users=yes
 }
