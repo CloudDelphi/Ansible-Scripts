@@ -55,7 +55,8 @@ relay_domains =
 # bottlenecks on trivial_rewrite(8) due to slow LDAP lookups in
 # tranport_maps.
 virtual_transport     = error:5.1.1 Virtual transport unavailable
-virtual_alias_domains = ldap:$config_directory/virtual/domains.cf
+virtual_alias_domains = !cdb:$config_directory/virtual/transport
+                        ldap:$config_directory/virtual/domains.cf
 virtual_alias_maps    = pcre:$config_directory/virtual/reserved_alias.pcre
                         # first we do the alias resolution...
                         ldap:$config_directory/virtual/alias.cf

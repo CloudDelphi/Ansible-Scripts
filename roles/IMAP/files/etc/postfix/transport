@@ -1,1 +1,17 @@
+# Each valid address user@example.org is aliased (on the MX) into some
+# example.org/user@xxx.fripost.org, and non-defaults next-hop:port are
+# chosen here in that table, depending on 'xxx'.  The reason for such
+# indirection is that there is only one qmgr(8) daemon, which delegate
+# the routing strategy to the trivial-rewrite(8), which in turns queries
+# transport_maps.  Hence high latency maps such as LDAP or SQL would
+# congestion the queue manager.  On the other hand, virtual aliasing is
+# performed by cleanup(8), multiples instances of which can run in
+# parallel. See http://www.postfix.org/ADDRESS_REWRITING_README.html .
+#
+# /!\ WARNING: xxx.fripost.org should NOT be in the list of valid
+# domains ($virtual_alias_domains)!  Otherwise at the next iteration of
+# the alias resolution loop the domain will be validated but not the
+# address, and the MTA will reply with "Recipient address rejected: User
+# unknown in virtual alias table".
+
 filter.mda.fripost.org  amavisfeed:[127.0.0.1]:10041
