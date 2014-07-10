@@ -88,16 +88,24 @@ olcSecurity: simple_bind=128 ssf=128 update_ssf=128
 #
 # To reindex an existing database, you have to
 #  * Stop slapd     sudo service slapd stop
-#  * Reindex        su openldap -c "slapindex -b 'dc=fripost,dc=org'"
+#  * Reindex        sudo -u openldap slapindex -b 'dc=fripost,dc=org'
 #  * Restart slapd  sudo service slapd start
 #
 olcDbIndex: objectClass eq
 # Let us make Postfix's life easier.
-{% if 'MX' in group_names or 'MDA' in group_names %}
+{% if 'LDAP-provider' in group_names %}
+olcDbIndex: fvd,fvl eq,sub
+olcDbIndex: fripostIsStatusActive eq
+{% elif 'MX' in group_names or 'MDA' in group_names %}
 olcDbIndex: fripostIsStatusActive,fvd,fvl eq
 {% endif %}
-{% if 'MX' in group_names %}
+{% if 'LDAP-provider' in group_names %}
+olcDbIndex: fripostOptionalMaildrop,fripostMaildrop eq,sub
+olcDbIndex: fripostCanAddAlias,fripostCanAddList,fripostOwner,fripostPostmaster,fripostListManager eq
+{% elif 'MX' in group_names %}
 olcDbIndex: fripostOptionalMaildrop pres
+{% endif %}
+{% if 'LDAP-provider' in group_names %}
 {% endif %}
 {% if ('LDAP-provider' not in group_names and
        ('MX' in group_names or 'lists' in group_names)) or
