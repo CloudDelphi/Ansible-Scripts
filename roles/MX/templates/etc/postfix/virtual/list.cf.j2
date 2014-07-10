@@ -7,7 +7,7 @@ bind             = yes
 bind_dn          = cn=postfix,ou=services,dc=fripost,dc=org
 bind_pw          = FIXME
 query_filter     = (&(objectClass=FripostVirtualList)(!(objectClass=FripostPendingEntry))(fvl=%u)(fripostIsStatusActive=TRUE))
-result_attribute = fvl
+result_attribute = fripostListManager
 # Use a dedicated "virtual" domain to decongestion potential bottlenecks
 # on trivial_rewrite(8) due to slow LDAP lookups in tranport_maps.
-result_format    = %D/%U@mailman.fripost.org
+result_format    = %D/%U@%s.fripost.org
