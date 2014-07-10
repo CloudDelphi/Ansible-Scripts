@@ -85,23 +85,12 @@
 - name: Delete /etc/aliases.db
   file: path=/etc/aliases.db state=absent
 
-- name: Build the Postfix TLS policy map
-  sudo: False
-  # smtp_tls_fingerprint_digest MUST be sha256!
-  local_action: shell openssl x509 -in certs/postfix/{{ item }}.pem -noout -fingerprint -sha256 | cut -d= -f2
-  with_items: groups.out | sort
-  register: tls_policy
-  changed_when: False
-  when: "'out' not in group_names"
-  tags:
-    - tls_policy
-
 - name: Copy the Postfix TLS policy map
   template: src=etc/postfix/tls_policy.j2
             dest=/etc/postfix/tls_policy
             owner=root group=root
             mode=0644
-  when: "'out' not in group_names"
+  when: "'out' not in group_names or 'MX' in group_names"
   tags:
     - tls_policy
 
@@ -109,7 +98,7 @@
   postmap: cmd=postmap src=/etc/postfix/tls_policy db=cdb
            owner=root group=root
            mode=0644
-  when: "'out' not in group_names"
+  when: "'out' not in group_names or 'MX' in group_names"
   tags:
     - tls_policy
 
