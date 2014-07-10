@@ -1,5 +1,6 @@
 # {{ ansible_managed }}
+# /!\ WARNING: smtp_tls_fingerprint_digest MUST be sha256!
 
-{% for x in relay_clientcerts.results %}
-{{ x.stdout }}
+{% for h in groups.all | difference([inventory_hostname]) | sort %}
+{{ lookup('pipe', 'openssl x509 -in certs/postfix/'+h+'.pem -noout -fingerprint -sha256 | cut -d= -f2') }} {{ h }}
 {% endfor %}

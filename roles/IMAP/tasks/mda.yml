@@ -22,16 +22,6 @@
     - recipient_canonical.pcre
     - transport
 
-- name: Build the Postfix relay clientcerts map
-  sudo: False
-  # smtpd_tls_fingerprint_digest MUST be sha256!
-  local_action: shell openssl x509 -in certs/postfix/{{ item }}.pem -noout -fingerprint -sha256 | sed -nr 's/^.*=(.*)/\1 {{ item }}/p'
-  with_items: groups.MX | difference([inventory_hostname]) | sort
-  register: relay_clientcerts
-  changed_when: False
-  tags:
-    - tls_policy
-
 - name: Copy the Postfix relay clientcerts map
   template: src=etc/postfix/relay_clientcerts.j2
             dest=/etc/postfix-{{ postfix_instance[inst].name }}/relay_clientcerts
