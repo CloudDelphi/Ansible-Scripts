@@ -101,7 +101,7 @@ olcDbIndex: fripostIsStatusActive,fvd,fvl eq
 {% endif %}
 {% if 'LDAP-provider' in group_names %}
 olcDbIndex: fripostOptionalMaildrop,fripostMaildrop eq,sub
-olcDbIndex: fripostCanAddAlias,fripostCanAddList,fripostOwner,fripostPostmaster,fripostListManager eq
+olcDbIndex: fripostCanAddDomain,fripostCanAddAlias,fripostCanAddList,fripostOwner,fripostPostmaster,fripostListManager eq
 {% elif 'MX' in group_names %}
 olcDbIndex: fripostOptionalMaildrop pres
 {% endif %}
