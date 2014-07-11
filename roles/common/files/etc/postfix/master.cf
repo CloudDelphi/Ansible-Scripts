@@ -57,7 +57,6 @@ amavisfeed unix -       -       n       -       5       lmtp
 # same machine, we need to create another entry, on another port.)
 127.0.0.1:10025 inet n  -       n       -       -       smtpd
     -o content_filter=
-    -o smtpd_timeout=${stress?30}${stress:300}s
     -o smtpd_delay_reject=no
     -o smtpd_client_restrictions=permit_mynetworks,reject
     -o smtpd_helo_restrictions=
