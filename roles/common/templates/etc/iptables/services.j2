@@ -22,11 +22,17 @@ out     tcp     636                                     # LDAPS
 {% endif %}
 {% if 'MX' in group_names %}
 in      tcp     25                                      # SMTP
+{% if 'MDA' not in group_names %}
 out     tcp     {{ postfix_instance.IMAP.port }}
+{% endif %}
+{% if 'lists' not in group_names %}
 out     tcp     {{ postfix_instance.lists.port }}
 {% endif %}
+{% endif %}
 {% if 'out' in group_names %}
+{% if groups.all | difference([inventory_hostname]) %}
 in      tcp     {{ postfix_instance.out.port }}
+{% endif %}
 out     tcp     25                                      # SMTP
 {% else %}
 out     tcp     {{ postfix_instance.out.port }}
@@ -35,7 +41,7 @@ out     tcp     {{ postfix_instance.out.port }}
 in      tcp     993                                     # IMAPS
 in      tcp     4190                                    # ManageSieve
 {% endif %}
-{% if 'MDA' in group_names %}
+{% if 'MDA' in group_names and 'MX' not in group_names %}
 in      tcp     {{ postfix_instance.IMAP.port }}
 {% endif %}
 {% if 'MSA' in group_names %}
@@ -43,6 +49,8 @@ in      tcp     587                                     # SMTP-AUTH
 {% endif %}
 {% if 'webmail' in group_names %}
 in     tcp      80,443                                  # HTTP/HTTPS
+{% if 'IMAP' not in group_names %}
 out    tcp      993                                     # IMAP
 out    tcp      4190
+{% endif %}
 {% endif %}
