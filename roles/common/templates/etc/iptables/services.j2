@@ -7,8 +7,10 @@
 out     tcp     80,443                                  # HTTP/HTTPS
 out     udp     53                                      # DNS
 out     udp     67                                      # DHCP
-
 {% if 'NTP-master' in group_names %}
+in      udp     123                                     # NTP
+out     udp     123                                     # NTP
+{% else %}
 out     udp     123      123                            # NTP
 {% endif %}
 

@@ -22,9 +22,13 @@ server ntp2.gbg.netnod.se iburst
 server ntp1.sth.netnod.se iburst
 server ntp2.sth.netnod.se iburst
 {% else %}
-# Sychronize to our (stratum 2) NTP server through IPSec, to ensure our
-# network has a consistent time.
-server ntp.fripost.org iburst
+# Sychronize to our (stratum 2) NTP server, to ensure our network has a
+# consistent time.
+# TODO: use to pubkey authentication to unsure an attacker doesn't
+# impersonate our NTP server and gives us incorrect time.
+server ntp.fripost.org   iburst
+server 0.se.pool.ntp.org iburst
+server 1.se.pool.ntp.org iburst
 {% endif %}
 
 
@@ -37,8 +41,8 @@ server ntp.fripost.org iburst
 # up blocking replies from your own upstream servers.
 
 # By default, exchange time with everybody, but don't allow configuration.
-restrict -4 default kod notrap nomodify nopeer noquery
-restrict -6 default kod notrap nomodify nopeer noquery
+restrict -4 default limited kod nomodify notrap nopeer noquery
+restrict -6 default limited kod nomodify notrap nopeer noquery
 
 # Local users may interrogate the ntp server more closely.
 restrict 127.0.0.1

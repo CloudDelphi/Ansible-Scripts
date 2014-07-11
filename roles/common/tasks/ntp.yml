@@ -6,12 +6,10 @@
             dest=/etc/ntp.conf
             owner=root group=root
             mode=0644
-  register: r
   notify:
     - Restart ntp
 
+- meta: flush_handlers
+
 - name: Start ntp
   service: name=ntp state=started
-  when: not r.changed
-
-- meta: flush_handlers
