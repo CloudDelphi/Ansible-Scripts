@@ -61,8 +61,8 @@ die "Error: Aborted delivery to '$orig' in attempt to break an alias expansion l
 
 if (defined $domain) {
     # Look for the domain owner or postmaster
-    my $ldap = Net::LDAPI->new();
-    $ldap->bind( sasl => Authen::SASL->new(mechanism => 'EXTERNAL') )
+    my $ldap = Net::LDAPI::->new();
+    $ldap->bind( undef, sasl => Authen::SASL::->new(mechanism => 'EXTERNAL') )
         or die "Error: Couldn't bind";
 
     my @attrs = ( 'fripostPostmaster', 'fripostOwner' );
@@ -104,7 +104,7 @@ if (defined $domain) {
     $ldap->unbind;
 }
 
-my $smtp = Net::SMTP->new( 'localhost:25', Timeout => 1200 );
+my $smtp = Net::SMTP::->new( 'localhost:25', Timeout => 1200 );
 $smtp->mail($sender);
 $smtp->to(@recipients, { Notify => ['FAILURE','DELAY'], SkipBad => 1 });
 $smtp->data(<STDIN>);
