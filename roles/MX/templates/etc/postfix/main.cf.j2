@@ -58,10 +58,9 @@ virtual_transport     = error:5.1.1 Virtual transport unavailable
 virtual_alias_domains = !cdb:$config_directory/virtual/transport
                         ldap:$config_directory/virtual/domains.cf
 virtual_alias_maps    = pcre:$config_directory/virtual/reserved_alias.pcre
-                        # first we do the alias resolution...
-                        ldap:$config_directory/virtual/alias.cf
-                        # ...and unless there is matching mailbox/list...
+                        # unless there is a matching user/alias/list...
                         ldap:$config_directory/virtual/mailbox.cf
+                        ldap:$config_directory/virtual/alias.cf
                         ldap:$config_directory/virtual/list.cf
                         # ...we resolve alias domains and catch alls
                         ldap:$config_directory/virtual/alias_domains.cf
