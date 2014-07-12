@@ -1,29 +1,13 @@
-- name: Install Postfix & Postgrey
+- name: Install Postfix
   apt: pkg={{ item }}
   with_items:
     - postfix
     - postfix-pcre
     - postfix-ldap
     - postfix-cdb
-    - postgrey
+    # The following is for reserved-alias.pl
     - libnet-ldap-perl
     - libauthen-sasl-perl
-
-- name: Configure Postgrey
-  lineinfile: dest=/etc/default/postgrey
-              regexp='^POSTGREY_OPTS='
-              line='POSTGREY_OPTS="--privacy --unix=/var/spool/postfix-{{ postfix_instance[inst].name }}/private/postgrey"'
-              owner=root group=root
-              mode=0644
-  register: r
-  notify:
-    - Restart Postgrey
-
-- name: Start Postgrey
-  service: name=postgrey state=started
-  when: not r.changed
-
-- meta: flush_handlers
 
 - name: Configure Postfix
   template: src=etc/postfix/main.cf.j2

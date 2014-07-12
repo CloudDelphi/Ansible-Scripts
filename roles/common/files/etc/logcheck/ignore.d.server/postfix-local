@@ -6,7 +6,7 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix(-\w+)?/master[[[:digit:]]+]: reload -- version [.[:digit:]]+, configuration /etc/postfix$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix(-\w+)?/smtpd\[[[:digit:]]+\]: (dis)?connect from [^[:space:]]+$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix(-\w+)?/[ls]mtp\[[[:digit:]]+\]: [[:xdigit:]]{10}: to=<[^[:space:]]+>,( orig_to=<[^[:space:]]+>,)? relay=[._[:alnum:]-]+\[[[:digit:].]{7,15}\](:[[:digit:]]{1,5})?, (conn_use=[[:digit:]]+, )?delay=[.[:digit:]]+(, delays=([.[:digit:]]+/){3}[.[:digit:]]+)?(, dsn=2(\.[[:digit:]]+){2})?, status=sent \(2[[:digit:]][[:digit:]] .+\)$
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix(-\w+)?/anvil\[[[:digit:]]+\]: statistics: max (message|recipient|connection) (count|rate) [/[:digit:]s]+ for \(([.:[:xdigit:]]+)?(smtps?|25|submission|587)?:([.:[:xdigit:]]+|unknown)\) at \w{3} [ :[:digit:]]{11}$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix(-\w+)?/anvil\[[[:digit:]]+\]: statistics: max (message|recipient|connection) (count|rate) [/[:digit:]s]+ for \(([.:[:xdigit:]]+)?(smtp[sd]?|25|submission|587)?:([.:[:xdigit:]]+|unknown)\) at \w{3} [ :[:digit:]]{11}$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix(-\w+)?/anvil\[[[:digit:]]+\]: statistics: max cache size [[:digit:]]+ at \w{3} [ :[:digit:]]{11}$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix(-\w+)?/scache\[[[:digit:]]+\]: statistics: start interval \w{3} [ :[:digit:]]{11}$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix(-\w+)?/scache\[[[:digit:]]+\]: statistics: (domain|address) lookup hits=[[:digit:]]+ miss=[[:digit:]]+ success=[[:digit:]]+%$
@@ -46,7 +46,6 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/smtpd\[[[:digit:]]+\]: lost connection after [[:upper:]]+( \([[:digit:]]+ bytes\))? from [._[:alnum:]-]+\[(unknown|[[:xdigit:].:]{3,39})\]$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/smtpd\[[[:digit:]]+\]: [[:upper:][:digit:]]+: reject: (CONNECT|RCPT) from [^[:space:]]+: [45][[:digit:]][[:digit:]]( [45](\.[[:digit:]]){2})? Service unavailable; Client host \[([[:digit:].]{7,15}|[-._[:alnum:]]+)\] blocked using [._[:alnum:]-]+;( .+;)? (from=<[^[:space:]]*> to=<[^[:space:]]+> )?proto=E?SMTP( helo=<[^[:space:]]+>)?$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/smtpd\[[[:digit:]]+\]: [[:upper:][:digit:]]+: reject: RCPT from [^[:space:]]+: [[:digit:]]{3}( [45](\.[[:digit:]]){2})? <[^[:space:]]*>: Relay access denied; from=<[^[:space:]]*> to=<[^[:space:]]+> proto=E?SMTP helo=<[^[:space:]]+>$
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postgrey\[[[:digit:]]+\]: whitelisted: [._[:alnum:]-]+\[[[:xdigit:].:]{3,39}\]$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/smtpd\[[[:digit:]]+\]: warning: ([-._[:alnum:]]+): RBL lookup error: Host or domain name not found\. Name service error for name=\1 type=A: Host not found, try again$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/smtpd\[[[:digit:]]+\]: warning: TLS library problem: [[:digit:]]+:error:[[:xdigit:]]+:SSL routines:SSL3_READ_BYTES:(reason\([[:digit:]]+\)|sslv3 alert (unexpected message|bad certificate)):s3_pkt\.c:[[:digit:]]+:SSL alert number (0|10|42):$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/smtpd\[[[:digit:]]+\]: SSL_accept error from [._[:alnum:]-]+\[[[:xdigit:].:]{3,39}\]: -?[[:digit:]]+$
@@ -57,6 +56,17 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/smtpd\[[[:digit:]]+\]: warning: numeric hostname: [[:xdigit:].:]{3,39}$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/pipe\[[[:digit:]]+\]: [[:upper:][:digit:]]+: to=<[^[:space:]]+>,( orig_to=<[^[:space:]]+>,)* relay=([-_.[:alnum:]]+), delay=[.[:digit:]]+(, delays=([.[:digit:]]+/){3}[.[:digit:]]+)?(, dsn=2(\.[[:digit:]]+){2})?, status=sent \(delivered via \2 service\)$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/smtpd\[[[:digit:]]+\]: warning: Illegal address syntax from [._[:alnum:]-]+\[[[:xdigit:].:]{3,39}\] in MAIL command: .*$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: PASS (OLD|NEW) \[[[:xdigit:].:]{3,39}\]:[[:digit:]]+$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: CONNECT from \[[[:xdigit:].:]{3,39}\]:[[:digit:]]+ to \[[[:xdigit:].:]{3,39}\]:25$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: DISCONNECT \[[[:xdigit:].:]{3,39}\]:[[:digit:]]+$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: PREGREET [[:digit:]]+ after [.[:digit:]]+ from \[[[:xdigit:].:]{3,39}\]:[[:digit:]]+: (EHLO|HELO)\s
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: HANGUP after [.[:digit:]]+ from \[[[:xdigit:].:]{3,39}\]:[[:digit:]]+ in tests (before|after) SMTP handshake$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: DNSBL rank [[:digit:]]+ for \[[[:xdigit:].:]{3,39}\]:[[:digit:]]+$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: NOQUEUE: reject: RCPT from (\[[[:xdigit:].:]{3,39}\]):[[:digit:]]+: [45][[:digit:]][[:digit:]]( [45](\.[[:digit:]]){2})? Service unavailable; client \1 blocked using [._[:alnum:]-]+;( .+;)? (from=<[^[:space:]]*>, to=<[^[:space:]]+>, )?proto=E?SMTP(, helo=<[^[:space:]]+>)?$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: COMMAND TIME LIMIT from \[[[:xdigit:].:]{3,39}\]:[[:digit:]]+$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: cache [a-z]+:\S+ full cleanup: retained=[[:digit:]]+ dropped=[[:digit:]]+ entries$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/dnsblog\[[[:digit:]]+\]: addr [[:xdigit:].:]{3,39} listed by domain [._[:alnum:]-]+ as [[:xdigit:].:]{3,39}$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/dnsblog\[[[:digit:]]+\]: warning: dnsblog_query: lookup error for DNS query ([._[:alnum:]-]+): Host or domain name not found. Name service error for name=\1 type=A: Host not found, try again$
 #
 # Amavis
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ amavis\[[[:digit:]]+\]: \([-[:digit:]]+\) Passed (CLEAN|UNCHECKED) {RelayedOutbound}, OUTGOING LOCAL \[(IPv6:)?[[:xdigit:].:]{3,39}\]:[[:digit:]]+( \[[[:xdigit:].:]{3,39}\])? <[^>]*> -> <[^>]*>(,<[^>]*>)*,( Queue-ID: [[:xdigit:]]+,)?( Message-ID: <[^>]+>,)? mail_id: [_-+[:alnum:]]+, Hits: -, size: [[:digit:]]+, queued_as: [[:xdigit:]]+, dkim_new=[-.:[:alnum:]]+, [[:digit:]]+ ms$
