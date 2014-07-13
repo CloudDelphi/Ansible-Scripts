@@ -282,12 +282,12 @@ olcAccess: to dn.exact="ou=virtual,dc=fripost,dc=org"
         attrs=entry,objectClass
         filter=(objectClass=FripostVirtual)
     {% if 'MDA' in group_names -%}
-    by dn.exact="username=dovecot,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://"                                            =sd
+    by dn.exact="username=dovecot,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://"                                                    =sd
     {% endif -%}
     {% if 'MX' in group_names -%}
-    by dn.exact="cn=postfix,ou=services,dc=fripost,dc=org" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =sd
+    by dn.exact="cn=postfix,ou=services,dc=fripost,dc=org"         sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =sd
     {% endif -%}
-    by users                                                                                                                            =0 break
+    by users                                                                                                                                    =0 break
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Domain entries
@@ -353,12 +353,12 @@ olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
         attrs=fripostOwner,fripostPostmaster
         filter=(&(objectClass=FripostVirtualDomain)(!(objectClass=FripostPendingEntry)))
     {% if 'LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) -%}
-    by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"                                       tls_ssf=128   =rsd
+    by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"             tls_ssf=128               =rsd
     {% endif -%}
     {% if 'MX' in group_names %}
-    by dn.exact="username=nobody,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://"               =rsd
+    by dn.exact="username=nobody,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://" =rsd
     {% endif -%}
-    by users                                                                                              =0 break
+    by users                                                                                =0 break
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Alias domain entries
