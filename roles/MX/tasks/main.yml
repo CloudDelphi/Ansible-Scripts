@@ -23,11 +23,11 @@
         owner=root group=root
         mode=0755
 
-- name: Copy lookup tables
-  template: src=etc/postfix/virtual/{{ item }}.j2
-            dest=/etc/postfix-{{ postfix_instance[inst].name }}/virtual/{{ item }}
-            owner=root group=root
-            mode=0644
+- name: Copy lookup tables (1)
+  file: src=etc/postfix/virtual/{{ item }}
+        dest=/etc/postfix-{{ postfix_instance[inst].name }}/virtual/{{ item }}
+        owner=root group=root
+        mode=0644
   with_items:
     - domains.cf
     # no need to reload upon change, as cleanup(8) is short-running
@@ -37,7 +37,12 @@
     - list.cf
     - alias_domains.cf
     - catchall.cf
-    - transport
+
+- name: Copy lookup tables (2)
+  template: src=etc/postfix/virtual/transport.j2
+            dest=/etc/postfix-{{ postfix_instance[inst].name }}/virtual/transport
+            owner=root group=root
+            mode=0644
 
 - name: Compile the Postfix transport maps
   # trivial-rewrite(8) is a long-running process, so it's safer to reload
