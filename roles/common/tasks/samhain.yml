@@ -1,8 +1,5 @@
 - name: Install samhain
-  apt: pkg={{ item }}
-  with_items:
-    - samhain
-    - auditd
+  apt: pkg=samhain
   # XXX: Doesn't work out of the box, see #660197.
   # Every once in a while, or after a major upgrade, you may want to
   # update Samhain's database:

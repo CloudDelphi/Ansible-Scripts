@@ -4,6 +4,7 @@
 - include: apt.yml      tags=apt
 - include: firewall.yml tags=firewall,iptables
 - include: samhain.yml  tags=samhain
+- include: auditd.yml   tags=auditd
 - include: rkhunter.yml tags=rkhunter
 - include: clamav.yml   tags=clamav
 - include: fail2ban.yml tags=fail2ban

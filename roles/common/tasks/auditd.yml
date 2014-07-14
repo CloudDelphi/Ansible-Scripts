@@ -1,0 +1,7 @@
+- name: Install auditd
+  apt: pkg=auditd
+
+- name: Start auditd
+  service: name=auditd state=started
+
+- meta: flush_handlers
