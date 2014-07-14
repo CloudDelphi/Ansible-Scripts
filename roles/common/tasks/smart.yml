@@ -1,5 +1,5 @@
 - name: Install smartmontools
-  # apt-listbugs complains due to #706909.
+  # XXX apt-listbugs complains due to #706909.
   apt: pkg=smartmontools
 
 - name: Auto-enable smartmontools
@@ -11,5 +11,3 @@
 
 - name: Start smartd
   service: name=smartmontools state=started
-  # smartd can be heavy on VMs, don't bother starting it up if it's down
-  when: not (ansible_processor[0] | search("^QEMU Virtual CPU .*"))
