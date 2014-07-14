@@ -2,6 +2,10 @@
 - include: sysctl.yml   tags=sysctl
 - include: hosts.yml
 - include: apt.yml      tags=apt
+- name: Install intel-microcode
+  apt: pkg=intel-microcode
+  when: "ansible_processor[0] | search('^Intel.*') and not (ansible_virtualization_role == 'guest' and ansible_virtualization_type == 'xen')"
+  tags: intel
 - include: firewall.yml tags=firewall,iptables
 - include: samhain.yml  tags=samhain
 - include: auditd.yml   tags=auditd
@@ -16,8 +20,7 @@
         dest=/usr/local/bin/genkeypair.sh
         owner=root group=root
         mode=0755
-  tags:
-    - genkey
+  tags: genkey
 - include: logging.yml  tags=logging
 - include: ntp.yml      tags=ntp
 - include: mail.yml     tags=mail,postfix
