@@ -31,7 +31,7 @@ if (!@ARGV or grep { $_ eq '-h' or $_ eq '--help' } @ARGV) {
     print STDERR "with '\@', the localpart of 'original recipient' is prepended.\n";
     print STDERR "\n";
     print STDERR "This is mostly useful to comply to RFC 822 section 6.3 and RFC 2142 section\n";
-    print STDERR "4 (to forward mails to 'admin\@' and 'postmaster\@' to the site admin in\n";
+    print STDERR "4 (to forward mails to 'postmaster\@' and 'abuse\@' to the site admin in\n";
     print STDERR "addition to the virtual domain manager).\n";
     exit;
 }
