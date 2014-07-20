@@ -19,10 +19,6 @@ ignoreip = 127.0.0.0/8 {{ groups.all | sort | join(' ') }}
 #
 # JAILS
 #
-# There is no risk to lock ourself out, since traffic between our machines goes
-# through IPSec, and these packets are accepted before having a chance to enter
-# fail2ban's chain.
-#
 
 [ssh]
 
