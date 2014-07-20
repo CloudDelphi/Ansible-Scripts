@@ -38,8 +38,9 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-out/smtp\[[[:digit:]]+\]: [[:alnum:]]+: to=<.*>,( orig_to=<[^[:space:]]+>,)? relay=[^[:space:]]+\](:[[:digit:]]+)?,( conn_use=[[:digit:]]+,)? delay=[[:digit:].]+,( delays=[[:digit:]./]+,)?( dsn=4\.[[:digit:]]\.[[:digit:]],)? status=deferred \(host [^[:space:]]+\] said: .*$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-(mda|out)/smtpd?\[[[:digit:]]+\]: warning: numeric domain name in resource data of MX record for [._[:alnum:]-]+: [[:xdigit:].:]{3,39}$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-msa/smtpd\[[[:digit:]]+\]: SSL_accept error from [._[:alnum:]-]+\[[[:xdigit:].:]{3,39}\]: (lost connection|0)$
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-msa/smtpd\[[[:digit:]]+\]: warning: TLS library problem: 10681:error:14094418:SSL routines:SSL3_READ_BYTES:tlsv1 alert unknown ca:s3_pkt.c:1258:SSL alert number 48:$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-msa/smtpd\[[[:digit:]]+\]: warning: TLS library problem: [[:digit:]]+:error:14094418:SSL routines:SSL3_READ_BYTES:tlsv1 alert unknown ca:s3_pkt.c:1258:SSL alert number 48:$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-out/bounce\[[[:digit:]]+\]: [[:xdigit:]]+: sender (delay|non-delivery|delivery status) notification: [[:xdigit:]]+$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-out/smtp\[[[:digit:]]+\]: [[:upper:][:digit:]]+: host [^[:space:]]+ refused to talk to me: [45][[:digit:]][[:digit:]].*$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-out/smtp\[[[:digit:]]+\]: [[:upper:][:digit:]]+: enabling PIX <CRLF>\.<CRLF> workaround for [._[:alnum:]-]+\[[[:digit:].]{7,15}\](:[[:digit:]]{1,5})?$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-out/smtp\[[[:digit:]]+\]: [[:upper:][:digit:]]+: enabling PIX workarounds:( (disable_esmtp|delay_dotcrlf))+ for [._[:alnum:]-]+\[[[:digit:].]{7,15}\](:[[:digit:]]{1,5})?$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/smtpd\[[[:digit:]]+\]: [[:upper:][:digit:]]+: reject: RCPT from [^[:space:]]+: 4[[:digit:]][[:digit:]]( 4(\.[[:digit:]]){2}) <[^[:space:]]*>: Recipient address rejected: Greylisted( for [[:digit:]]+ (second|minute)s)?, see https?://[-_.:/[:alnum:]]+\.html?; from=<[^[:space:]]*> to=<[^[:space:]]+> proto=E?SMTP helo=<[^[:space:]]+>$
@@ -52,7 +53,7 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/smtpd\[[[:digit:]]+\]: (NOQUEUE|[[:xdigit:]]+): reject: [[:upper:]]+ from [^[:space:]]+: 554( 5\.1\.[01])? <[^[:space:]]*>: Recipient address rejected: User unknown in virtual alias table;( from=<[^[:space:]]*> to=<[^[:space:]]+>)? proto=E?SMTP( helo=<[^[:space:]]+>)?$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/smtpd\[[[:digit:]]+\]: [[:upper:][:digit:]]+: reject: RCPT from [^[:space:]]+: [45][[:digit:]][[:digit:]]( [45](\.[[:digit:]]){2})? <[^[:space:]]*>: Helo command rejected: .+; from=<[^[:space:]]*> to=<[^[:space:]]+> proto=E?SMTP helo=<[^[:space:]]+>$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/smtpd\[[[:digit:]]+\]: too many errors after ([[:upper:]]{4}|END-OF-MESSAGE|UNKNOWN|DATA \(0 bytes\)) from [._[:alnum:]-]+\[[.[:digit:]]+\]$
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/smtpd\[[[:digit:]]+\]: warning: hostname [^[:space:]]+ does not resolve to address [[:xdigit:].:]{3,39}: No address associated with hostname$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/smtpd\[[[:digit:]]+\]: warning: hostname [^[:space:]]+ does not resolve to address [[:xdigit:].:]{3,39}: (No address associated with hostname|Temporary failure in name resolution)$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/smtpd\[[[:digit:]]+\]: warning: (numeric hostname: [[:xdigit:].:]{3,39}|valid_hostname: misplaced delimiter: \S)$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/pipe\[[[:digit:]]+\]: [[:upper:][:digit:]]+: to=<[^[:space:]]+>,( orig_to=<[^[:space:]]+>,)* relay=([-_.[:alnum:]]+), delay=[.[:digit:]]+(, delays=([.[:digit:]]+/){3}[.[:digit:]]+)?(, dsn=2(\.[[:digit:]]+){2})?, status=sent \(delivered via \2 service\)$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/smtpd\[[[:digit:]]+\]: warning: Illegal address syntax from [._[:alnum:]-]+\[[[:xdigit:].:]{3,39}\] in MAIL command: .*$
@@ -63,7 +64,7 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: HANGUP after [.[:digit:]]+ from \[[[:xdigit:].:]{3,39}\]:[[:digit:]]+ in tests (before|after) SMTP handshake$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: BARE NEWLINE from \[[[:xdigit:].:]{3,39}\]:[[:digit:]]+$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: NON-SMTP COMMAND from \[[[:xdigit:].:]{3,39}\]:[[:digit:]]+\s
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: COMMAND PIPELINING from \[[[:xdigit:].:]{3,39}\]:[[:digit:]]+ after HELO:\s
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: COMMAND PIPELINING from \[[[:xdigit:].:]{3,39}\]:[[:digit:]]+ after (HELO|mail: RCPT To):\s
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: DNSBL rank [[:digit:]]+ for \[[[:xdigit:].:]{3,39}\]:[[:digit:]]+$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: NOQUEUE: reject: RCPT from (\[[[:xdigit:].:]{3,39}\]):[[:digit:]]+: [45][[:digit:]][[:digit:]]( [45](\.[[:digit:]]){2})? (Service unavailable; client \1 blocked using [._[:alnum:]-]+|Protocol error);( .+;)? (from=<[^[:space:]]*>, to=<[^[:space:]]+>, )?proto=E?SMTP(, helo=<[^[:space:]]+>)?$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: COMMAND TIME LIMIT from \[[[:xdigit:].:]{3,39}\]:[[:digit:]]+$

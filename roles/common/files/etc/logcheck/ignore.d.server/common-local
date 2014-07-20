@@ -14,3 +14,4 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sudo:[[:space:]]+[_[:alnum:].-]+ : TTY=(unknown|(pts/|tty|vc/)[[:digit:]]+) ; PWD=[^;]+ ; USER=[._[:alnum:]-]+ (; ENV=([_a-zA-Z]+=\S* )+)?; COMMAND=(/(usr|etc|bin|sbin)/|sudoedit )
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ rsyslogd: \[origin software="rsyslogd" swVersion="[.[:digit:]]+" x-pid="[[:digit:]]+" x-info="http://www.rsyslog.com"\] rsyslogd was HUPed$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ ansible-([_a-z]+|<stdin>): Invoked with
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ slapd\[[[:digit:]]+\]: connection_input: conn=[[:digit:]]+ deferring operation: binding$
