@@ -43,7 +43,7 @@
                          --pubkey=/etc/ldap/ssl/{{ item.name }}.pem
                          --privkey=/etc/ldap/ssl/{{ item.name }}.key
                          --ou=LDAP {{ item.ou }} --cn={{ item.name }}
-                         --usage=digitalSignature,keyEncipherment
+                         --usage=digitalSignature,keyEncipherment,keyCertSign
                          -t rsa -b 4096 -h sha256
                          --chown="root:openldap" --chmod=0640
   register: r2

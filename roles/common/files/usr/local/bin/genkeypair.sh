@@ -60,7 +60,7 @@ usage() {
 		    --config:   configuration file
 		    --pubkey:   public key file (default: pubkey.pem)
 		    --privkey:  private key file (default: privkey.pem; created with og-rwx)
-		    --usage:    key usage (default: digitalSignature,keyEncipherment)
+		    --usage:    key usage (default: digitalSignature,keyEncipherment,keyCertSign)
 		    --chmod:    chmod the private key
 		    --chown:    chown the private key
 
@@ -171,7 +171,7 @@ if [ -z "$config" -a \( "$cmd" = x509 -o "$cmd" = csr \) ]; then
 		subjectAltName   = email:admin@fripost.org${dns:+, $dns}
 		basicConstraints = critical, CA:FALSE
 		# https://security.stackexchange.com/questions/24106/which-key-usages-are-required-by-each-key-exchange-method
-		keyUsage         = critical, ${usage:-digitalSignature, keyEncipherment}
+		keyUsage         = critical, ${usage:-digitalSignature, keyEncipherment, keyCertSign}
 	EOF
 fi
 
