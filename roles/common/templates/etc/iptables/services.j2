@@ -5,6 +5,7 @@
 # (in|out|inout)[46]?    (tcp|udp|..) (port|port:port|port,port)  (port|port:port|port,port)
 
 out     tcp     80,443                                  # HTTP/HTTPS
+out     tcp     9418                                    # GIT
 out     udp     53                                      # DNS
 out     udp     67                                      # DHCP
 {% if 'NTP-master' in group_names %}
