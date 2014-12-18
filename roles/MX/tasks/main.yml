@@ -24,7 +24,7 @@
         mode=0755
 
 - name: Copy lookup tables (1)
-  file: src=etc/postfix/virtual/{{ item }}
+  copy: src=etc/postfix/virtual/{{ item }}
         dest=/etc/postfix-{{ postfix_instance[inst].name }}/virtual/{{ item }}
         owner=root group=root
         mode=0644
