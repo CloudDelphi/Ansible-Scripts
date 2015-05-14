@@ -84,7 +84,7 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/tlsproxy\[[[:digit:]]+\]: (CONNECT from|DISCONNECT) \[[[:xdigit:].:]{3,39}\]:[[:digit:]]+$
 #
 # Amavis
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ amavis\[[[:digit:]]+\]: \([-[:digit:]]+\) Passed (CLEAN|UNCHECKED) {RelayedOutbound}, OUTGOING LOCAL \[(IPv6:)?[[:xdigit:].:]{3,39}\]:[[:digit:]]+( \[[[:xdigit:].:]{3,39}\])? <[^>]*> -> <[^>]*>(,<[^>]*>)*,( Queue-ID: [[:xdigit:]]+,)?( Message-ID: <[^>]+>,)? mail_id: [_-+[:alnum:]]+, Hits: -, size: [[:digit:]]+, queued_as: [[:xdigit:]]+, dkim_new=[-.:[:alnum:]]+, [[:digit:]]+ ms$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ amavis\[[[:digit:]]+\]: \([-[:digit:]]+\) Passed (CLEAN|UNCHECKED(-[A-Z]+)?) {RelayedOutbound}, OUTGOING LOCAL \[(IPv6:)?[[:xdigit:].:]{3,39}\]:[[:digit:]]+( \[[[:xdigit:].:]{3,39}\])? <[^>]*> -> <[^>]*>(,<[^>]*>)*,( Queue-ID: [[:xdigit:]]+,)?( Message-ID: <[^>]+>,)? mail_id: [_-+[:alnum:]]+, Hits: -, size: [[:digit:]]+, queued_as: [[:xdigit:]]+, dkim_new=[-.:[:alnum:]]+, [[:digit:]]+ ms$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ amavis\[[[:digit:]]+\]: \([-[:digit:]]+\) Passed (CLEAN|UNCHECKED) {RelayedOutbound}, OUTGOING LOCAL \[(IPv6:)?[[:xdigit:].:]{3,39}\]:[[:digit:]]+( \[[[:xdigit:].:]{3,39}\])? <[^>]*> -> <[^>]*>(,<[^>]*>)*,<[^>]*\.\.\.$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ amavis\[[[:digit:]]+\]: \([-[:digit:]]+\) \.\.\.[^>]*>(,<[^>]*>)*,( Queue-ID: [[:xdigit:]]+,)?( Message-ID: <[^>]+>,)? mail_id: [_-+[:alnum:]]+, Hits: -, size: [[:digit:]]+, queued_as: [[:xdigit:]]+, dkim_new=[-.:[:alnum:]]+, [[:digit:]]+ ms$
 # SMTP client connection caching was introduced in 2.6.0; the SMTP session is held for the next task, and is terminated by Postfix if the next mail comes soon enough

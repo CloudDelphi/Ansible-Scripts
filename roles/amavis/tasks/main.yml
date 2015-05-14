@@ -2,6 +2,7 @@
   apt: pkg={{ item }}
   with_items:
     - amavisd-new
+    - libnet-ldap-perl
     # Mail::DKIM
     - libmail-dkim-perl
     - gzip
@@ -25,10 +26,16 @@
 
 - name: Add 'clamav' to the group 'amavis'
   user: name=clamav groups=amavis append=yes
-  register: r1
   notify:
     - Restart ClamAV
     - Restart Amavis
+
+- name: Set AllowSupplementaryGroups=true
+  lineinfile: "dest=/etc/clamav/clamd.conf
+               regexp='^AllowSupplementaryGroups\\s'
+               line='AllowSupplementaryGroups true'"
+  notify:
+    - Restart ClamAV
 
 - name: Create directory /var/lib/dkim
   file: path=/var/lib/dkim

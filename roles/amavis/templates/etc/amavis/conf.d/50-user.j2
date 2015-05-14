@@ -156,7 +156,7 @@ $policy_bank{'OUTGOING'} = {
   quarantine_method_by_ccat  => { &CC_VIRUS => [$virus_quarantine_method], &CC_UNCHECKED => undef, &CC_CLEAN => undef       },
   admin_maps_by_ccat         => { &CC_VIRUS => ["postmaster\@$mydomain"],  &CC_UNCHECKED => undef                           },
   lovers_maps_by_ccat        => { &CC_VIRUS => undef,                      &CC_UNCHECKED => 1                               },
-  final_destiny_by_ccat      => { &CC_VIRUS => D_DISCARD,                  &CC_UNCHECKED => D_PASS, &CC_OVERSIZED => D_PASS },
+  final_destiny_maps_by_ccat => { &CC_VIRUS => D_DISCARD,                  &CC_UNCHECKED => D_PASS, &CC_OVERSIZED => D_PASS },
 };
 
 $policy_bank{'INCOMING'} = {
@@ -175,12 +175,12 @@ $policy_bank{'INCOMING'} = {
   # (Remember to disallow setting amavisSpamQuarantineCutoffLevel and
   # amavisVirusQuarantine*To in the LDAP schema.)
   # XXX: users might want to quarantine messages and get a notification instead
-  quarantine_method_by_ccat => { map {$_ => undef} (CC_VIRUS, CC_BANNED, CC_UNCHECKED, CC_SPAM, CC_BADH, CC_CLEAN) },
-  admin_maps_by_ccat        => { map {$_ => undef} (CC_VIRUS, CC_BANNED, CC_UNCHECKED, CC_SPAM, CC_BADH          ) },
+  quarantine_method_by_ccat  => { map {$_ => undef} (CC_VIRUS, CC_BANNED, CC_UNCHECKED, CC_SPAM, CC_BADH, CC_CLEAN) },
+  admin_maps_by_ccat         => { map {$_ => undef} (CC_VIRUS, CC_BANNED, CC_UNCHECKED, CC_SPAM, CC_BADH          ) },
 
   # Always deliver messages
-  final_destiny_by_ccat  => { map {$_ => D_PASS} (CC_VIRUS, CC_BANNED, CC_UNCHECKED, CC_SPAM,            CC_BADH) },
-  lovers_maps_by_ccat    => { map {$_ => 1     } (CC_VIRUS, CC_BANNED, CC_UNCHECKED, CC_SPAM, CC_SPAMMY, CC_BADH) },
+  final_destiny_maps_by_ccat => { map {$_ => D_PASS} (CC_VIRUS, CC_BANNED, CC_UNCHECKED, CC_SPAM,            CC_BADH) },
+  lovers_maps_by_ccat        => { map {$_ => 1     } (CC_VIRUS, CC_BANNED, CC_UNCHECKED, CC_SPAM, CC_SPAMMY, CC_BADH) },
 };
 
 #------------ Do not modify anything below this line -------------
