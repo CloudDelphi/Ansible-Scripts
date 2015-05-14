@@ -23,6 +23,7 @@ Pin-Priority: 200
       not (ansible_virtualization_role == 'guest' and ansible_virtualization_type == 'xen') -%}
 # Automatically upgrade the microcode (when manually installed)
 Package: intel-microcode iucode-tool
+Pin: version *
 Pin-Priority: 200
 {% endif %}
 
