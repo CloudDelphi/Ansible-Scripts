@@ -3,7 +3,7 @@
   with_items:
     - rkhunter
     - curl
-    - iproute
+    - iproute2
     - lsof
     - unhide
 
