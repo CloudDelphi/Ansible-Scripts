@@ -13,7 +13,7 @@
 - include: clamav.yml   tags=clamav
 - include: fail2ban.yml tags=fail2ban
 - include: smart.yml    tags=smartmontools,smart
-  when: "not (ansible_virtualization_role == 'guest' and ansible_virtualization_type == 'xen')"
+  when: "not ((ansible_virtualization_role == 'guest' and ansible_virtualization_type == 'xen') or ansible_system_vendor == 'QEMU')"
 - include: haveged.yml  tags=haveged,entropy
 - name: Copy genkeypair.sh
   copy: src=usr/local/bin/genkeypair.sh
