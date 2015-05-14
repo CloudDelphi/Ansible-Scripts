@@ -8,6 +8,7 @@
   lineinfile: dest=/usr/lib/sasl2/slapd.conf
               regexp='^mech_list'':'
               line=mech_list':'' EXTERNAL'
+              create=yes
               owner=root group=root
               mode=0644
 

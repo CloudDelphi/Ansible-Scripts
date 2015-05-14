@@ -41,9 +41,7 @@ olcTLSCACertificateFile: /etc/ldap/ssl/clients.pem
 olcAuthzRegexp: "^(cn=[^,]+,ou=syncRepl),ou=LDAP,ou=SSLcerts,o=Fripost$"
                 "$1,dc=fripost,dc=org"
 olcSaslSecProps: minssf=128,noanonymous,noplain,nodict
-# XXX We would like to say 'PFS' here, but Wheezy'z GnuTLS (libgnutls26
-# 2.12.20-8+deb7u2) is too old :-( (Also, DHE/ECDHE are not supported.)
-olcTLSCipherSuite: SECURE128:!CIPHER-ALL:+AES-128-CBC:+AES-256-CBC:!MD5
+olcTLSCipherSuite: PFS:%LATEST_RECORD_VERSION:!VERS-SSL3.0:!VERS-TLS1.0:!VERS-TLS1.1:!CIPHER-ALL:+AES-128-GCM:+AES-256-GCM
 {% endif %}
 olcLocalSSF: 128
 # /!\ This is not portable! But we only use glibc's crypt(3), which
@@ -52,9 +50,9 @@ olcPasswordHash: {CRYPT}
 olcPasswordCryptSaltFormat: $6$%s
 
 
-dn: olcDatabase=hdb,cn=config
+dn: olcDatabase=mdb,cn=config
 objectClass: olcDatabaseConfig
-objectClass: olcHdbConfig
+objectClass: olcMdbConfig
 olcDbDirectory: /var/lib/ldap
 olcSuffix: dc=fripost,dc=org
 {% if 'LDAP-provider' not in group_names and ('MX' in group_names or 'lists' in group_names) %}
@@ -66,11 +64,6 @@ olcDbCheckpoint: 512 15
 {% else %}
 olcLastMod: FALSE
 {% endif %}
-# See DB_CONFIG
-olcDbConfig: set_cachesize 0 5242880 0
-olcDbConfig: set_lk_max_objects 1500
-olcDbConfig: set_lk_max_locks   1500
-olcDbConfig: set_lk_max_lockers 1500
 # The root user has all rights on the whole database (when SASL-binding
 # on a UNIX socket).
 olcRootDN: gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth
@@ -233,7 +226,7 @@ olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,dc=fripost,dc=org)$"
     by realself                                                     tls_ssf=128               =w
     by group/FripostVirtualDomain/fripostPostmaster.expand="$1"     tls_ssf=128               =w
     by dn.onelevel="ou=admins,dc=fripost,dc=org"                    tls_ssf=128               =w
-    by dn.exact="username=guilhem,cn=peercred,cn=external,cn=auth"  sockurl.regex="^ldapi://" =w
+    by group.exact="cn=admin,ou=groups,dc=fripost,dc=org"                                     =w
 #
 # XXX
 # * Anonymous users are allowed to simple bind as Postfix, but only when
@@ -269,6 +262,10 @@ olcAccess: to dn.subtree="ou=virtual,dc=fripost,dc=org"
 olcAccess: to dn.subtree="ou=virtual,dc=fripost,dc=org"
         attrs=entry,objectClass
     by dn.onelevel="ou=syncRepl,dc=fripost,dc=org" tls_ssf=128 =rsd
+    by group.exact="cn=admin,ou=groups,dc=fripost,dc=org"      =wrsd
+    by users                                                   =0   break
+olcAccess: to dn.children="ou=virtual,dc=fripost,dc=org"
+    by group.exact="cn=admin,ou=groups,dc=fripost,dc=org"      =wrsd
     by users                                                   =0   break
 {% endif -%}
 #

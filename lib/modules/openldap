@@ -50,7 +50,7 @@ indexedAttributes = frozenset([
 # entry.)
 indexedDN = {
     'olcSchemaConfig':  [('cn',             '{*}%s')],
-    'olcHdbConfig':     [('olcDbDirectory', '%s'   )],
+    'olcMdbConfig':     [('olcDbDirectory', '%s'   )],
     'olcOverlayConfig': [('olcOverlay',     '%s'   )],
 }
 

@@ -3,7 +3,7 @@
 # - http://www.zytrax.com/books/ldap/ch7/#ol-syncrepl-rap
 # - man 5 slapo-syncprov
 
-dn: olcOverlay=syncprov,olcDatabase={*}hdb,cn=config
+dn: olcOverlay=syncprov,olcDatabase={*}mdb,cn=config
 objectClass: olcOverlayConfig
 objectClass: olcSyncProvConfig
 olcOverlay: syncprov

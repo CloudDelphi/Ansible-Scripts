@@ -18,12 +18,6 @@
   notify:
     - Restart slapd
 
-- name: Copy DB_CONFIG
-  copy: src=var/lib/ldap/DB_CONFIG
-        dest=/var/lib/ldap/DB_CONFIG
-        owner=openldap group=openldap
-        mode=0644
-
 - name: Create directory /etc/ldap/ssl
   file: path=/etc/ldap/ssl
         state=directory
