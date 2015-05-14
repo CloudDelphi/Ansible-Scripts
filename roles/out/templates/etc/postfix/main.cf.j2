@@ -80,13 +80,14 @@ smtpd_helo_restrictions =
 smtpd_sender_restrictions =
     reject_non_fqdn_sender
 
-smtpd_recipient_restrictions =
-    # RFC requirements
-    reject_non_fqdn_recipient
-    reject_unknown_recipient_domain
+smtpd_relay_restrictions =
     permit_mynetworks
     permit_tls_clientcerts
     reject
+
+smtpd_recipient_restrictions =
+    reject_non_fqdn_recipient
+    reject_unknown_recipient_domain
 
 smtpd_data_restrictions =
     reject_unauth_pipelining

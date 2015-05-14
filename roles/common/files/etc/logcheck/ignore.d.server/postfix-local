@@ -19,7 +19,7 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix(-\w+)?/n?qmgr\[[[:digit:]]+\]: [[:alnum:]]+: removed$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix(-\w+)?/n?qmgr\[[[:digit:]]+\]: [[:alnum:]]+: skipped, still being delivered$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-msa/smtpd\[[[:digit:]]+\]: lost connection after (AUTH|DATA \([[:digit:]]+ bytes\)) from [._[:alnum:]-]+\[[[:digit:].]{7,15}\]$
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-(msa|mx)/smtpd\[[[:digit:]]+\]: lost connection after (CONNECT|STARTTLS) from [._[:alnum:]-]+\[([[:digit:].]{7,15}|unknown)\]$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-\w+/smtpd\[[[:digit:]]+\]: lost connection after (CONNECT|STARTTLS) from [._[:alnum:]-]+\[([[:digit:].]{7,15}|unknown)\]$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-msa/cleanup\[[[:digit:]]+\]: [[:xdigit:]]{10}: replace: header\s
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-msa/smtpd\[[[:digit:]]+\]: [[:xdigit:]]{10}: client=[^[:space:]]+, sasl_method=[-[:alnum:]]+, sasl_username=[-_.@[:alnum:]]+(, sasl_sender=[-_.@[:alnum:]]+)?$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-msa/smtpd\[[[:digit:]]+\]: warning: [-._[:alnum:]]+\[[.[:digit:]]+\]: SASL (PLAIN|LOGIN) authentication failed(:[ [:alnum:]]*)?$
