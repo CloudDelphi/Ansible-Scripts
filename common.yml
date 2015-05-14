@@ -41,7 +41,7 @@
     - common-web
 
 - name: Configure amavis
-  hosts: MDA:out
+  hosts: out
   gather_facts: False
   tags: amavis
   roles:

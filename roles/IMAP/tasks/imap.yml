@@ -17,13 +17,16 @@
         password=!
         state=present
 
-# Required for dbox, see
-# http://wiki2.dovecot.org/MailboxFormat/dbox#Multi-dbox
-- name: Create a nightly cron job to purge expunged messages
-  cron: name="Purge expunged messages"
-        minute=7 hour=5
-        user=vmail cron_file=doveadm-purge
-        job="/usr/bin/doveadm purge -A"
+## TODO: make a LDAP query listing all users using iterate_attrs and
+## iterate_filter.  (Alternatively, use a dict, see
+## https://www.opensource.apple.com/source/dovecot/dovecot-293/dovecot.Config/dovecot-dict-auth.conf.ext)
+## Required for dbox, see
+## http://wiki2.dovecot.org/MailboxFormat/dbox#Multi-dbox
+#- name: Create a nightly cron job to purge expunged messages
+#  cron: name="Purge expunged messages"
+#        minute=7 hour=5
+#        user=vmail cron_file=doveadm-purge
+#        job="/usr/bin/doveadm purge -A"
 
 # The ownership and permissions ensure that dovecot won't try to
 # deliver mails under an umounted mountpoint.
