@@ -32,8 +32,6 @@
     - etckeeper
     - ethtool
     - git
-    - harden-clients
-    - harden-servers
     - htop
     - molly-guard
     - rsync

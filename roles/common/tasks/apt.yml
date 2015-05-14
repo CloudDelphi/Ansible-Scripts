@@ -2,17 +2,16 @@
   apt: pkg={{ item }}
   with_items:
     - apt
-    - apt-listbugs
     - apt-listchanges
     - apt-show-versions
     - debian-archive-keyring
     - debian-goodies
+    - needrestart
     - unattended-upgrades
     - debfoster
     - deborphan
     - debsecan
     - debsums
-    - update-notifier-common
 
 - name: Configure APT (1)
   template: src=etc/apt/{{ item }}.j2
