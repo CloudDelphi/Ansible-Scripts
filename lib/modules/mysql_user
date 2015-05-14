@@ -152,7 +152,7 @@ def user_exists(cursor, user, host):
     return count[0] > 0
 
 def load_plugin(cursor, plugin):
-    cursor.execute("SELECT count(*) FROM plugin WHERE name = %s", plugin)
+    cursor.execute("SELECT count(*) FROM information_schema.plugins WHERE name = %s", plugin)
     count = cursor.fetchone()
     if count[0] == 0:
         so = "%s.so" % plugin
