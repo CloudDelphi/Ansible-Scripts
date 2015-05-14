@@ -76,6 +76,11 @@
   tags:
     - genkey
 
+- name: Add a 'root' alias
+  lineinfile: dest=/etc/aliases create=yes
+              regexp="^root:"" "
+              line="root:"" root@fripost.org"
+
 - name: Compile the static local Postfix database
   postmap: cmd=postalias src=/etc/aliases db=cdb
            owner=root group=root
