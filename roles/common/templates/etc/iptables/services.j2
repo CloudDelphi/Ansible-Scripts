@@ -59,3 +59,8 @@ out    tcp      993                                     # IMAP
 out    tcp      4190
 {% endif %}
 {% endif %}
+
+{% if 'LDAP-provider' in group_names %}
+out     tcp     11371                                   # HKP
+out     tcp     43                                      # WHOIS
+{% endif %}
