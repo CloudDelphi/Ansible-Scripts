@@ -63,6 +63,8 @@
 # RedefUser0=(no default)
 # RedefUser1=(no default)
 FileNamesAreUTF8 = yes
+# Switch off hardlink check for BTRFS
+UseHardlinkCheck=no
 
 [Attributes]
 ##
@@ -77,7 +79,7 @@ file=/etc/localtime
 #file=/etc/passwd.backup
 #file=/etc/shadow.backup
 #file=/etc/postfix/prng_exch
-#file=/etc/adjtime
+file=/etc/adjtime
 file=/etc/network/run/ifstate
 #file=/etc/lvm/.cache
 file=/etc/ld.so.cache
@@ -131,7 +133,7 @@ file=/etc/motd
 ## for these files, changes in signature, timestamps, and increase in size
 ##                  are ignored 
 ##
-file=/var/log/warn
+#file=/var/log/warn
 file=/var/log/messages
 file=/var/log/wtmp
 file=/var/log/faillog
@@ -148,8 +150,8 @@ file=/var/log/syslog
 ##
 ## This file might be created or removed by the system sometimes.
 ##
-file=/etc/resolv.conf.pcmcia.save
-file=/etc/nologin
+#file=/etc/resolv.conf.pcmcia.save
+#file=/etc/nologin
 file=/etc/network/run
 file=/etc/.etckeeper
 dir=-1/etc/.git
@@ -541,7 +543,7 @@ SetFileCheckTime = 7200
 ## Setting this to 'FALSE' will generate a report for any policy 
 ## violation (old and new ones) each time the daemon checks the file system.
 #
-ReportOnlyOnce = True
+# ReportOnlyOnce = True
 
 ## Report in full detail
 #
