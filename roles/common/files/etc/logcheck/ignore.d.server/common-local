@@ -19,3 +19,4 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ rsyslogd: \[origin software="rsyslogd" swVersion="[.[:digit:]]+" x-pid="[[:digit:]]+" x-info="http://www.rsyslog.com"\] rsyslogd was HUPed$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ ansible-([_a-z]+|<stdin>): Invoked with
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ slapd\[[[:digit:]]+\]: connection_input: conn=[[:digit:]]+ deferring operation: binding$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (sympa\((command|distribute)\)|wwsympa|archived|bounced|bulk|task_manager)\[[[:digit:]]+\]: (info|notice)\s

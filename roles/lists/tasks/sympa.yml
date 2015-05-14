@@ -1,0 +1,79 @@
+- apt: pkg={{ item }} install_recommends=no
+  with_items:
+    - mysql-server
+    - sympa
+
+- name: Make the 'sympa' MySQL user use auth_socket
+  mysql_user: name=sympa auth_plugin=auth_socket
+              state=present
+
+- name: Configure Sympa
+  copy: src=etc/sympa/{{ item }}
+        dest=/etc/sympa/{{ item }}
+        owner=root group=sympa
+        mode=0644
+  with_items:
+    - sympa.conf
+    - wwsympa.conf
+    - topics.conf
+  register: r1
+  notify:
+    - Restart Sympa
+
+- name: Create Virtual hosts for Sympa (1)
+  file: path=/etc/sympa/{{ item }}
+        state=directory
+        owner=root group=root
+        mode=0755
+  with_items:
+    - lists.fripost.org
+  register: r2
+  notify:
+    - Restart Sympa
+
+- name: Create Virtual hosts for Sympa (2)
+  file: path=/var/lib/sympa/list_data/{{ item }}
+        state=directory
+        owner=sympa group=sympa
+        mode=0770
+  with_items:
+    - lists.fripost.org
+  register: r3
+  notify:
+    - Restart Sympa
+
+- name: Install robot.conf
+  template: src=etc/sympa/robot.conf.j2
+            dest=/etc/sympa/{{ item }}/robot.conf
+            owner=root group=root
+            mode=0644
+  with_items:
+    - lists.fripost.org
+  register: r4
+  notify:
+    - Restart Sympa
+
+- name: Start Sympa
+  service: name=sympa state=started
+  when: not (r1.changed or r2.changed or r3.changed or r4.changed)
+
+- meta: flush_handlers
+
+- name: Copy wwsympa.{service,socket}
+  copy: src=lib/systemd/system/{{ item }}
+        dest=/lib/systemd/system/{{ item }}
+        owner=root group=root
+        mode=0644
+  notify:
+    - systemctl daemon-reload
+  with_items:
+    - wwsympa.service
+    - wwsympa.socket
+
+- meta: flush_handlers
+
+- name: Enable WWSympa
+  service: name=wwsympa enabled=yes
+
+- name: Start WWSympa
+  service: name=wwsympa state=started

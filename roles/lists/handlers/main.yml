@@ -4,3 +4,9 @@
 
 - name: Restart Nginx
   service: name=nginx state=restarted
+
+- name: Restart Sympa
+  service: name=sympa state=restarted
+
+- name: systemctl daemon-reload
+  command: /bin/systemctl daemon-reload

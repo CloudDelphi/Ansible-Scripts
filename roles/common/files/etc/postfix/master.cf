@@ -48,8 +48,8 @@ scache    unix  -       -       -       -       1       scache
 127.0.0.1:2580 inet n   -       -       -       -       smtpd
 reserved-alias unix  -  n       n       -       -       pipe
   flags=Rhu user=nobody argv=/usr/local/sbin/reserved-alias.pl ${sender} ${original_recipient} @fripost.org
-mlmmj     unix  -       n       n       -       -       pipe
-  flags=Rhu user=mlmmj argv=/usr/bin/mlmmj-receive -L /var/spool/mlmmj/${domain}/${user}
+sympa     unix  -       n       n       -       -       pipe
+  flags=Rhu user=sympa argv=/usr/local/bin/sympa-queue ${user}
 
 # Client part (lmtp) - amavis
 amavisfeed unix -       -       n       -       5       lmtp

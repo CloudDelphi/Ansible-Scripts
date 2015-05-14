@@ -17,7 +17,7 @@
 {% endif %}
 
 {% if 'lists' not in group_names %}
-[antilop.fripost.org]:{{ postfix_instance.lists.port }} fingerprint ciphers=high
+[lists.fripost.org]:{{ postfix_instance.lists.port }} fingerprint ciphers=high protocols=TLSv1.2
 {% for h in groups.lists | sort %}
    match={{ lookup('pipe', 'openssl x509 -in certs/postfix/'+h+'.pem -noout -fingerprint -sha256 | cut -d= -f2') }}
 {% endfor %}

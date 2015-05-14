@@ -1,0 +1,17 @@
+#!/bin/sh
+
+PATH=/bin:/usr/bin
+set -ue
+
+[ $# -eq 1 ] || exit 1
+
+username="${1#*/}"
+domainname="${1%%/*}"
+
+if [ "$username" = 'abuse-feedback-report' ] || [ "$username" = bounce ]; then
+    exec /usr/lib/sympa/lib/sympa/bouncequeue "sympa@$domainname"
+elif [ "${username%-owner}" != "$username" ]; then
+    exec /usr/lib/sympa/lib/sympa/bouncequeue "${username%-owner}@$domainname"
+else
+    exec /usr/lib/sympa/lib/sympa/queue "$username@$domainname"
+fi

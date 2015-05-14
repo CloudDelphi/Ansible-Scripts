@@ -55,7 +55,7 @@ objectClass: olcDatabaseConfig
 objectClass: olcMdbConfig
 olcDbDirectory: /var/lib/ldap
 olcSuffix: dc=fripost,dc=org
-{% if 'LDAP-provider' not in group_names and ('MX' in group_names or 'lists' in group_names) %}
+{% if 'LDAP-provider' not in group_names and 'MX' in group_names %}
 olcReadOnly: TRUE
 {% endif %}
 {% if 'LDAP-provider' in group_names %}
@@ -100,11 +100,8 @@ olcDbIndex: fripostOptionalMaildrop pres
 {% endif %}
 {% if 'LDAP-provider' in group_names %}
 {% endif %}
-{% if ('LDAP-provider' not in group_names and
-       ('MX' in group_names or 'lists' in group_names)) or
-       'LDAP-provider' in group_names and
-       (groups.MX    | difference([inventory_hostname]) or
-        groups.lists | difference([inventory_hostname])) %}
+{% if ('LDAP-provider' not in group_names and 'MX' in group_names) or
+      ('LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) %}
 # SyncProv/SyncRepl specific indexing.
 olcDbIndex: entryCSN,entryUUID eq
 {% endif%}
@@ -149,23 +146,6 @@ olcSyncrepl: rid=000
   saslmech=external
   tls_cert=/etc/ldap/ssl/mx.pem
   tls_key=/etc/ldap/ssl/mx.key
-  tls_cacert=/etc/ldap/ssl/ldap.fripost.org.pem
-  tls_reqcert=hard
-{% endif %}
-{% if 'lists' in group_names and 'LDAP-provider' not in group_names %}
-olcSyncrepl: rid=001
-  provider=ldaps://ldap.fripost.org
-  type=refreshAndPersist
-  retry="10 30 300 +"
-  searchbase="ou=virtual,dc=fripost,dc=org"
-  attrs=objectClass,fvd,fvl,fripostListManager,fripostOwner
-  scope=sub
-  sizelimit=unlimited
-  schemachecking=off
-  bindmethod=sasl
-  saslmech=external
-  tls_cert=/etc/ldap/ssl/lists.pem
-  tls_key=/etc/ldap/ssl/lists.key
   tls_cacert=/etc/ldap/ssl/ldap.fripost.org.pem
   tls_reqcert=hard
 {% endif %}
@@ -308,9 +288,6 @@ olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
     {% if 'LDAP-provider' in group_names -%}
     {% if groups.MX | difference([inventory_hostname]) -%}
     by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"              tls_ssf=128                                                                  =rsd
-    {% endif -%}
-    {% if groups.lists | difference([inventory_hostname]) -%}
-    by dn.exact="cn=lists,ou=syncRepl,dc=fripost,dc=org"           tls_ssf=128                                                                  =rsd
     {% endif -%}
     {% endif -%}
     by dn.exact="cn=postfix,ou=services,dc=fripost,dc=org"         sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
@@ -470,24 +447,16 @@ olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
 #
 # * The SyncRepl replicates can read the entry itelf and the list manager, when
 #   using a TLS-protected connection.
-# * So can Postfix on the MX:es and lists managers, when connecting a local
-#   ldapi:// socket from the 'private' directory in one of the non-default
-#   instance's chroot.
-# XXX: where does sympa enter the picture? we really don't want to reintroduce listcomands...
-{% if 'MX' in group_names or 'lists' in group_names or ('LDAP-provider' in group_names and
-       (groups.lists | difference([inventory_hostname]) or groups.MX | difference([inventory_hostname]))) %}
+# * So can Postfix on the MX:es, when connecting a local ldapi:// socket
+#   from the 'private' directory in one of the non-default instance's chroot.
+{% if 'MX' in group_names or ('LDAP-provider' in group_names and groups.MX | difference([inventory_hostname])) %}
 olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
         attrs=entry,objectClass,fvl,fripostListManager
         filter=(&(objectClass=FripostVirtualList)(!(objectClass=FripostPendingEntry)))
-    {% if 'LDAP-provider' in group_names -%}
-    {% if groups.MX | difference([inventory_hostname]) -%}
+    {% if 'LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) -%}
     by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"      tls_ssf=128                                                                  =rsd
     {% endif -%}
-    {% if groups.lists | difference([inventory_hostname]) -%}
-    by dn.exact="cn=lists,ou=syncRepl,dc=fripost,dc=org"   tls_ssf=128                                                                  =rsd
-    {% endif -%}
-    {% endif -%}
-    {% if 'MX' in group_names or 'lists' in group_names -%}
+    {% if 'MX' in group_names -%}
     by dn.exact="cn=postfix,ou=services,dc=fripost,dc=org" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
     {% endif -%}
     by users                                                                                                                            =0 break

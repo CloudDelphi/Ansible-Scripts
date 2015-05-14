@@ -1,2 +1,3 @@
 - include: mail.yml      tags=postfix,mail
-- include: mlmmj.yml     tags=mlmmj,lists
+- include: nginx.yml     tags=nginx,www,web
+- include: sympa.yml     tags=sympa,lists

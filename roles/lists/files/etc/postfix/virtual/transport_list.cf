@@ -1,8 +1,0 @@
-server_host      = ldapi://%2Fprivate%2Fldapi/
-version          = 3
-search_base      = fvl=%u,fvd=%d,ou=virtual,dc=fripost,dc=org
-domain           = static:all
-scope            = base
-bind             = none
-query_filter     = (&(objectClass=FripostVirtualList)(fvl=%u))
-result_attribute = fripostListManager

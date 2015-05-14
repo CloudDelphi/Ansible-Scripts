@@ -13,14 +13,14 @@
     - common
 
 - name: Common SQL tasks
-  hosts: MDA:webmail:backup
+  hosts: MDA:webmail:lists:backup
   gather_facts: False
   tags: mysql,sql
   roles:
     - common-SQL
 
 - name: Common LDAP tasks
-  hosts: MDA:MSA:lists:LDAP-provider:MX
+  hosts: MDA:MSA:LDAP-provider:MX
   gather_facts: True
   tags: slapd,ldap
   roles:

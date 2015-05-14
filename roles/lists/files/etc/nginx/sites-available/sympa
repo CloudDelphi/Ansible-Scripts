@@ -1,0 +1,62 @@
+server {
+    listen      80;
+    listen [::]:80 ipv6only=on;
+
+    server_name lists.fripost.org;
+
+    access_log /var/log/nginx/lists.access.log;
+    error_log  /var/log/nginx/lists.error.log info;
+
+    return 301 https://$host$request_uri;
+}
+
+
+server {
+    listen      443;
+    listen [::]:443 ipv6only=on;
+
+    server_name  lists.fripost.org;
+
+    include ssl/config;
+    ssl_certificate     /etc/nginx/ssl/lists.fripost.org.pem;
+    ssl_certificate_key /etc/nginx/ssl/lists.fripost.org.key;
+
+    location = / {
+        return 301 /sympa$args;
+    }
+
+    location ^~ /static-sympa/ {
+        alias /var/lib/sympa/static_content/;
+    }
+
+    location ^~ /sympa {
+        fastcgi_split_path_info ^(/sympa)(.*)$;
+        include fastcgi/params;
+       
+        fastcgi_pass unix:/run/wwsympa.socket;
+        gzip off;
+    }
+
+    location ~* ^/([^/]+)/?$ {
+        return 301 /$1/sympa$args;
+    }
+    location ~* ^/([^/]+)/sympa(/.*)?$ {
+        set $vhost $1;
+
+        if (!-f /etc/sympa/$vhost/robot.conf) {
+            return 404;
+        }
+
+        fastcgi_split_path_info ^(/[^/]+/sympa)(.*)$;
+        include fastcgi/params;
+        
+        fastcgi_pass unix:/run/wwsympa.socket;
+        gzip off;
+    
+        fastcgi_param  SERVER_NAME        $vhost;
+    }
+
+    location / {
+        return 404;
+    }
+}
