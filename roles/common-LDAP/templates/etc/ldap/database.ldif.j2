@@ -101,7 +101,7 @@ olcDbIndex: fripostOptionalMaildrop pres
 {% if 'LDAP-provider' in group_names %}
 {% endif %}
 {% if ('LDAP-provider' not in group_names and 'MX' in group_names) or
-      ('LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) %}
+      ('LDAP-provider' in group_names and groups.MX | difference([inventory_hostname])) %}
 # SyncProv/SyncRepl specific indexing.
 olcDbIndex: entryCSN,entryUUID eq
 {% endif%}
