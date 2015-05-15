@@ -4,14 +4,14 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: subsystem request for sftp by user [-_.[:alnum:]]+$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: User [-_.[:alnum:]]+ not allowed because account is locked$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: fatal: Read from socket failed: (Connection reset by peer|Connection timed out) \[preauth\]$
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: Received disconnect from [:.[:xdigit:]]+: (3|11|14): .* \[preauth\]$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: (error: )?Received disconnect from [:.[:xdigit:]]+: (3|11|14): .* \[preauth\]$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: Protocol major versions differ for [:.[:xdigit:]]+: SSH-2\.0-OpenSSH_
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: Disconnecting: Change of username or service not allowed: \(\S+\) -> \(\S+\) \[preauth\]$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: userauth_pubkey: unsupported public key algorithm: [[:alnum:]-]+ \[preauth\]$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: fatal: Write failed: (Connection (timed out|reset by peer)|Broken pipe) \[preauth\]$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: fatal: (no hostkey alg|Unable to negotiate a key exchange method) \[preauth\]$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: fatal: no matching cipher found: client [.@[:alnum:]-]+(,[.@[:alnum:]-]+)* server [.@[:alnum:]-]+(,[.@[:alnum:]-]+)* \[preauth\]$
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: Bad protocol version identification '.*' from [:.[:xdigit:]]+$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: Bad protocol version identification '.*' from [:.[:xdigit:]]+ port [[:digit:]]+$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: Accepted publickey for [^[:space:]]+ from [^[:space:]]+ port [[:digit:]]+( (ssh|ssh2))?(: (RSA|ECDSA|ED25519) ([[:xdigit:]]{2}:){15}[[:xdigit:]]{2})?$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ slapd\[[[:digit:]]+\]: connection_input: conn=[[:digit:]]+ deferring operation: binding$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (slapd\[[[:digit:]]+\]|slap(acl|add|auth|cat|dn|index)|ldap(add|compare|delete|exop|modify|modrdn|passwd|search|url|whoami)): DIGEST-MD5 common mech free$
@@ -29,3 +29,4 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ rsyslogd-?([[:digit:]]+): action '[^']+' (resumed \(module '[.[:alnum:]-]+:[.[:alnum:]-]+'\)|suspended, next retry is \w{3} \w{3} [ :[:digit:]]{16}) \[try http://www\.rsyslog\.com/e/\1 \]$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ ansible-([_a-z]+|<stdin>): Invoked with
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (sympa\((command|distribute)\)|wwsympa|archived|bounced|bulk|task_manager)\[[[:digit:]]+\]: (info|notice)\s
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ wwsympa\[[[:digit:]]+\]: err .* main::check_action_parameters\(\) user not logged in$
