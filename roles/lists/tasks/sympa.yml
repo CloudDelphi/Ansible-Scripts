@@ -53,6 +53,14 @@
   notify:
     - Restart Sympa
 
+# sympa uses to syslog, there is no need to reload or restart it when
+# rotating logs
+- name: Don't restart sympa on logrotate
+  lineinfile: "dest=/etc/logrotate.d/sympa state=absent
+               regexp='\\bsympa reload\\b'"
+  tags:
+    - logrotate
+
 - name: Start Sympa
   service: name=sympa state=started
   when: not (r1.changed or r2.changed or r3.changed or r4.changed)
