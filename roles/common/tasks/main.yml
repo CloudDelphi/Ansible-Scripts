@@ -15,11 +15,17 @@
 - include: smart.yml    tags=smartmontools,smart
   when: "not ((ansible_virtualization_role == 'guest' and ansible_virtualization_type == 'xen') or ansible_system_vendor == 'QEMU')"
 - include: haveged.yml  tags=haveged,entropy
-- name: Copy genkeypair.sh
-  copy: src=usr/local/bin/genkeypair.sh
-        dest=/usr/local/bin/genkeypair.sh
+- name: Copy genkeypair.sh and gendhparam.sh
+  copy: src=usr/local/bin/{{ item }}
+        dest=/usr/local/bin/{{ item }}
         owner=root group=root
         mode=0755
+  tags: genkey
+  with_items:
+    - genkeypair.sh
+    - gendhparam.sh
+- name: Generate DH parameters
+  command: gendhparam.sh /etc/ssl/private/dhparams.pem creates=/etc/ssl/private/dhparams.pem
   tags: genkey
 - include: logging.yml  tags=logging
 - include: ntp.yml      tags=ntp

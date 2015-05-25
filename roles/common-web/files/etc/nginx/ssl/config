@@ -12,6 +12,7 @@ ssl_session_cache           shared:SSL:5m;
 # other weaknesses.
 ssl_protocols               TLSv1 TLSv1.1 TLSv1.2;
 ssl_ciphers                 HIGH:!SSLv2:!aNULL:!eNULL:!3DES:!MD5:@STRENGTH;
+ssl_dhparam                 /etc/ssl/private/dhparams.pem;
 ssl_prefer_server_ciphers   on;
 
 # Strict Transport Security header for enhanced security. See

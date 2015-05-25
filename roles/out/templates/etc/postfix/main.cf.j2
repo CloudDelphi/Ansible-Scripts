@@ -53,8 +53,10 @@ smtp_tls_session_cache_database = btree:$data_directory/smtp_tls_session_cache
 
 relay_clientcerts               = cdb:$config_directory/relay_clientcerts
 smtpd_tls_security_level        = may
+smtpd_tls_exclude_ciphers       = EXPORT, LOW, MEDIUM, aNULL, eNULL, DES, RC4, MD5
 smtpd_tls_cert_file             = /etc/postfix/ssl/{{ ansible_fqdn }}.pem
 smtpd_tls_key_file              = /etc/postfix/ssl/{{ ansible_fqdn }}.key
+smtpd_tls_dh1024_param_file     = /etc/ssl/private/dhparams.pem
 smtpd_tls_session_cache_database= btree:$data_directory/smtpd_tls_session_cache
 smtpd_tls_received_header       = yes
 smtpd_tls_ask_ccert             = yes

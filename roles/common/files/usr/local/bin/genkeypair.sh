@@ -37,6 +37,7 @@ cn=
 usage=
 chmod=
 chown=
+rand=
 
 usage() {
     cat >&2 <<- EOF
@@ -123,7 +124,6 @@ while [ $# -gt 0 ]; do
     shift;
 done
 
-rand=/dev/urandom
 case "$type" in
     # XXX: genrsa and dsaparam have been deprecated in favor of genpkey.
     # genpkey can also create explicit EC parameters, but not named.
@@ -184,7 +184,7 @@ elif [ ! -s "$privkey" -o $force -ge 2 ]; then
     mv -f "$(mktemp)" "$privkey" || exit 2
     chmod "${chmod:-og-rwx}" "$privkey" || exit 2
     [ -z "$chown" ] || chown "$chown" "$privkey" || exit 2
-    openssl $genkey -rand /dev/urandom $genkeyargs >"$privkey" || exit 2
+    openssl $genkey -rand "${rand:-/dev/urandom}" $genkeyargs >"$privkey" || exit 2
     [ "$cmd" = dkim ] && { dkiminfo; exit; }
 fi
 
