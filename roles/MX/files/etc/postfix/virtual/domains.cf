@@ -4,9 +4,8 @@ server_host      = ldapi://%2Fprivate%2Fldapi/
 version          = 3
 search_base      = ou=virtual,dc=fripost,dc=org
 scope            = one
-bind             = yes
-bind_dn          = cn=postfix,ou=services,dc=fripost,dc=org
-bind_pw          = FIXME
+bind             = sasl
+sasl_mechs       = EXTERNAL
 query_filter     = (&(objectClass=FripostVirtualDomain)(!(objectClass=FripostPendingEntry))(fvd=%s)(fripostIsStatusActive=TRUE))
 result_attribute = fvd
 result_format    = OK

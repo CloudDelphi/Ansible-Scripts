@@ -3,9 +3,8 @@ version          = 3
 search_base      = ou=virtual,dc=fripost,dc=org
 domain           = static:all
 scope            = one
-bind             = yes
-bind_dn          = cn=postfix,ou=services,dc=fripost,dc=org
-bind_pw          = FIXME
+bind             = sasl
+sasl_mechs       = EXTERNAL
 # The domain has already been validated (it's active and not pending)
 query_filter     = (&(objectClass=FripostVirtualAliasDomain)(fvd=%d))
 result_attribute = fripostMaildrop

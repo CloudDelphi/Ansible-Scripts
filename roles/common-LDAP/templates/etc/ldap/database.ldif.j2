@@ -208,14 +208,6 @@ olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,dc=fripost,dc=org)$"
     by dn.onelevel="ou=admins,dc=fripost,dc=org"                    tls_ssf=128               =w
     by group.exact="cn=admin,ou=groups,dc=fripost,dc=org"                                     =w
 #
-# XXX
-# * Anonymous users are allowed to simple bind as Postfix, but only when
-#   using a local ldapi:// listener from one of the Postfix instance
-#   (which should be accessible by the 'postfix' UNIX user only).
-olcAccess: to dn.exact="cn=postfix,ou=services,dc=fripost,dc=org"
-        attrs=userPassword
-    by realanonymous sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =xd
-#
 # TODO: are there other services which need to be able to simple bind?
 #
 # * Catch-all: no one else may access the passwords (including for
@@ -262,7 +254,7 @@ olcAccess: to dn.exact="ou=virtual,dc=fripost,dc=org"
     by dn.exact="username=dovecot,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://"                                                    =sd
     {% endif -%}
     {% if 'MX' in group_names -%}
-    by dn.exact="cn=postfix,ou=services,dc=fripost,dc=org"         sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =sd
+    by dn.exact="username=postfix,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =sd
     {% endif -%}
     by users                                                                                                                                    =0 break
 #
@@ -290,7 +282,7 @@ olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
     by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"              tls_ssf=128                                                                  =rsd
     {% endif -%}
     {% endif -%}
-    by dn.exact="cn=postfix,ou=services,dc=fripost,dc=org"         sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
+    by dn.exact="username=postfix,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
     {% if 'MDA' in group_names -%}
     by dn.exact="username=dovecot,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://"                                                    =rsd
     by dn.exact="username=amavis,cn=peercred,cn=external,cn=auth"  sockurl.regex="^ldapi://"                                                    =sd
@@ -311,12 +303,12 @@ olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
         attrs=fripostIsStatusActive,fripostOptionalMaildrop
         filter=(&(objectClass=FripostVirtualDomain)(!(objectClass=FripostPendingEntry)))
     {% if 'LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) -%}
-    by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"      tls_ssf=128                                                                  =rsd
+    by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"              tls_ssf=128                                                                  =rsd
     {% endif -%}
     {% if 'MX' in group_names -%}
-    by dn.exact="cn=postfix,ou=services,dc=fripost,dc=org" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
+    by dn.exact="username=postfix,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
     {% endif -%}
-    by users                                                                                                                            =0 break
+    by users                                                                                                                                    =0 break
 {% endif %}
 #
 # * The 'nobody' UNIX user can list the domain owners and postmasters on
@@ -348,12 +340,12 @@ olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
         attrs=entry,fripostMaildrop
         filter=(&(objectClass=FripostVirtualAliasDomain)(!(objectClass=FripostPendingEntry)))
     {% if 'LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) -%}
-    by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"      tls_ssf=128                                                                  =rsd
+    by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"              tls_ssf=128                                                                  =rsd
     {% endif -%}
     {% if 'MX' in group_names -%}
-    by dn.exact="cn=postfix,ou=services,dc=fripost,dc=org" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
+    by dn.exact="username=postfix,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
     {% endif -%}
-    by users                                                                                                                            =0 break
+    by users                                                                                                                                    =0 break
 {% endif %}
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -372,14 +364,14 @@ olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
         attrs=entry,objectClass,fvl
         filter=(objectClass=FripostVirtualUser)
     {% if 'LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) -%}
-    by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"              tls_ssf=128                                                                  =rsd
+    by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"                      tls_ssf=128                                                                  =rsd
     {% endif -%}
-    by dn.exact="cn=postfix,ou=services,dc=fripost,dc=org"         sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
+    by dn.exact="username=postfix,cn=peercred,cn=external,cn=auth"         sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
     {% if 'MDA' in group_names -%}
-    by dn.exact="username=dovecot,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://"                                                    =rsd
-    by dn.exact="username=amavis,cn=peercred,cn=external,cn=auth"  sockurl.regex="^ldapi://"                                                    =rsd
+    by dn.exact="username=dovecot,cn=peercred,cn=external,cn=auth"         sockurl.regex="^ldapi://"                                                    =rsd
+    by dn.exact="username=amavis,cn=peercred,cn=external,cn=auth"          sockurl.regex="^ldapi://"                                                    =rsd
     {% endif -%}
-    by users                                                                                                                                    =0 break
+    by users                                                                                                                                            =0 break
 #
 # * The SyncRepl MX replicates can check whether a virtual user is
 #   active, when using a TLS-protected connection.
@@ -391,12 +383,12 @@ olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
         attrs=fripostIsStatusActive,fripostUseContentFilter
         filter=(objectClass=FripostVirtualUser)
     {% if 'LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) -%}
-    by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"      tls_ssf=128                                                                  =rsd
+    by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"      tls_ssf=128                                                                          =rsd
     {% endif -%}
     {% if 'MX' in group_names -%}
-    by dn.exact="cn=postfix,ou=services,dc=fripost,dc=org" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
+    by dn.exact="username=postfix,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
     {% endif -%}
-    by users                                                                                                                            =0 break
+    by users                                                                                                                                    =0 break
 {% endif %}
 {% if 'MDA' in group_names %}
 #
@@ -434,12 +426,12 @@ olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
         attrs=entry,objectClass,fvl,fripostMaildrop,fripostIsStatusActive
         filter=(objectClass=FripostVirtualAlias)
     {% if 'LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) -%}
-    by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"      tls_ssf=128                                                                  =rsd
+    by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"              tls_ssf=128                                                                  =rsd
     {% endif -%}
     {% if 'MX' in group_names -%}
-    by dn.exact="cn=postfix,ou=services,dc=fripost,dc=org" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
+    by dn.exact="username=postfix,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
     {% endif -%}
-    by users                                                                                                                            =0 break
+    by users                                                                                                                                    =0 break
 {% endif %}
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -454,12 +446,12 @@ olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
         attrs=entry,objectClass,fvl,fripostListManager
         filter=(&(objectClass=FripostVirtualList)(!(objectClass=FripostPendingEntry)))
     {% if 'LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) -%}
-    by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"      tls_ssf=128                                                                  =rsd
+    by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"              tls_ssf=128                                                                  =rsd
     {% endif -%}
     {% if 'MX' in group_names -%}
-    by dn.exact="cn=postfix,ou=services,dc=fripost,dc=org" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
+    by dn.exact="username=postfix,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
     {% endif -%}
-    by users                                                                                                                            =0 break
+    by users                                                                                                                                    =0 break
 {% endif %}
 #
 # * The SyncRepl MX replicates can check whether a virtual list is
@@ -472,12 +464,12 @@ olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
         attrs=fripostIsStatusActive
         filter=(&(objectClass=FripostVirtualList)(!(objectClass=FripostPendingEntry)))
     {% if 'LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) -%}
-    by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"      tls_ssf=128                                                                  =rsd
+    by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"              tls_ssf=128                                                                  =rsd
     {% endif -%}
     {% if 'MX' in group_names -%}
-    by dn.exact="cn=postfix,ou=services,dc=fripost,dc=org" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
+    by dn.exact="username=postfix,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
     {% endif -%}
-    by users                                                                                                                            =0 break
+    by users                                                                                                                                    =0 break
 {% endif %}
 {% if 'LDAP-provider' in group_names %}
 #
