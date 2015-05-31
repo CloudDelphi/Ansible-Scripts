@@ -1,0 +1,7 @@
+---
+- name: Configure gitweb & gitolite
+  hosts: git
+  tags:
+    - git
+  roles:
+    - git

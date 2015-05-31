@@ -1,0 +1,36 @@
+- name: Install gitolite
+  apt: pkg=gitolite3
+
+- name: Create a user 'gitolite'
+  user: name=gitolite system=yes
+        groups=ssh-login
+        home=/var/lib/gitolite
+        shell=/bin/sh
+        password=*
+        state=present
+
+- name: Create directory ~gitolite/.ssh
+  file: path=/var/lib/gitolite/.ssh
+        state=directory
+        owner=gitolite group=gitolite
+        mode=0700
+
+- name: Create /var/lib/gitolite/projects.list
+  file: path=/var/lib/gitolite/projects.list
+        owner=gitolite group=gitolite
+        mode=0644
+
+# See /usr/share/doc/gitolite3/README.txt.gz for gitolite initiation or
+# migration.
+#   sudo -u gitolite gitolite setup -pk /path/to/id_rsa
+
+- name: Configure gitolite
+  lineinfile: dest=/var/lib/gitolite/.gitolite.rc
+              "regexp=^(\\s*{{ item.var }}\\s*=>\\s*)"
+              "line=    {{ item.var }} =>  {{ item.value }},"
+              owner=root group=root
+              mode=0644
+  with_items:
+    # See /usr/share/doc/gitolite3/README.txt.gz
+    - { var: UMASK,           value: "0027"                  }
+    - { var: GIT_CONFIG_KEYS, value: "'gitweb\\..* gc\\..*'" }

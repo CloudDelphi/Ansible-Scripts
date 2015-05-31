@@ -1,0 +1,13 @@
+[Unit]
+Description=Gitweb Service
+After=network.target
+Requires=gitweb.socket
+
+[Service]
+StandardInput=socket
+User=gitweb
+Group=gitweb
+ExecStart=/usr/lib/cgi-bin/gitweb.fcgi
+
+[Install]
+WantedBy=multi-user.target

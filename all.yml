@@ -9,3 +9,4 @@
 - include: out.yml
 - include: webmail.yml
 - include: lists.yml
+- include: git.yml

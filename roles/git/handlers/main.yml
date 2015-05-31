@@ -1,0 +1,9 @@
+---
+- name: systemctl daemon-reload
+  command: /bin/systemctl daemon-reload
+
+- name: Restart gitweb
+  service: name=gitweb state=restarted
+
+- name: Restart Nginx
+  service: name=nginx state=restarted

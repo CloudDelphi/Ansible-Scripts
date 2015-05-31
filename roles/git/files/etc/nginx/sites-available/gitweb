@@ -1,0 +1,48 @@
+server {
+    listen      80;
+    listen [::]:80;
+
+    server_name  gitweb.fripost.org;
+
+    access_log /var/log/nginx/gitweb.access.log;
+    error_log  /var/log/nginx/gitweb.error.log info;
+
+    location ^~ /static/ {
+        alias /usr/share/gitweb/static/;
+    }
+
+    try_files $uri @fcgi;
+    location @fcgi {
+        root /var/lib/gitolite/repositories;
+        include fastcgi/params;
+        fastcgi_pass unix:/run/gitweb.socket;
+        gzip off;
+    }
+}
+
+
+server {
+    listen      443;
+    listen [::]:443;
+
+    server_name  gitweb.fripost.org;
+
+    include ssl/config;
+    ssl_certificate     /etc/nginx/ssl/git.fripost.org.pem;
+    ssl_certificate_key /etc/nginx/ssl/git.fripost.org.key;
+
+    access_log /var/log/nginx/gitweb.access.log;
+    error_log  /var/log/nginx/gitweb.error.log info;
+
+    location ^~ /static/ {
+        alias /usr/share/gitweb/static/;
+    }
+
+    try_files $uri @fcgi;
+    location @fcgi {
+        root /var/lib/gitolite/repositories;
+        include fastcgi/params;
+        fastcgi_pass unix:/run/gitweb.socket;
+        gzip off;
+    }
+}

@@ -1,0 +1,78 @@
+server {
+    listen      80;
+    listen [::]:80;
+
+    server_name  git.fripost.org;
+
+    access_log /var/log/nginx/git.access.log;
+    error_log  /var/log/nginx/git.error.log info;
+
+    # Bypass the CGI to return static files stored on disk. Try first repo with
+    # a trailing '.git', then without.
+    location ~* "^/((?U)[^/]+)(?:\.git)?/objects/([0-9a-f]{2}/[0-9a-f]{38}|pack/pack-[0-9a-f]{40}\.(?:pack|idx))$" {
+        root /var/lib/gitolite/repositories;
+        try_files /$1.git/objects/$2 /$1/objects/$2 =404;
+    }
+
+    # Disallow push over HTTP(S)
+    location ~* ^/[^/]+/git-receive-pack$ {
+        return 403;
+    }
+
+    location ~* ^/[^/]+/(:?HEAD|info/refs|objects/info/[^/]+|git-upload-pack)$ {
+        fastcgi_param PATH_INFO $uri;
+        fastcgi_param SCRIPT_FILENAME /usr/lib/git-core/git-http-backend;
+        fastcgi_param GIT_HTTP_EXPORT_ALL 1;
+        fastcgi_param GIT_PROJECT_ROOT /var/lib/gitolite/repositories;
+        include fastcgi/params;
+        fastcgi_pass unix:/var/run/fcgiwrap.socket;
+        gzip off;
+    }
+
+    # Redirect to gitweb otherwise
+    location ~ ^/([^/]+/?)?$ {
+        return 302 $scheme://gitweb.fripost.org/$1;
+    }
+}
+
+
+server {
+    listen      443;
+    listen [::]:443;
+
+    server_name  git.fripost.org;
+
+    include ssl/config;
+    ssl_certificate     /etc/nginx/ssl/git.fripost.org.pem;
+    ssl_certificate_key /etc/nginx/ssl/git.fripost.org.key;
+
+    access_log /var/log/nginx/git.access.log;
+    error_log  /var/log/nginx/git.error.log info;
+
+    # Bypass the CGI to return static files stored on disk. Try first repo with
+    # a trailing '.git', then without.
+    location ~* "^/((?U)[^/]+)(?:\.git)?/objects/([0-9a-f]{2}/[0-9a-f]{38}|pack/pack-[0-9a-f]{40}\.(?:pack|idx))$" {
+        root /var/lib/gitolite/repositories;
+        try_files /$1.git/objects/$2 /$1/objects/$2 =404;
+    }
+
+    # Disallow push over HTTP(S)
+    location ~* ^/[^/]+/git-receive-pack$ {
+        return 403;
+    }
+
+    location ~* ^/[^/]+/(:?HEAD|info/refs|objects/info/[^/]+|git-upload-pack)$ {
+        fastcgi_param PATH_INFO $uri;
+        fastcgi_param SCRIPT_FILENAME /usr/lib/git-core/git-http-backend;
+        fastcgi_param GIT_HTTP_EXPORT_ALL 1;
+        fastcgi_param GIT_PROJECT_ROOT /var/lib/gitolite/repositories;
+        include fastcgi/params;
+        fastcgi_pass unix:/var/run/fcgiwrap.socket;
+        gzip off;
+    }
+
+    # Redirect to gitweb otherwise
+    location ~ ^/([^/]+/?)?$ {
+        return 302 $scheme://gitweb.fripost.org/$1;
+    }
+}
