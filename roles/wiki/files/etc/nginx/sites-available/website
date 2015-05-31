@@ -35,6 +35,12 @@ server {
     location /static/ {
         alias /var/lib/ikiwiki/public_html/fripost-wiki/static/;
     }
+    location /material/ {
+        alias /var/www/fripost.org/material/;
+    }
+    location /minutes/ {
+        alias /var/www/fripost.org/minutes/;
+    }
 
     location = /ikiwiki.cgi {
         return 403;
