@@ -34,7 +34,7 @@
     - LDAP-provider
 
 - name: Configure the Web servers
-  hosts: webmail:lists:git
+  hosts: webmail:wiki:lists:git
   gather_facts: False
   tags: nginx,www,web
   roles:

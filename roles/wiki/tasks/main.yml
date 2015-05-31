@@ -1,0 +1,100 @@
+- name: Install ikiwiki
+  apt: pkg={{ item }}
+  with_items:
+    - ikiwiki
+    - highlight-common
+    - libhighlight-perl
+    - fcgiwrap
+
+- name: Create a user 'ikiwiki'
+  user: name=ikiwiki system=yes
+        home=/var/lib/ikiwiki
+        shell=/usr/sbin/nologin
+        password=!
+        state=present
+        generate_ssh_key=yes
+        ssh_key_comment=ikiwiki@{{ ansible_fqdn }}
+
+- name: Add 'www-data' to the group 'ikiwiki'
+  user: name=www-data groups=ikiwiki append=yes
+
+- name: Create directory ~ikiwiki/IkiWiki/Plugin
+  file: path=/var/lib/ikiwiki/IkiWiki/Plugin
+        state=directory
+        owner=ikiwiki group=ikiwiki
+        mode=0755
+
+- name: Copy isWebsite plugin
+  copy: src=var/lib/ikiwiki/IkiWiki/Plugin/isWebsite.pm
+        dest=/var/lib/ikiwiki/IkiWiki/Plugin/isWebsite.pm
+        owner=root group=root
+        mode=0644
+  notify:
+    - Refresh ikiwiki
+
+# Add the ikiwiki git wrapper as a post-update hook in the git repos in
+# gitolite: "config hook.ikiwiki-wrapper = /var/lib/ikiwiki/wiki.fripost.org"
+# where the 'git_wrapper' can be found in
+# /var/lib/ikiwiki/fripost-wiki.setup
+
+# To create a new wiki:
+#   $ /usr/bin/sudo -u ikiwiki git config --global user.name "Fripost Admins"
+#   $ /usr/bin/sudo -u ikiwiki git config --global user.email "admin@fripost.org"
+#   $ /usr/bin/sudo -u ikiwiki ikiwiki --setup /etc/ikiwiki/auto.setup
+#   ## Add ikiwiki's key to gitolite
+#   sudo ln -s /var/lib/ikiwiki/wiki.fripost.org /var/lib/gitolite/repositories/fripost-wiki.git/hooks/post-update
+#   $ /usr/bin/sudo -u ikiwiki git clone ssh://gitolite@localhost/fripost-wiki.git
+
+- name: Configure ikiwiki
+  copy: src=var/lib/ikiwiki/fripost-wiki.setup
+        dest=/var/lib/ikiwiki/fripost-wiki.setup
+        owner=root group=root
+        mode=0644
+  notify:
+    - Refresh ikiwiki
+
+- name: Add fripost-wiki to /etc/ikiwiki/wikilist
+  lineinfile: dest=/etc/ikiwiki/wikilist
+              "line=ikiwiki /var/lib/ikiwiki/fripost-wiki.setup"
+              owner=root group=root
+              mode=0644
+
+- meta: flush_handlers
+
+- name: Generate a private key and a X.509 certificate for Nginx
+  command: genkeypair.sh x509
+                         --pubkey=/etc/nginx/ssl/fripost.org.pem
+                         --privkey=/etc/nginx/ssl/fripost.org.key
+                         --ou=WWW --cn=fripost.org --dns=fripost.org --dns=wiki.fripost.org
+                         -t rsa -b 4096 -h sha512
+  register: r1
+  changed_when: r1.rc == 0
+  failed_when: r1.rc > 1
+  notify:
+    - Restart Nginx
+  tags:
+    - genkey
+
+- name: Copy /etc/nginx/sites-available/{wiki,website}
+  copy: src=etc/nginx/sites-available/{{ item }}
+        dest=/etc/nginx/sites-available/{{ item }}
+        owner=root group=root
+        mode=0644
+  register: r2
+  with_items:
+    - website
+    - wiki
+  notify:
+    - Restart Nginx
+
+- name: Create /etc/nginx/sites-enabled/{wiki,website}
+  file: src=../sites-available/{{ item }}
+        dest=/etc/nginx/sites-enabled/{{ item }}
+        owner=root group=root
+        state=link force=yes
+  register: r3
+  with_items:
+    - website
+    - wiki
+  notify:
+    - Restart Nginx

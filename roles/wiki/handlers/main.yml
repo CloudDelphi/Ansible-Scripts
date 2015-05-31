@@ -1,0 +1,7 @@
+---
+- name: Restart Nginx
+  service: name=nginx state=restarted
+
+- name: Refresh ikiwiki
+  sudo_user: ikiwiki
+  command: ikiwiki --setup /var/lib/ikiwiki/fripost-wiki.setup --refresh --wrappers
