@@ -34,3 +34,6 @@
 
 - name: Reload Postfix
   service: name=postfix state=reloaded
+
+- name: Update certificate
+  command: update-ca-certificates
