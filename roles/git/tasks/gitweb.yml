@@ -13,13 +13,6 @@
   notify:
     - Restart gitweb
 
-# See gitweb(1).  To work in Fast CGI mode gitweb checks its filetype.
-- name: Symlink 'gitweb.cgi' to 'gitweb.fcgi'
-  file: src=gitweb.cgi
-        dest=/usr/lib/cgi-bin/gitweb.fcgi
-        owner=root group=root
-        state=link force=no
-
 - name: Create a user 'gitweb'
   user: name=gitweb system=yes
         home=/var/www
@@ -34,6 +27,15 @@
     - gitweb
     # for pulls over HTTP/HTTPS
     - www-data
+
+# XXX workaround encoding issues in FCGI mode
+# http://git.661346.n2.nabble.com/Gitweb-running-as-FCGI-does-not-print-its-output-in-UTF-8-td7573415.html
+# https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=720308
+- name: Copy gitweb.cgi wrapper to fix encoding
+  copy: src=usr/lib/cgi-bin/gitweb-wrapper.fcgi
+        dest=/usr/lib/cgi-bin/gitweb-wrapper.fcgi
+        owner=root group=root
+        mode=0755
 
 - name: Copy gitweb.{service,socket}
   copy: src=lib/systemd/system/{{ item }}

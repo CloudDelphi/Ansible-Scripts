@@ -7,7 +7,8 @@ Requires=gitweb.socket
 StandardInput=socket
 User=gitweb
 Group=gitweb
-ExecStart=/usr/lib/cgi-bin/gitweb.fcgi
+Environment=SCRIPT_FILENAME=/usr/lib/cgi-bin/gitweb-wrapper.fcgi
+ExecStart=/usr/lib/cgi-bin/gitweb-wrapper.fcgi
 
 [Install]
 WantedBy=multi-user.target
