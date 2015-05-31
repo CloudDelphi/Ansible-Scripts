@@ -33,7 +33,7 @@
     - { var: default_port,           value: "143"         }
     - { var: imap_auth_type,         value: "'plain'"     }
     - { var: imap_cache,             value: "null"        }
-    - { var: messages_cache,         value: "FALSE"       }
+    - { var: messages_cache,         value: "null"        }
     # SMTP
     - { var: smtp_server,            value: "'localhost'" }
     - { var: smtp_port,              value: "2580"        }

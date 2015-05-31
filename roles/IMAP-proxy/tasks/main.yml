@@ -73,17 +73,26 @@
   notify:
     - Restart stunnel
 
-- name: Configure stunnel
-  copy: src=etc/stunnel/stunnel.conf
-        dest=/etc/stunnel/stunnel.conf
+- name: Copy slapd's X.509 certificate
+  copy: src=certs/ldap/ldap.fripost.org.pem
+        dest=/etc/stunnel/certs/ldap.fripost.org.pem
         owner=root group=root
         mode=0644
   register: r2
   notify:
     - Restart stunnel
 
+- name: Configure stunnel
+  copy: src=etc/stunnel/stunnel.conf
+        dest=/etc/stunnel/stunnel.conf
+        owner=root group=root
+        mode=0644
+  register: r3
+  notify:
+    - Restart stunnel
+
 - name: Start stunnel
   service: name=stunnel4 pattern=/usr/bin/stunnel4 state=started
-  when: not (r1.changed or r2.changed)
+  when: not (r1.changed or r2.changed or r3.changed)
 
 - meta: flush_handlers

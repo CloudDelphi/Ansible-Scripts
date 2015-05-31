@@ -47,6 +47,7 @@ server {
     error_log   /var/log/nginx/roundcube.error.log info;
 
     index index.php;
+    client_max_body_size 64m;
     location = /index.php {
         include fastcgi/php;
         include fastcgi/php-ssl;

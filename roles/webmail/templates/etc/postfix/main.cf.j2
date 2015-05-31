@@ -91,12 +91,13 @@ smtpd_sender_restrictions =
     reject_non_fqdn_sender
     reject_unknown_sender_domain
 
-smtpd_recipient_restrictions =
-    # RFC requirements
-    reject_non_fqdn_recipient
-    reject_unknown_recipient_domain
+smtpd_relay_restrictions =
     permit_mynetworks
     reject
+
+smtpd_recipient_restrictions =
+    reject_non_fqdn_recipient
+    reject_unknown_recipient_domain
 
 smtpd_data_restrictions =
     reject_unauth_pipelining
