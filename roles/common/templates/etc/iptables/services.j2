@@ -52,12 +52,12 @@ in      tcp     {{ postfix_instance.lists.port }}
 {% if 'MSA' in group_names %}
 in      tcp     587                                     # SMTP-AUTH
 {% endif %}
-{% if 'webmail' in group_names or 'lists' in group_names %}
+{% if 'webmail' in group_names or 'lists' in group_names or 'website' in group_names %}
 in     tcp      80,443                                  # HTTP/HTTPS
-{% if 'IMAP' not in group_names %}
+{% endif %}
+{% if 'webmail' in group_names and 'IMAP' not in group_names %}
 out    tcp      993                                     # IMAP
 out    tcp      4190
-{% endif %}
 {% endif %}
 
 {% if 'LDAP-provider' in group_names %}

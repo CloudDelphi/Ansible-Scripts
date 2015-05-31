@@ -4,7 +4,7 @@
 - name: Limit Nginx logging
   lineinfile: "dest=/etc/logrotate.d/nginx create=yes
                regexp='^\\s*rotate\\s'
-               line='\trotate 3'"
+               line='\trotate 1'"
   tags:
     - logrotate
 
