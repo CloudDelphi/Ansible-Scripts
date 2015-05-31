@@ -13,7 +13,7 @@
   user: name=vmail system=yes
         createhome=no
         home=/home/mail
-        shell=/bin/false
+        shell=/usr/sbin/nologin
         password=!
         state=present
 

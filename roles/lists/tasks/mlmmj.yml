@@ -8,7 +8,7 @@
   user: name=mlmmj system=yes
         createhome=no
         home=/var/spool/mlmmj
-        shell=/bin/false
+        shell=/usr/sbin/nologin
         password=!
         state=present
 

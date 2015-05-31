@@ -9,7 +9,7 @@
   user: name=imapproxy system=yes
         createhome=no
         home=/home/imapproxy
-        shell=/bin/false
+        shell=/usr/sbin/nologin
         password=!
         state=present
 
