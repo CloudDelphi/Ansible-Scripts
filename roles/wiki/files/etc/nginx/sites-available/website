@@ -2,12 +2,13 @@ server {
     listen      80;
     listen [::]:80;
 
-    server_name fripost.org;
+    server_name     fripost.org;
+    server_name www.fripost.org;
 
     access_log /var/log/nginx/access.log;
     error_log  /var/log/nginx/error.log info;
 
-    return 301 https://$host$request_uri;
+    return 301 https://fripost.org$request_uri;
 }
 
 
