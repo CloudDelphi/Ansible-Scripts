@@ -7,6 +7,7 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: (error: )?Received disconnect from [:.[:xdigit:]]+: (3|11|14): .* \[preauth\]$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: Protocol major versions differ for [:.[:xdigit:]]+: SSH-2\.0-OpenSSH_
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: Disconnecting: Change of username or service not allowed: \(\S+\) -> \(\S+\) \[preauth\]$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: Disconnecting: Too many authentication failures for invalid user [-_.[:alnum:]]+ from [:.[:xdigit:]]+ port [[:digit:]]+ ssh2? \[preauth\]$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: userauth_pubkey: unsupported public key algorithm: [[:alnum:]-]+ \[preauth\]$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: fatal: Write failed: (Connection (timed out|reset by peer)|Broken pipe) \[preauth\]$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: fatal: (no hostkey alg|Unable to negotiate a key exchange method) \[preauth\]$
@@ -16,7 +17,7 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ slapd\[[[:digit:]]+\]: connection_input: conn=[[:digit:]]+ deferring operation: binding$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (slapd\[[[:digit:]]+\]|slap(acl|add|auth|cat|dn|index)|ldap(add|compare|delete|exop|modify|modrdn|passwd|search|url|whoami)): DIGEST-MD5 common mech free$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sudo:[[:space:]]+[_[:alnum:].-]+ : TTY=(unknown|(pts/|tty|vc/)[[:digit:]]+) ; PWD=[^;]+ ; USER=[._[:alnum:]-]+ (; ENV=([_a-zA-Z]+=\S* )+)?; COMMAND=(/(usr|etc|bin|sbin)/|sudoedit )
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ freshclam\[[[:digit:]]+\]: bytecode\.(cld|cvd) is up to date \(version: [[:digit:]]+, sigs: [[:digit:]]+, f-level: [[:digit:]]+, builder: [._[:alnum:]-]+\)$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ freshclam\[[[:digit:]]+\]: bytecode\.(cld|cvd) (is up to date|updated) \(version: [[:digit:]]+, sigs: [[:digit:]]+, f-level: [[:digit:]]+, builder: [._[:alnum:]-]+\)$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ freshclam\[[[:digit:]]+\]: WARNING: Your ClamAV installation is OUTDATED!$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ freshclam\[[[:digit:]]+\]: WARNING: Local version: [[:digit:]]+(\.[[:digit:]]+)* Recommended version: [[:digit:]]+(\.[[:digit:]]+)*$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ freshclam\[[[:digit:]]+\]: WARNING: getfile: [._[:alnum:]-]+ not found on remote server \(IP: [.[:digit:]]+\)$
