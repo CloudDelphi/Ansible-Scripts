@@ -14,9 +14,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# There are a couple of XXX in this file, due to Postfix not supporting
-# SASL binds in Wheezy.
-
 dn: cn=config
 objectClass: olcGlobal
 cn: config
@@ -41,7 +38,7 @@ olcTLSCACertificateFile: /etc/ldap/ssl/clients.pem
 olcAuthzRegexp: "^(cn=[^,]+,ou=syncRepl),ou=LDAP,ou=SSLcerts,o=Fripost$"
                 "$1,dc=fripost,dc=org"
 olcSaslSecProps: minssf=128,noanonymous,noplain,nodict
-olcTLSCipherSuite: PFS:%LATEST_RECORD_VERSION:!VERS-SSL3.0:!VERS-TLS1.0:!VERS-TLS1.1:!CIPHER-ALL:+AES-128-GCM:+AES-256-GCM
+olcTLSCipherSuite: PFS:%LATEST_RECORD_VERSION:!CIPHER-ALL:+AES-128-GCM:+AES-256-GCM:!VERS-SSL3.0:!VERS-TLS1.0:!VERS-TLS1.1
 {% endif %}
 olcLocalSSF: 128
 # /!\ This is not portable! But we only use glibc's crypt(3), which
@@ -71,8 +68,7 @@ olcRootDN: gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth
 # and must use 1/ authentication, and 2/ SASL or TLS.  (Local clients
 # should use ldapi:// and SASL/EXERNAL, while remote clients should use
 # TLS.)
-# XXX: olcRequires: none LDAPv3 authc strong
-olcRequires: none LDAPv3 authc
+olcRequires: none LDAPv3 authc strong
 olcSecurity: simple_bind=128 ssf=128 update_ssf=128
 #
 #
@@ -158,19 +154,19 @@ olcSyncrepl: rid=000
 olcAddContentAcl: TRUE
 #
 # Overview:
-# - Authentication (XXX: strong authentication) is required prior to any DIT
-#   operation (see 'olcRequires').
+# - Strong authentication is required prior to any DIT operation (see
+#   'olcRequires').
 # - We force a Security Strength Factor of 128 or above for all operations (see
 #   'olcSecurity'), meaning one must use either a local connection (eg,
 #   ldapi://, possible since we set the 'olcLocalSSF' to 128), or TLS with at
 #   least 128 bits of security.
-# - XXX: Services may not simple bind other than locally on a ldapi:// socket.
-#   If no remote access is needed, they should use SASL/EXTERNAL on a ldapi://
-#   socket whenever possible (if the service itself supports SASL binds).
-#   If remote access is needed, they should use SASL/EXTERNAL on a ldaps://
-#   socket, and their identity should be derived from the Subject of the
-#   client certificate (the cert should be added to 'olcTLSCACertificateFile',
-#   and 'olcAuthzRegexp' should map the X.509 subject to the LDAP DN).
+# - Services should support SASL binds and use SASL/EXTERNAL on a
+#   ldapi:// socket.
+# - For (partial) remote replicates should use SASL/EXTERNAL on a
+#   ldaps:// socket, and their identity should be derived from the
+#   Subject of the client certificate (the cert should be added to
+#   'olcTLSCACertificateFile', and 'olcAuthzRegexp' should map the X.509
+#   subject to the LDAP DN).
 # - Admins have restrictions similar to that of the services.
 # - User access is only restricted by our global 'olcSecurity' attribute.
 #
