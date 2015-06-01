@@ -83,8 +83,8 @@
     - Restart stunnel
 
 - name: Configure stunnel
-  copy: src=etc/stunnel/stunnel.conf
-        dest=/etc/stunnel/stunnel.conf
+  copy: src=etc/stunnel/imap.conf
+        dest=/etc/stunnel/imap.conf
         owner=root group=root
         mode=0644
   register: r3
