@@ -1,0 +1,150 @@
+- name: Install stunnel
+  apt: pkg=stunnel4
+
+- name: Auto-enable stunnel
+  lineinfile: dest=/etc/default/stunnel4
+              regexp='^(\s*#)?\s*ENABLED='
+              line='ENABLED=1'
+              owner=root group=root
+              mode=0644
+
+- name: Create /etc/stunnel/certs
+  file: path=/etc/stunnel/certs
+        state=directory
+        owner=root group=root
+        mode=0755
+
+- name: Generate a private key and a X.509 certificate for Bacula FD
+  command: genkeypair.sh x509
+                         --pubkey=/etc/stunnel/certs/{{ inventory_hostname_short }}-fd.pem
+                         --privkey=/etc/stunnel/certs/{{ inventory_hostname_short }}-fd.key
+                         --ou=BaculaFD --cn={{ inventory_hostname }} --dns={{ inventory_hostname }}
+                         -t rsa -b 4096 -h sha512
+  register: r1
+  changed_when: r1.rc == 0
+  failed_when: r1.rc > 1
+  notify:
+    - Restart stunnel
+  tags:
+    - genkey
+
+- name: Fetch Bacula FD X.509 certificate
+  # Ensure we don't fetch private data
+  sudo: False
+  fetch: src=/etc/stunnel/certs/{{ inventory_hostname_short }}-fd.pem
+         dest=certs/bacula/
+         fail_on_missing=yes
+         flat=yes
+  tags:
+    - genkey
+
+- name: Copy Bacula Dir X.509 certificates
+  assemble: src=certs/bacula regexp="-dir\.pem$" remote_src=no
+            dest=/etc/stunnel/certs/bacula-dirs.pem
+            owner=root group=root
+            mode=0644
+  register: r2
+  when: "'bacula-dir' not in group_names"
+  notify:
+    - Restart stunnel
+
+- name: Copy Bacula SD X.509 certificates
+  copy: src=certs/bacula/{{ hostvars[item].inventory_hostname_short }}-sd.pem
+        dest=/etc/stunnel/certs/
+        owner=root group=root
+        mode=0644
+  register: r3
+  with_items: groups['bacula-sd'] | difference([inventory_hostname])
+  notify:
+    - Restart stunnel
+
+- name: Configure stunnel
+  template: src=etc/stunnel/bacula-fd.conf.j2
+            dest=/etc/stunnel/bacula-fd.conf
+            owner=root group=root
+            mode=0644
+  register: r4
+  when: "'bacula-dir' not in group_names or 'bacula-sd' not in group_names"
+  notify:
+    - Restart stunnel
+
+- name: Start stunnel
+  service: name=stunnel4 pattern=/usr/bin/stunnel4 state=started
+  when: not (r1.changed or r2.changed or r3.changed or r4.changed)
+
+- meta: flush_handlers
+
+
+
+- name: Install bacula-fd
+  apt: pkg=bacula-fd
+
+- name: Create /var/lib/bacula/tmp
+  file: path=/var/lib/bacula/tmp
+        state=directory
+        owner=root group=root
+        mode=0700
+
+- name: Delete /etc/bacula/common_default_passwords
+  file: path=/etc/bacula/common_default_passwords state=absent
+
+# Create with:
+#   echo $director-dir $(pwgen -sn 64 1) | sudo tee -a /etc/bacula/passwords-fd
+- name: Ensure /etc/bacula/passwords-fd exists
+  file: path=/etc/bacula/passwords-fd
+        state=file
+        owner=root group=root
+        mode=0600
+
+- name: Configure bacula
+  template: src=etc/bacula/bacula-fd.conf.j2
+            dest=/etc/bacula/bacula-fd.conf
+            owner=root group=root
+            mode=0644
+  notify:
+    - Restart bacula-fd
+
+- name: Create /etc/bacula/ssl
+  file: path=/etc/bacula/ssl
+        state=directory
+        owner=root group=root
+        mode=0755
+
+- name: Generate a keypair for data encryption
+  command: genkeypair.sh x509
+                         --pubkey=/etc/bacula/ssl/{{ inventory_hostname_short }}.pem
+                         --privkey=/etc/bacula/ssl/{{ inventory_hostname_short }}.pem
+                         --ou=BaculaFD --cn={{ inventory_hostname }} --dns={{ inventory_hostname }}
+                         -t rsa -b 4096 -h sha512
+  register: r
+  changed_when: r.rc == 0
+  failed_when: r.rc > 1
+  notify:
+    - Restart bacula-fd
+  tags:
+    - genkey
+
+- name: Copy the master public key for data encryption
+  copy: src=certs/bacula/data-master.pem
+        dest=/etc/bacula/ssl/master.pem
+        owner=root group=root
+        mode=0644
+  tags:
+    - genkey
+
+- name: Copy bacula-fd.service
+  copy: src=lib/systemd/system/bacula-fd.service
+        dest=/lib/systemd/system/bacula-fd.service
+        owner=root group=root
+        mode=0644
+  notify:
+    - systemctl daemon-reload
+    - Restart bacula-fd
+
+- meta: flush_handlers
+
+- name: Enable bacula-fd
+  service: name=bacula-fd enabled=yes
+
+- name: Start bacula-fd
+  service: name=bacula-fd state=started

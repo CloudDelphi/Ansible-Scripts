@@ -1,0 +1,10 @@
+#
+# Bacula User Agent (or Console) Configuration File
+#
+
+Director {
+  Name = {{ inventory_hostname_short }}-dir
+  DirPort = 9101
+  Address = 127.0.0.1
+  @|"sed -n '/^bconsole\\s/ {s//Password = /p; q}' /etc/bacula/passwords-dir"
+}

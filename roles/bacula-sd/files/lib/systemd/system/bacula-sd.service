@@ -1,0 +1,14 @@
+[Unit]
+Description=Bacula Storage Daemon service
+After=network.target
+
+[Service]
+Type=forking
+PIDFile=/var/run/bacula/bacula-sd.9113.pid
+StandardOutput=syslog
+User=bacula
+Group=tape
+ExecStart=/usr/sbin/bacula-sd -c /etc/bacula/bacula-sd.conf
+
+[Install]
+WantedBy=multi-user.target

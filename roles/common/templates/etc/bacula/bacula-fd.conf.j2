@@ -1,0 +1,41 @@
+#
+# Default  Bacula File Daemon Configuration file
+#
+#  For Bacula release 5.2.6 (21 February 2012) -- debian jessie/sid
+
+#
+# List Directors who are permitted to contact this File daemon
+#
+{% for dir in groups['bacula-dir'] | sort %}
+Director {
+  Name = {{ hostvars[dir].inventory_hostname_short }}-dir
+  @|"sed -n '/^{{ hostvars[dir].inventory_hostname_short }}-dir\\s/ {s//Password = /p; q}' /etc/bacula/passwords-fd"
+}
+
+# Send all messages except skipped files back to Director
+Messages {
+  Name = Standard
+  director = {{ hostvars[dir].inventory_hostname_short }}-dir = all, !skipped, !restored
+}
+{% endfor %}
+
+#
+# "Global" File daemon configuration specifications
+#
+FileDaemon {  # define myself
+  Name = {{ inventory_hostname_short }}-fd
+  Working Directory = /var/lib/bacula
+  Pid Directory = /var/run/bacula
+  Maximum Concurrent Jobs = 20
+  FDAddress = 127.0.0.1
+  FDPort = 9112
+  FDSourceAddress = 127.0.0.1
+{% if 'bacula-dir' not in group_names or 'bacula-sd' not in group_names %}
+  Heartbeat Interval = 60s
+{% endif %}
+
+  PKI Signatures = Yes  # Enable Data Signing
+  PKI Encryption = Yes  # Enable Data Encryption
+  PKI Keypair = /etc/bacula/ssl/{{ inventory_hostname_short }}.pem # Public and Private Keys
+  PKI Master Key = /etc/bacula/ssl/master.pem                      # ONLY the Public Key
+}

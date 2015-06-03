@@ -1,0 +1,12 @@
+[Unit]
+Description=Bacula File Daemon service
+After=network.target
+
+[Service]
+Type=forking
+PIDFile=/var/run/bacula/bacula-fd.9112.pid
+StandardOutput=syslog
+ExecStart=/usr/sbin/bacula-fd -c /etc/bacula/bacula-fd.conf
+
+[Install]
+WantedBy=multi-user.target

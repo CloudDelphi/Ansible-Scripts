@@ -1,0 +1,62 @@
+; **************************************************************************
+; * Global options                                                         *
+; **************************************************************************
+
+; setuid()/setgid() to the specified user/group in daemon mode
+setuid = stunnel4
+setgid = stunnel4
+
+; PID is created inside the chroot jail
+pid = /var/run/stunnel4/bacula-fd.pid
+
+; Only log messages at severity warning (4) and higher
+debug = 4
+
+; **************************************************************************
+; * Service defaults may also be specified in individual service sections  *
+; **************************************************************************
+
+; Certificate/key is needed in server mode and optional in client mode
+cert = /etc/stunnel/certs/{{ inventory_hostname_short }}-fd.pem
+key  = /etc/stunnel/certs/{{ inventory_hostname_short }}-fd.key
+
+; Some performance tunings
+socket = l:TCP_NODELAY=1
+socket = r:TCP_NODELAY=1
+
+; Prevent MITM attacks
+verify = 4
+
+; Disable support for insecure protocols
+options = NO_SSLv2
+options = NO_SSLv3
+options = NO_TLSv1
+options = NO_TLSv1.1
+
+; These options provide additional security at some performance degradation
+options = SINGLE_ECDH_USE
+options = SINGLE_DH_USE
+
+; Select permitted SSL ciphers
+ciphers = EECDH+AES:EDH+AES:!MEDIUM:!LOW:!EXP:!aNULL:!eNULL:!SSLv2:!SSLv3:!TLSv1:!TLSv1.1
+
+; **************************************************************************
+; * Service definitions (remove all services for inetd mode)               *
+; **************************************************************************
+
+[{{ inventory_hostname_short }}-fd]
+client  = no
+accept  = 9102
+connect = 9112
+CAfile  = /etc/stunnel/certs/bacula-dirs.pem
+
+{% if 'bacula-sd' not in group_names %}
+[{{ hostvars[ groups['bacula-sd'][0] ].inventory_hostname_short }}-sd]
+client  = yes
+accept  = 127.0.0.1:9113
+connect = {{ groups['bacula-sd'][0] }}:9103
+delay   = yes
+CAfile  = /etc/stunnel/certs/{{ hostvars[ groups['bacula-sd'][0] ].inventory_hostname_short }}-sd.pem
+{% endif %}
+
+; vim:ft=dosini

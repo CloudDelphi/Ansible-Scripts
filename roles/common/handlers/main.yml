@@ -2,6 +2,9 @@
 # corresponding state=restarted handler.  (Register the task notifying
 # the handler, and add a conditional.)
 ---
+- name: systemctl daemon-reload
+  command: /bin/systemctl daemon-reload
+
 - name: Refresh hostname
   service: name=hostname.sh state=restarted
 
@@ -34,6 +37,12 @@
 
 - name: Reload Postfix
   service: name=postfix state=reloaded
+
+- name: Restart stunnel
+  service: name=stunnel4 pattern=/usr/bin/stunnel4 state=restarted
+
+- name: Restart bacula-fd
+  service: name=bacula-fd state=restarted
 
 - name: Update certificate
   command: update-ca-certificates

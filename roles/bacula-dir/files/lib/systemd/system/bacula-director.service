@@ -1,0 +1,14 @@
+[Unit]
+Description=Bacula Director service
+After=network.target
+
+[Service]
+Type=forking
+PIDFile=/var/run/bacula/bacula-dir.9101.pid
+StandardOutput=syslog
+User=bacula
+Group=tape
+ExecStart=/usr/sbin/bacula-dir -c /etc/bacula/bacula-dir.conf
+
+[Install]
+WantedBy=multi-user.target

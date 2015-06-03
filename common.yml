@@ -13,7 +13,7 @@
     - common
 
 - name: Common SQL tasks
-  hosts: MDA:webmail:lists:backup
+  hosts: MDA:webmail:lists:bacula-dir
   gather_facts: False
   tags: mysql,sql
   roles:

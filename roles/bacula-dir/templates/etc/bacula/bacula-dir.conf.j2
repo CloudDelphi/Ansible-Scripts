@@ -1,0 +1,524 @@
+#
+# Default Bacula Director Configuration file
+# For Bacula release 5.2.6 (21 February 2012) -- debian jessie/sid
+#
+
+Director {  # define myself
+  Name = {{ inventory_hostname_short }}-dir
+  @|"sed -n '/^bconsole\\s/ {s//Password = /p; q}' /etc/bacula/passwords-dir"
+  Messages = Daemon
+  Working Directory = /var/lib/bacula
+  Pid Directory = /var/run/bacula
+  QueryFile = "/etc/bacula/scripts/query.sql"
+  Maximum Concurrent Jobs = 1
+  DirAddress = 127.0.0.1
+  DirSourceAddress = 127.0.0.1
+  DirPort = 9101
+}
+
+
+JobDefs {
+  Name = DefaultJob
+  Type = Backup
+  Level = Incremental
+  Storage = {{ hostvars[ groups['bacula-sd'][0] ].inventory_hostname_short }}-sd
+  Messages = Standard
+  Accurate = yes
+  Reschedule On Error = yes
+  Reschedule Interval = 17m
+  Reschedule Times = 3
+  Pool = Default
+  Priority = 10
+  Write Bootstrap = "/var/lib/bacula/%n.bsr"
+}
+
+JobDefs {
+  Name = DefaultMySQLJob
+  Type = Backup
+  Level = Full
+  Storage = {{ hostvars[ groups['bacula-sd'][0] ].inventory_hostname_short }}-sd
+  Messages = Standard
+  FileSet = SQL
+  Schedule = WeeklyCycleAfterBackup
+  Reschedule On Error = yes
+  Reschedule Interval = 17m
+  Reschedule Times = 3
+  # This creates an ASCII copy of the databases
+  Client Run Before Job = "/usr/bin/mysqldump -r /var/lib/bacula/tmp/dump.sql --events --all-databases"
+  # This deletes the copy of the catalog
+  RunScript {
+    Runs On Client = yes
+    Runs On Success = yes
+    Runs On Failure = yes
+    Runs When = after
+    Command = "/bin/rm -f /var/lib/bacula/tmp/dump.sql"
+  }
+  Pool = database
+  Priority = 15
+  Write Bootstrap = "/var/lib/bacula/%n.bsr"
+}
+
+JobDefs {
+  Name = DefaultSlapdJob
+  Type = Backup
+  Level = Full
+  Storage = {{ hostvars[ groups['bacula-sd'][0] ].inventory_hostname_short }}-sd
+  Messages = Standard
+  FileSet = LDAP
+  Schedule = WeeklyCycleAfterBackup
+  Reschedule On Error = yes
+  Reschedule Interval = 17m
+  Reschedule Times = 3
+  # This creates an ASCII copy of the databases
+  Client Run Before Job = "/usr/local/sbin/slapcat-all.sh /var/lib/bacula/tmp"
+  # This deletes the copy of the catalog
+  RunScript {
+    Runs On Client = yes
+    Runs On Success = yes
+    Runs On Failure = yes
+    Runs When = after
+    Command = "/usr/bin/find /var/lib/bacula/tmp -type f -name '*.ldif' -delete"
+  }
+  Pool = database
+  Priority = 15
+  Write Bootstrap = "/var/lib/bacula/%n.bsr"
+}
+
+
+# Backup the director
+Job {
+  Name = {{ inventory_hostname_short }}-dir
+  Client = {{ inventory_hostname_short }}-fd
+  JobDefs = DefaultJob
+  FileSet = BaculaHome
+  Schedule = WeeklyCycle
+}
+
+# Backup the mailboxes
+{% for h in groups.IMAP | sort %}
+Job {
+  Name = {{ hostvars[h].inventory_hostname_short }}-mailboxes
+  Client = {{ hostvars[h].inventory_hostname_short }}-fd
+  JobDefs = DefaultJob
+  FileSet = Mailboxes
+  Pool = mailboxes-inc
+  Full Backup Pool = mailboxes-full
+  Schedule = Mailboxes13WeeksCycle
+  Max Start Delay = 50 min # To avoid too many overlaps
+  Max Full Interval = 15 weeks
+}
+{% endfor %}
+
+# Backup each machine
+{% for fd in groups.all | sort %}
+Job {
+  Name = {{ hostvars[fd].inventory_hostname_short }}
+  Client = {{ hostvars[fd].inventory_hostname_short }}-fd
+  JobDefs = DefaultJob
+  FileSet = FileSetRoot
+  Pool = {{ hostvars[fd].inventory_hostname_short }}
+  Priority = 15
+  Schedule = WeeklyCycle
+}
+{% endfor %}
+
+{% for fd in groups['MDA'] | union(groups['webmail']) | union(groups['lists']) | union(groups['bacula-dir']) | sort %}
+Job {
+  Name = {{ hostvars[fd].inventory_hostname_short }}-mysql
+  Client = {{ hostvars[fd].inventory_hostname_short }}-fd
+  JobDefs = DefaultMySQLJob
+}
+{% endfor %}
+
+{% for fd in groups['MDA'] | union(groups['MSA']) | union(groups['LDAP-provider']) | union(groups['MX']) | sort %}
+Job {
+  Name = {{ hostvars[fd].inventory_hostname_short }}-slapd
+  Client = {{ hostvars[fd].inventory_hostname_short }}-fd
+  JobDefs = DefaultSlapdJob
+}
+{% endfor %}
+
+
+#
+# Standard Restore template, to be changed by Console program
+# Only one such job is needed for all Jobs/Clients/Storage ...
+Job {
+  Name = RestoreFiles
+  Type = Restore
+  Client= {{ inventory_hostname_short }}-fd
+  FileSet = FileSetRoot
+  Storage = {{ hostvars[ groups['bacula-sd'][0] ].inventory_hostname_short }}-sd
+  Pool = Default
+  Messages = Standard
+  # NOTE: Files are put on the client (FD) that is being restored.
+  Where = /tmp/bacula-restores
+}
+
+
+# When to do the backups, full backup on first sunday of the month,
+#  differential (i.e. incremental since full) every other sunday,
+#  and incremental backups other days
+Schedule {
+  Name = WeeklyCycle
+  Run = Full 1st sun at 23:05
+  Run = Differential 2nd-5th sun at 23:05
+  Run = Incremental mon-sat at 23:05
+}
+
+Schedule {
+  Name = Mailboxes13WeeksCycle
+  # Full backup every 3 months
+  Run = Level=Full Pool=mailboxes-full w04 mon at 03:00
+  Run = Level=Full Pool=mailboxes-full w17 mon at 03:00
+  Run = Level=Full Pool=mailboxes-full w30 mon at 03:00
+  Run = Level=Full Pool=mailboxes-full w43 mon at 03:00
+  # Hourly incremental backup otherwise
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 01:00
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 02:00
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet w05-w16 mon-sun at 03:00
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet w18-w29 mon-sun at 03:00
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet w31-w42 mon-sun at 03:00
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet w44-w03 mon-sun at 03:00
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 04:00
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 05:00
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 06:00
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 07:00
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 08:00
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 09:00
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 10:00
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 11:00
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 12:00
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 13:00
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 14:00
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 15:00
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 16:00
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 17:00
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 18:00
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 19:00
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 20:00
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 21:00
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 22:00
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 23:00
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 00:00
+}
+
+# This schedule does the databases. It starts after the WeeklyCycle
+Schedule {
+  Name = WeeklyCycleAfterBackup
+  Run = Full sun-sat at 23:10
+}
+
+
+# List of files to be backed up
+FileSet {
+  Name = BaculaHome
+  Include {
+    Options {
+      signature = SHA1
+      compression = GZIP
+      verify = pins1
+      noatime = yes
+    }
+    File = /var/lib/bacula
+  }
+  Exclude {
+    File = /var/lib/bacula/tmp
+  }
+}
+
+FileSet {
+  Name = FileSetRoot
+  Include {
+    # The full /etc/ and /home/, zipped
+    Options {
+      WildDir = "/home/backup*"
+      WildDir = "/home/mail*"
+      WildFile = "*~"
+      WildFile = "*#"
+      Exclude = yes
+    }
+    Options {
+      signature = SHA1
+      compression = GZIP
+    }
+    File = /etc
+    File = /home
+    Exclude Dir Containing = .no-backup
+  }
+  Include {
+    # /var/lib, excluding databases that can be dumped and backed up separately
+    Options {
+      WildDir = /var/lib/amavis
+      WildDir = "/var/lib/apt*"
+      WildDir = /var/lib/aspell
+      WildDir = /var/lib/bacula
+      WildDir = /var/lib/clamav
+      WildDir = "/var/lib/drupal*"
+      WildDir = /var/lib/ldap
+      WildDir = /var/lib/mailman
+      WildDir = /var/lib/mlocate
+      WildDir = /var/lib/munin
+      WildDir = /var/lib/mysql
+      WildDir = /var/lib/postgresql
+      WildDir = /var/lib/postgrey
+      WildDir = /var/lib/rkhunter
+      WildDir = /var/lib/roundcube
+      WildDir = /var/lib/tor
+      WildDir = /var/lib/usbutils
+      WildFile = "*~"
+      WildFile = "*#"
+      Exclude = yes
+    }
+    Options {
+      signature = SHA1
+      compression = GZIP
+    }
+    File = /var/lib
+    Exclude Dir Containing = .no-backup
+  }
+  Include {
+    # Other interesting directories
+    Options {
+      WildDir = /var/cache
+      WildDir = "/var/backup*"
+      WildDir = /var/lib # processed earlier
+      WildDir = /var/spool
+      WildDir = "/var/log*"
+      WildDir = /var/tmp
+      WildFile = "*~"
+      WildFile = "*#"
+      Exclude = yes
+    }
+    Options {
+      signature = SHA1
+    }
+    File = /bin
+    File = /boot
+    File = /lib
+    File = /opt
+    File = /root
+    File = /sbin
+    File = /srv
+    File = /usr
+    File = /var
+    Exclude Dir Containing = .no-backup
+  }
+  Exclude {
+    File = /proc
+    File = /sys
+    File = /run
+    File = /tmp
+    File = /.journal
+    File = /.fsck
+    File = /.autofsck
+    File = /net
+    File = /mnt
+    File = /exports
+    File = /misc
+    File = /media
+  }
+}
+
+FileSet {
+  Name = SQL
+  Include {
+    Options {
+      signature = SHA1
+      compression = GZIP
+      verify = s1
+    }
+    File = /var/lib/bacula/tmp/dump.sql
+  }
+}
+
+FileSet {
+  Name = LDAP
+  Include {
+    Options {
+      signature = SHA1
+      compression = GZIP
+      verify = s1
+      WildFile = "*.ldif"
+    }
+    Options {
+        Wild = "*"
+        Exclude = yes
+    }
+    File = /var/lib/bacula/tmp
+  }
+}
+
+FileSet {
+  Name = Mailboxes
+  Include {
+    Options {
+      signature = SHA1
+      verify = pins1
+    }
+    File = /home/mail/virtual
+    File = /home/mail/spamspool
+  }
+}
+
+
+# Client (File Services) to backup
+{% set n = 0 %}
+{% for fd in groups.all | sort %}
+{% set n = n + 1 %}
+Client {
+  Name = {{ hostvars[fd].inventory_hostname_short }}-fd
+{% if fd == inventory_hostname %}
+  Address = 127.0.0.1
+{% else %}
+  Address = 127.0.{{ n }}.1
+{% endif %}
+  FDPort  = 9112
+  Catalog = MyCatalog
+  @|"sed -n '/^{{ hostvars[fd].inventory_hostname_short }}-fd\\s/ {s//Password = /p; q}' /etc/bacula/passwords-dir"
+  File Retention = 4 months
+  Job Retention = 5 months
+  AutoPrune = yes
+  #Maximum Bandwidth = 1mb/s
+}
+{% endfor %}
+
+
+# Definition of file storage device
+Storage {
+  Name = {{ hostvars[ groups['bacula-sd'][0] ].inventory_hostname_short }}-sd
+  Address = 127.0.0.1
+  SDPort  = 9113
+  @|"sed -n '/^{{ hostvars[ groups['bacula-sd'][0] ].inventory_hostname_short }}-sd\\s/ {s//Password = /p; q}' /etc/bacula/passwords-dir"
+  Device = FileStorage
+  Media Type = File
+}
+
+
+# Default pool definition
+Pool {
+  Name = Default
+  Pool Type = Backup
+  Recycle = yes
+  AutoPrune = yes
+  Volume Retention = 3 months
+  Maximum Volume Bytes = 5GB
+  Label Format = "Default-${NumVols:p/4/0/r}"
+}
+
+# Scratch pool definition
+Pool {
+  Name = Scratch
+  Pool Type = Backup
+  Maximum Volume Bytes = 5GB
+  Label Format = "Scratch-${NumVols:p/4/0/r}"
+}
+
+# System pools definition
+{% for h in groups.all | sort %}
+Pool {
+  Name = {{ hostvars[h].inventory_hostname_short }}
+  Pool Type = Backup
+  Recycle = yes
+  AutoPrune = yes
+  Volume Retention = 3 months
+  Maximum Volume Bytes = 5GB
+  Label Format = "{{ hostvars[h].inventory_hostname_short }}-${NumVols:p/4/0/r}"
+}
+{% endfor %}
+
+# Mailbox pool definition (full backup)
+Pool {
+  Name = mailboxes-full
+  Pool Type = Backup
+  Recycle = yes
+  AutoPrune = yes
+  Volume Retention = 26 weeks
+  Maximum Volume Bytes = 5GB
+  Label Format = "mailboxes-full-${NumVols:p/4/0/r}"
+}
+
+# Mailbox pool definition (inc backup)
+Pool {
+  Name = mailboxes-inc
+  Pool Type = Backup
+  Recycle = yes
+  AutoPrune = yes
+  Volume Retention = 26 weeks
+  Maximum Volume Bytes = 5GB
+  Label Format = "mailboxes-inc-${NumVols:p/4/0/r}"
+}
+
+# Database pool definition
+Pool {
+  Name = database
+  Pool Type = Backup
+  Recycle = yes
+  AutoPrune = yes
+  Volume Retention = 3 months
+  Maximum Volume Bytes = 5GB
+  Label Format = "database-${NumVols:p/4/0/r}"
+}
+
+
+# Generic catalog service
+Catalog {
+  Name = MyCatalog
+  Password = ""
+  DB Name = bacula
+  User = bacula
+}
+
+
+# Reasonable message delivery -- send most everything to email address
+#  and to the console
+Messages {
+  Name = Standard
+#
+# NOTE! If you send to two email or more email addresses, you will need
+#  to replace the %r in the from field (-f part) with a single valid
+#  email address in both the mailcommand and the operatorcommand.
+#  What this does is, it sets the email address that emails would display
+#  in the FROM field, which is by default the same email as they're being
+#  sent to.  However, if you send email to more than one address, then
+#  you'll have to set the FROM address manually, to a single address.
+#  for example, a 'no-reply@mydomain.com', is better since that tends to
+#  tell (most) people that its coming from an automated source.
+
+#
+  MailCommand = "/usr/sbin/bsmtp -h localhost:16132 -f \"\(Bacula\) \<%r\>\" -s \"Bacula: %t %e of %c %l\" %r"
+  Mail = admin@fripost.org = all, !skipped
+  OperatorCommand = "/usr/sbin/bsmtp -h localhost:16132 -f \"\(Bacula\) \<%r\>\" -s \"Bacula: Intervention needed for %j\" %r"
+  Operator = admin@fripost.org = mount
+  Console = all, !skipped, !saved
+#
+# WARNING! the following will create a file that you must cycle from
+#          time to time as it will grow indefinitely. However, it will
+#          also keep all your messages if they scroll off the console.
+#
+  Append = "/var/log/bacula/bacula.log" = all, !skipped
+  Catalog = all
+}
+
+# Report upon error only
+Messages {
+  Name = Quiet
+  MailCommand = "/usr/sbin/bsmtp -h localhost:16132 -f \"\(Bacula\) \<%r\>\" -s \"Bacula [OK]: %t %e of %n %l\" %r"
+  Mail On Success = admin@fripost.org = all, !info, !fatal, !skipped, !notsaved, !restored
+  MailCommand = "/usr/sbin/bsmtp -h localhost:16132 -f \"\(Bacula\) \<%r\>\" -s \"Bacula [Fail]: %t %e of %n %l\" %r"
+  Mail On Error = admin@fripost.org = all, !skipped
+  OperatorCommand = "/usr/sbin/bsmtp -h localhost:16132 -f \"\(Bacula\) \<%r\>\" -s \"Bacula: Intervention needed for %j\" %r"
+  Operator = admin@fripost.org = mount
+  Console = all, !info, !restored, !skipped, !saved
+  Append = "/var/lib/bacula/log" = all, !skipped
+  Catalog = all
+}
+
+#
+# Message delivery for daemon messages (no job).
+Messages {
+  Name = Daemon
+  MailCommand = "/usr/sbin/bsmtp -h localhost:16132 -f \"\(Bacula\) \<%r\>\" -s \"Bacula daemon message\" %r"
+  Mail = admin@fripost.org = all, !skipped
+  Console = all, !skipped, !saved
+  Append = "/var/log/bacula/bacula.log" = all, !skipped
+}

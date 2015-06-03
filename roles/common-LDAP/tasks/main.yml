@@ -127,3 +127,9 @@
 
 - name: Remove the rootDN under the 'config' database
   openldap: name="olcDatabase={0}config,cn=config" delete=olcRootDN,olcRootPW
+
+- name: Copy /usr/local/sbin/slapcat-all.sh
+  copy: src=usr/local/sbin/slapcat-all.sh
+        dest=/usr/local/sbin/slapcat-all.sh
+        owner=root group=root
+        mode=0755
