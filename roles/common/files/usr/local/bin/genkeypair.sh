@@ -168,10 +168,11 @@ if [ -z "$config" -a \( "$cmd" = x509 -o "$cmd" = csr \) ]; then
 		commonName             = $cn
 
 		[ v3_req ]
-		subjectAltName   = email:admin@fripost.org${dns:+, $dns}
-		basicConstraints = critical, CA:FALSE
+		subjectAltName       = email:admin@fripost.org${dns:+, $dns}
+		basicConstraints     = critical, CA:FALSE
 		# https://security.stackexchange.com/questions/24106/which-key-usages-are-required-by-each-key-exchange-method
-		keyUsage         = critical, ${usage:-digitalSignature, keyEncipherment, keyCertSign}
+		keyUsage             = critical, ${usage:-digitalSignature, keyEncipherment, keyCertSign}
+		subjectKeyIdentifier = hash
 	EOF
 fi
 
@@ -188,7 +189,12 @@ elif [ ! -s "$privkey" -o $force -ge 2 ]; then
     [ "$cmd" = dkim ] && { dkiminfo; exit; }
 fi
 
-if [ "$cmd" = x509 -o "$cmd" = csr ]; then
+if [ "$cmd" = x509 -a "$pubkey" = "$privkey" ]; then
+    pubkey=$(mktemp)
+    openssl req -config "$config" -new -x509 ${hash:+-$hash} -days 3650 -key "$privkey" >"$pubkey" || exit 2
+    cat "$pubkey" >>"$privkey" || exit 2
+    rm -f "$pubkey"
+elif [ "$cmd" = x509 -o "$cmd" = csr ]; then
     if [ -s "$pubkey" -a $force -eq 0 ]; then
         echo "Error: public key exists: $pubkey" >&2
         exit 1
