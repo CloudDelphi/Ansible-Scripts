@@ -256,7 +256,7 @@ run() {
     iptables -A INPUT -p tcp \! --syn -m state --state NEW      -j DROP
 
     # Allow all input/output to/from the loopback interface.
-    local localhost=$(inet46 $f '127.0.0.1/32' '::1/128')
+    local localhost=$(inet46 $f '127.0.0.1/8' '::1/128')
     iptables -A INPUT  -i lo -s "$localhost" -d "$localhost" -j ACCEPT
     iptables -A OUTPUT -o lo -s "$localhost" -d "$localhost" -j ACCEPT
 
