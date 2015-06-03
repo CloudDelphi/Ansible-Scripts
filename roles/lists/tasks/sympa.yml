@@ -4,7 +4,7 @@
     - sympa
 
 - name: Make the 'sympa' MySQL user use auth_socket
-  mysql_user: name=sympa auth_plugin=auth_socket
+  mysql_user: name=sympa password= auth_plugin=auth_socket
               state=present
 
 - name: Configure Sympa

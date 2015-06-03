@@ -51,7 +51,7 @@
   # This *must* be the user we run spamd as
   # See https://svn.apache.org/repos/asf/spamassassin/trunk/sql/README.bayes
   mysql_user: >
-      name=amavis auth_plugin=auth_socket
+      name=amavis password= auth_plugin=auth_socket
       priv="spamassassin.awl:               SELECT,INSERT,UPDATE,DELETE
            /spamassassin.bayes_seen:        SELECT,INSERT,       DELETE
            /spamassassin.bayes_token:       SELECT,INSERT,UPDATE,DELETE
