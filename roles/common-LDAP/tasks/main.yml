@@ -76,8 +76,7 @@
     - genkey
 
 - name: Copy the SyncRepls's client certificates
-  assemble: src=certs/ldap
-            remote_src=no
+  assemble: src=certs/ldap remote_src=no
             dest=/etc/ldap/ssl/clients.pem
             owner=root group=root
             mode=0644

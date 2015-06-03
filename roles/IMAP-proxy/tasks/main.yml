@@ -64,8 +64,7 @@
   # for some reason stunnel's level 4 "verify" (CA chain and only verify
   # peer certificate) doesn't always work:
   # https://www.stunnel.org/pipermail/stunnel-users/2013-July/004249.html
-  assemble: src=certs/dovecot
-            remote_src=no
+  assemble: src=certs/dovecot remote_src=no
             dest=/etc/stunnel/certs/imap.fripost.org.pem
             owner=root group=root
             mode=0644
