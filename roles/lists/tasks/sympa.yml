@@ -74,6 +74,7 @@
         mode=0644
   notify:
     - systemctl daemon-reload
+    - Restart wwsympa
   with_items:
     - wwsympa.service
     - wwsympa.socket

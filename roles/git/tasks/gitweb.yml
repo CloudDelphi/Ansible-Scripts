@@ -44,6 +44,7 @@
         mode=0644
   notify:
     - systemctl daemon-reload
+    - Restart gitweb
   with_items:
     - gitweb.service
     - gitweb.socket

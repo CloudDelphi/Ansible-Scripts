@@ -1,4 +1,7 @@
 ---
+- name: systemctl daemon-reload
+  command: /bin/systemctl daemon-reload
+
 - name: Reload Postfix
   service: name=postfix state=reloaded
 
@@ -8,5 +11,5 @@
 - name: Restart Sympa
   service: name=sympa state=restarted
 
-- name: systemctl daemon-reload
-  command: /bin/systemctl daemon-reload
+- name: Restart wwsympa
+  service: name=wwsympa state=restarted
