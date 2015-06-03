@@ -1,0 +1,5 @@
+---
+- name: Configure the website
+  hosts: wiki
+  roles:
+    - wiki
