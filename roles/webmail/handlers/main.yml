@@ -1,6 +1,6 @@
 ---
-- name: Reload Postfix
-  service: name=postfix state=reloaded
+- name: Restart stunnel
+  service: name=stunnel4 pattern=/usr/bin/stunnel4 state=restarted
 
 - name: Restart Nginx
   service: name=nginx state=restarted

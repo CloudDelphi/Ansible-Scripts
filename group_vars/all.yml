@@ -7,5 +7,4 @@ postfix_instance:
   MX:      { name: mx,  group: mta             }
   out:     { name: out, group: mta, port: 2525 }
   MSA:     { name: msa                         }
-  webmail: { name: webmail                     }
   lists:   { name: lists,           port: 2527 }

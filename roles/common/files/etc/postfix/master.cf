@@ -45,7 +45,6 @@ scache    unix  -       -       -       -       1       scache
 2525      inet  n       -       -       -       -       smtpd
 2526      inet  n       -       -       -       -       smtpd
 2527      inet  n       -       -       -       -       smtpd
-127.0.0.1:2580 inet n   -       -       -       -       smtpd
 reserved-alias unix  -  n       n       -       -       pipe
   flags=Rhu user=nobody argv=/usr/local/bin/reserved-alias.pl ${sender} ${original_recipient} @fripost.org
 sympa     unix  -       n       n       -       -       pipe
