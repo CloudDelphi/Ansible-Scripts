@@ -82,8 +82,8 @@
     - Restart stunnel
 
 - name: Configure stunnel
-  copy: src=etc/stunnel/imap.conf
-        dest=/etc/stunnel/imap.conf
+  copy: src=etc/stunnel/roundcube.conf
+        dest=/etc/stunnel/roundcube.conf
         owner=root group=root
         mode=0644
   register: r3
