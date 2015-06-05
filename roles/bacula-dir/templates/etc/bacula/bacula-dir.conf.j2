@@ -54,7 +54,7 @@ JobDefs {
     Command = "/bin/rm -f /var/lib/bacula/tmp/dump.sql"
   }
   Pool = database
-  Priority = 15
+  Priority = 20
   Write Bootstrap = "/var/lib/bacula/%n.bsr"
 }
 
@@ -80,7 +80,7 @@ JobDefs {
     Command = "/usr/bin/find /var/lib/bacula/tmp -type f -name '*.ldif' -delete"
   }
   Pool = database
-  Priority = 15
+  Priority = 20
   Write Bootstrap = "/var/lib/bacula/%n.bsr"
 }
 
@@ -160,25 +160,24 @@ Job {
 #  and incremental backups other days
 Schedule {
   Name = WeeklyCycle
-  Run = Full 1st sun at 23:05
-  Run = Differential 2nd-5th sun at 23:05
-  Run = Incremental mon-sat at 23:05
+  Run = Level=Full         Messages=Quiet 1st sun at 01:05
+  Run = Level=Differential Messages=Quiet 2nd-5th sun at 01:05
+  Run = Level=Incremental  Messages=Quiet mon-sat at 01:05
 }
 
+# Backup mailboxes: full backup every 3 months, hourly incremental backup
 Schedule {
   Name = Mailboxes13WeeksCycle
-  # Full backup every 3 months
-  Run = Level=Full Pool=mailboxes-full w04 mon at 03:00
-  Run = Level=Full Pool=mailboxes-full w17 mon at 03:00
-  Run = Level=Full Pool=mailboxes-full w30 mon at 03:00
-  Run = Level=Full Pool=mailboxes-full w43 mon at 03:00
-  # Hourly incremental backup otherwise
+  Run = Level=Full Pool=mailboxes-full w04 mon at 02:00
+  Run = Level=Full Pool=mailboxes-full w17 mon at 02:00
+  Run = Level=Full Pool=mailboxes-full w30 mon at 02:00
+  Run = Level=Full Pool=mailboxes-full w43 mon at 02:00
   Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 01:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 02:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet w05-w16 mon-sun at 03:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet w18-w29 mon-sun at 03:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet w31-w42 mon-sun at 03:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet w44-w03 mon-sun at 03:00
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet w05-w16 mon-sun at 02:00
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet w18-w29 mon-sun at 02:00
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet w31-w42 mon-sun at 02:00
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet w44-w03 mon-sun at 02:00
+  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 03:00
   Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 04:00
   Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 05:00
   Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 06:00
@@ -205,7 +204,7 @@ Schedule {
 # This schedule does the databases. It starts after the WeeklyCycle
 Schedule {
   Name = WeeklyCycleAfterBackup
-  Run = Full sun-sat at 23:10
+  Run = Level=Full Messages=Quiet sun-sat at 01:10
 }
 
 
@@ -469,32 +468,14 @@ Catalog {
 }
 
 
-# Reasonable message delivery -- send most everything to email address
-#  and to the console
+# Reasonable message delivery -- send most everything to email address and to the console
 Messages {
   Name = Standard
-#
-# NOTE! If you send to two email or more email addresses, you will need
-#  to replace the %r in the from field (-f part) with a single valid
-#  email address in both the mailcommand and the operatorcommand.
-#  What this does is, it sets the email address that emails would display
-#  in the FROM field, which is by default the same email as they're being
-#  sent to.  However, if you send email to more than one address, then
-#  you'll have to set the FROM address manually, to a single address.
-#  for example, a 'no-reply@mydomain.com', is better since that tends to
-#  tell (most) people that its coming from an automated source.
-
-#
-  MailCommand = "/usr/sbin/bsmtp -h localhost:16132 -f \"\(Bacula\) \<%r\>\" -s \"Bacula: %t %e of %c %l\" %r"
+  MailCommand = "/usr/sbin/bsmtp -h localhost:16132 -f \"\(Bacula\) \<%r\>\" -s \"Bacula: %t %e of %n %l\" %r"
   Mail = admin@fripost.org = all, !skipped
   OperatorCommand = "/usr/sbin/bsmtp -h localhost:16132 -f \"\(Bacula\) \<%r\>\" -s \"Bacula: Intervention needed for %j\" %r"
   Operator = admin@fripost.org = mount
   Console = all, !skipped, !saved
-#
-# WARNING! the following will create a file that you must cycle from
-#          time to time as it will grow indefinitely. However, it will
-#          also keep all your messages if they scroll off the console.
-#
   Append = "/var/log/bacula/bacula.log" = all, !skipped
   Catalog = all
 }
@@ -502,9 +483,9 @@ Messages {
 # Report upon error only
 Messages {
   Name = Quiet
-  MailCommand = "/usr/sbin/bsmtp -h localhost:16132 -f \"\(Bacula\) \<%r\>\" -s \"Bacula [OK]: %t %e of %n %l\" %r"
+  MailCommand = "/usr/sbin/bsmtp -h localhost:16132 -f \"\(Bacula\) \<%r\>\" -s \"Bacula: %t %e of %n %l\" %r"
   Mail On Success = admin@fripost.org = all, !info, !fatal, !skipped, !notsaved, !restored
-  MailCommand = "/usr/sbin/bsmtp -h localhost:16132 -f \"\(Bacula\) \<%r\>\" -s \"Bacula [Fail]: %t %e of %n %l\" %r"
+  MailCommand = "/usr/sbin/bsmtp -h localhost:16132 -f \"\(Bacula\) \<%r\>\" -s \"Bacula: %t %e of %n %l\" %r"
   Mail On Error = admin@fripost.org = all, !skipped
   OperatorCommand = "/usr/sbin/bsmtp -h localhost:16132 -f \"\(Bacula\) \<%r\>\" -s \"Bacula: Intervention needed for %j\" %r"
   Operator = admin@fripost.org = mount
@@ -513,7 +494,6 @@ Messages {
   Catalog = all
 }
 
-#
 # Message delivery for daemon messages (no job).
 Messages {
   Name = Daemon
