@@ -50,6 +50,7 @@ add_plugins:
   - highlight
   - toc
   - htmlbalance
+  - comments
   ###
   - isWebsite
 # plugins to disable
@@ -265,7 +266,7 @@ virus_checker: clamdscan -
 
 # comments plugin
 # PageSpec of pages where comments are allowed
-#comments_pagespec: blog/* and !*/Discussion
+comments_pagespec: tracker/*
 # PageSpec of pages where posting new comments is not allowed
 #comments_closed_pagespec: blog/controversial or blog/flamewar
 # Base name for comments, e.g. "comment_" for pages like "sandbox/comment_12"

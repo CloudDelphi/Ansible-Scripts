@@ -4,6 +4,7 @@
     - ikiwiki
     - highlight-common
     - libhighlight-perl
+    - libimage-magick-perl
     - fcgiwrap
 
 - name: Create a user 'ikiwiki'
