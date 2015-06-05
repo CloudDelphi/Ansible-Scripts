@@ -66,6 +66,7 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/smtpd\[[[:digit:]]+\]: warning: hostname [^[:space:]]+ does not resolve to address [[:xdigit:].:]{3,39}: (No address associated with hostname|Temporary failure in name resolution)$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/smtpd\[[[:digit:]]+\]: warning: (numeric hostname: [[:xdigit:].:]{3,39}|valid_hostname: misplaced delimiter: \S)$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-(mx|lists)/pipe\[[[:digit:]]+\]: [[:upper:][:digit:]]+: to=<[^[:space:]]+>,( orig_to=<[^[:space:]]+>,)* relay=([-_.[:alnum:]]+), delay=[.[:digit:]]+(, delays=([.[:digit:]]+/){3}[.[:digit:]]+)?(, dsn=2(\.[[:digit:]]+){2})?, status=sent \(delivered via \3 service\)$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/discard\[[[:digit:]]+\]: [[:upper:][:digit:]]+: to=<[^[:space:]]+>,( orig_to=<[^[:space:]]+>,)* relay=none, delay=[.[:digit:]]+(, delays=([.[:digit:]]+/){3}[.[:digit:]]+)?(, dsn=2(\.[[:digit:]]+){2})?, status=sent \(discard\.fripost\.org\)$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/smtpd\[[[:digit:]]+\]: warning: Illegal address syntax from [._[:alnum:]-]+\[[[:xdigit:].:]{3,39}\] in MAIL command: .*$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: (PASS (OLD|NEW)|WHITELISTED) \[[[:xdigit:].:]{3,39}\]:[[:digit:]]+$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: CONNECT from \[[[:xdigit:].:]{3,39}\]:[[:digit:]]+ to \[[[:xdigit:].:]{3,39}\]:25$

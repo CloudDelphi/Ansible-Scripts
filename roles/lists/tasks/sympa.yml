@@ -7,6 +7,12 @@
   mysql_user: name=sympa password= auth_plugin=auth_socket
               state=present
 
+# XXX We want to change the retun-path for sendpasswd notices from
+# 'sympa-request@$robot' to 'noreply@fripost.org'.
+#   * /usr/lib/cgi-bin/sympa/wwsympa.fcgi
+#       do_requestpasswd, do_subrequest: add $param->{'return_path'}='noreply@fripost.org';
+#   * List::send_global_file
+#       $data->{'return_path'} //= &Conf::get_robot_conf($robot, 'request');
 - name: Configure Sympa
   copy: src=etc/sympa/{{ item }}
         dest=/etc/sympa/{{ item }}
