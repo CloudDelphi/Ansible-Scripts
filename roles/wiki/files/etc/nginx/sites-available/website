@@ -42,6 +42,9 @@ server {
     location /minutes/ {
         alias /var/www/fripost.org/minutes/;
     }
+    location /.well-known/autoconfig/ {
+        alias /var/www/fripost.org/autoconfig/;
+    }
 
     location = /ikiwiki.cgi {
         return 403;
