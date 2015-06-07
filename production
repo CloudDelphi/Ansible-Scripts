@@ -1,0 +1,72 @@
+[mistral]
+mistral.fripost.org
+
+[elefant]
+elefant.fripost.org mxno=1
+
+[giraff]
+giraff.fripost.org
+
+[antilop]
+antilop.fripost.org
+
+[civett]
+civett.friprogramvarusyndikatet.se mxno=2
+
+[benjamin]
+benjamin.marxist.se
+
+# ldap.fripost.org
+[LDAP-provider:children]
+mistral
+
+# ntp.fripost.org
+[NTP-master:children]
+mistral
+
+# imap.fripost.org
+[IMAP:children]
+mistral
+
+# mda.fripost.org
+[MDA:children]
+IMAP
+
+# mx{1,2,3}.fripost.org
+[MX:children]
+elefant
+civett
+
+# smtp.fripost.org
+[MSA:children]
+IMAP
+
+# outgoing.fripost.org
+[out:children]
+giraff
+
+[bacula-dir:children]
+benjamin
+
+[bacula-sd:children]
+benjamin
+
+# webmail.fripost.org
+[webmail:children]
+elefant
+
+# lists.fripost.org
+[lists:children]
+antilop
+
+[wiki:children]
+civett
+
+[git:children]
+wiki
+
+[non-free:children]
+elefant
+
+[backports:children]
+webmail
