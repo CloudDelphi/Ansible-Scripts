@@ -7,7 +7,7 @@ server {
     access_log /var/log/nginx/lists.access.log;
     error_log  /var/log/nginx/lists.error.log info;
 
-    return 301 https://$host$request_uri;
+    return 302 https://$host$request_uri;
 }
 
 
@@ -25,7 +25,7 @@ server {
     ssl_certificate_key /etc/nginx/ssl/lists.fripost.org.key;
 
     location = / {
-        return 301 /sympa$args;
+        return 302 /sympa$args;
     }
 
     location ^~ /static-sympa/ {
@@ -41,7 +41,7 @@ server {
     }
 
     location ~* ^/([^/]+)/?$ {
-        return 301 /$1/sympa$args;
+        return 302 /$1/sympa$args;
     }
     location ~* ^/([^/]+)/sympa(/.*)?$ {
         set $vhost $1;
