@@ -13,6 +13,7 @@
 #       do_requestpasswd, do_subrequest: add $param->{'return_path'}='noreply@fripost.org';
 #   * List::send_global_file
 #       $data->{'return_path'} //= &Conf::get_robot_conf($robot, 'request');
+# See #787946.
 - name: Configure Sympa
   copy: src=etc/sympa/{{ item }}
         dest=/etc/sympa/{{ item }}
