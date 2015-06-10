@@ -135,3 +135,8 @@ env.PGPORT 5432
 
 [fail2ban]
 user root
+
+[slapd2_*]
+user munin
+group munin
+env.server ldapi://

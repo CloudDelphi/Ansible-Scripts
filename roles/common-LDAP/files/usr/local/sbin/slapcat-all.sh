@@ -9,11 +9,12 @@ PATH=/usr/sbin:/sbin:/usr/bin:/bin
 target="$1"
 umask 0077
 
-prefix=slapd-
+prefix=slapcat-
 slapcat -n0 -l"$target/${prefix}0.ldif"
 n=$(grep -Ec '^dn:\s+olcDatabase={[1-9][0-9]*}' "$target/${prefix}0.ldif")
 
 while [ $n -gt 0 ]; do
-    slapcat -n$n -l"$target/${prefix}$n.ldif"
+    # the Monitor backend can't be slapcat(8)'ed
+    grep -qE "^dn:\s+olcDatabase=\{$n\}monitor,cn=config$" "$target/${prefix}0.ldif" || slapcat -n$n -l"$target/${prefix}$n.ldif"
     n=$(( $n - 1 ))
 done

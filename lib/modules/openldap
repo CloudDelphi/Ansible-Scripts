@@ -44,7 +44,7 @@ indexedAttributes = frozenset([
 
 # Another hack. Configuration entries sometimes pollutes the DNs with
 # indices, thus it's not possible to directly use them as base.
-# Instead, we use their parent as a pase, and search for the *unique*
+# Instead, we use their parent as a base, and search for the *unique*
 # match with the same ObjectClass and the matching extra attributes.
 # ('%s' in the attribute value is replaced with the value of the source
 # entry.)
@@ -52,6 +52,7 @@ indexedDN = {
     'olcSchemaConfig':  [('cn',             '{*}%s')],
     'olcMdbConfig':     [('olcDbDirectory', '%s'   )],
     'olcOverlayConfig': [('olcOverlay',     '%s'   )],
+    'olcMonitorConfig': [],
 }
 
 # Allow for flexible ACLs for user using SASL's EXTERNAL mechanism.

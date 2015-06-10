@@ -8,6 +8,9 @@
     - ldapvi
     - db-util
     - python-ldap
+    # for the 'slapd2_' munin plugin
+    - libnet-ldap-perl
+    - libauthen-sasl-perl
 
 - name: Configure slapd
   template: src=etc/default/slapd.j2
@@ -107,13 +110,12 @@
 - name: Load amavis' schema
   openldap: target=/etc/ldap/schema/amavis.schema
             format=slapd.conf name=amavis
-  tags:
-    - ldap
 
 - name: Load Fripost' schema
   openldap: target=/etc/ldap/schema/fripost.ldif
-  tags:
-    - ldap
+
+- name: Load the back_monitor overlay
+  openldap: module=back_monitor
 
 # We assume a clean (=stock) cn=config
 - name: Configure the LDAP database
@@ -133,3 +135,26 @@
         dest=/usr/local/sbin/slapcat-all.sh
         owner=root group=root
         mode=0755
+
+
+- name: Install 'slapd2_' Munin wildcard plugin
+  # we don't install 'slapd_' because it doesn't support SASL binds
+  file: src=/usr/local/share/munin/plugins/slapd2_
+        dest=/etc/munin/plugins/slapd2_{{ item }}
+        owner=root group=root
+        state=link force=yes
+  with_items:
+    # sudo /usr/share/munin/plugins/slapd2_ suggest
+    - connections
+    - statistics_entries
+    - operations_diff
+    - statistics_referrals
+    - statistics_pdu
+    - waiters
+    - statistics_bytes
+    - operations
+  tags:
+    - munin
+    - munin-node
+  notify:
+    - Restart munin-node

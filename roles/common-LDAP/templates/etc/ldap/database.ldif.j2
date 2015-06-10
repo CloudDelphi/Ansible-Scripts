@@ -47,6 +47,14 @@ olcPasswordHash: {CRYPT}
 olcPasswordCryptSaltFormat: $6$%s
 
 
+dn: olcDatabase=monitor,cn=config
+objectClass: olcDatabaseConfig
+objectClass: olcMonitorConfig
+olcAccess: to dn.subtree="cn=monitor"
+    by dn.exact="username=munin,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://" read
+    by * =0
+
+
 dn: olcDatabase=mdb,cn=config
 objectClass: olcDatabaseConfig
 objectClass: olcMdbConfig
