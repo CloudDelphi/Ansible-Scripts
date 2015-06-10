@@ -1,0 +1,57 @@
+#!/bin/sh
+
+# Munin plugin for monitoring the Postfix mail queue in multi-instance
+# systems.  Symlink/rename to 'postfix_mailqueue_$SPOOLDIR'.
+# Copyright © 2015 Guilhem Moulin <guilhem@fripost.org>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+PATH=/usr/bin:/bin:/usr/sbin:/sbin
+
+name="${0##*/}"
+[ "${name#postfix_mailqueue_}" != "$name" ] && postfix="${name#postfix_mailqueue_}" || postfix=
+SPOOLDIR="/var/spool/${postfix:-postfix}"
+
+. $MUNIN_LIBDIR/plugins/plugin.sh
+
+case "${1:-}" in
+    config) cat <<- EOF
+		graph_title Postfix mailqueue ($([ -n "$postfix" -a "$postfix" != postfix ] && echo "'${postfix#postfix-}'" || echo default) instance)
+		graph_vlabel Mails in queue
+		graph_args --base 1000 -l 0
+		graph_scale no
+		graph_category postfix
+		graph_total Total
+		active.label active
+		deferred.label deferred
+		maildrop.label maildrop
+		incoming.label incoming
+		corrupt.label corrupt
+		hold.label held
+	EOF
+    for field in active deferred maildrop incoming corrupt hold; do
+        print_warning "$field"
+        print_critical "$field"
+    done
+    exit 0
+    ;;
+esac
+
+for field in active deferred maildrop incoming corrupt hold; do
+    if [ -d "$SPOOLDIR/$field" ]; then
+        echo $field.value $(find "$SPOOLDIR/$field" -type f | wc -l)
+    else
+        echo $field.value U
+    fi
+done

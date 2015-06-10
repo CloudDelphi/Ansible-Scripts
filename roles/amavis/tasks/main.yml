@@ -71,3 +71,15 @@
 
 - name: Start Amavis
   service: name=amavis state=started
+
+
+- name: Install 'amavis' Munin plugin
+  file: src=/usr/share/munin/plugins/amavis
+        dest=/etc/munin/plugins/amavis
+        owner=root group=root
+        state=link force=yes
+  tags:
+    - munin
+    - munin-node
+  notify:
+    - Restart munin-node

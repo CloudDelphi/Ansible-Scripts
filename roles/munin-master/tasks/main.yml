@@ -1,0 +1,136 @@
+- name: Install munin
+  apt: pkg={{ item }}
+  with_items:
+    - munin
+    - rrdcached
+    - libcgi-fast-perl
+
+- name: Configure rrdcached
+  lineinfile: "dest=/etc/default/rrdcached
+               regexp='^#?OPTS='
+               line='OPTS=\"-s munin -m 660 -l unix:/var/run/rrdcached.sock -w 1800 -z 1800 -f 3600 -j /var/lib/rrdcached/journal -F -b /var/lib/munin -B\"'"
+  register: r
+  notify:
+    - Restart rrdcached
+
+- name: Start rrdcached
+  service: name=rrdcached state=started
+  when: not r.changed
+
+- meta: flush_handlers
+
+
+- name: Configure munin
+  template: src=etc/munin/munin.conf.j2
+            dest=/etc/munin/munin.conf
+            owner=root group=root
+            mode=0644
+  notify:
+    - Restart munin-cgi-graph
+    - Restart munin-cgi-html
+
+- name: chown www-data:adm /var/log/munin/munin-cgi-{graph,html}.log
+  file: path=/var/log/munin/{{ item }}
+        owner=www-data group=adm
+        mode=0640
+  with_items:
+    - munin-cgi-graph.log
+    - munin-cgi-html.log
+
+- name: Copy munin-cgi-graph.{service,socket}
+  copy: src=lib/systemd/system/{{ item }}
+        dest=/lib/systemd/system/{{ item }}
+        owner=root group=root
+        mode=0644
+  notify:
+    - systemctl daemon-reload
+    - Restart munin-cgi-graph
+  with_items:
+    - munin-cgi-graph.service
+    - munin-cgi-graph.socket
+
+- name: Copy munin-cgi-html.{service,socket}
+  copy: src=lib/systemd/system/{{ item }}
+        dest=/lib/systemd/system/{{ item }}
+        owner=root group=root
+        mode=0644
+  notify:
+    - systemctl daemon-reload
+    - Restart munin-cgi-html
+  with_items:
+    - munin-cgi-html.service
+    - munin-cgi-html.socket
+
+- meta: flush_handlers
+
+- name: Start munin-cgi-{graph,html}
+  service: name={{ item }} state=started enabled=yes
+  with_items:
+    - munin-cgi-graph
+    - munin-cgi-html
+
+
+- name: Copy /etc/nginx/sites-available/munin
+  copy: src=etc/nginx/sites-available/munin
+        dest=/etc/nginx/sites-available/munin
+        owner=root group=root
+        mode=0644
+  register: r1
+  notify:
+    - Restart Nginx
+
+- name: Create /etc/nginx/sites-enabled/munin
+  file: src=../sites-available/munin
+        dest=/etc/nginx/sites-enabled/munin
+        owner=root group=root
+        state=link force=yes
+  register: r2
+  notify:
+    - Restart Nginx
+
+- name: Start Nginx
+  service: name=nginx state=started
+  when: not (r1.changed or r2.changed)
+
+- meta: flush_handlers
+
+
+- name: Copy munin-node X.509 certificates
+  copy: src=certs/munin/{{ item }}.pem
+        dest=/etc/stunnel/certs/munin-{{ hostvars[item].inventory_hostname_short }}.pem
+        owner=root group=root
+        mode=0644
+  with_items: groups.all | difference([inventory_hostname])
+  register: r1
+  notify:
+    - Restart stunnel
+
+- name: Configure stunnel
+  template: src=etc/stunnel/munin-master.conf.j2
+            dest=/etc/stunnel/munin-master.conf
+            owner=root group=root
+            mode=0644
+  register: r2
+  notify:
+    - Restart stunnel
+
+- name: Start stunnel
+  service: name=stunnel4 pattern=/usr/bin/stunnel4 state=started
+  when: not (r1.changed or r2.changed)
+
+- meta: flush_handlers
+
+
+- name: Install 'munin_stats' and 'munin_update' plugins
+  file: src=/usr/share/munin/plugins/{{ item }}
+        dest=/etc/munin/plugins/{{ item }}
+        owner=root group=root
+        state=link force=yes
+  with_items:
+    - munin_stats
+    - munin_update
+  tags:
+    - munin-node
+    - munin
+  notify:
+    - Restart munin-node

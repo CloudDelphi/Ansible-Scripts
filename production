@@ -65,6 +65,9 @@ civett
 [git:children]
 wiki
 
+[munin-master:children]
+benjamin
+
 [non-free:children]
 elefant
 

@@ -46,3 +46,6 @@
 
 - name: Update certificate
   command: update-ca-certificates
+
+- name: Restart munin-node
+  service: name=munin-node state=restarted

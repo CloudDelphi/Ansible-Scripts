@@ -142,3 +142,29 @@
   when: not (r1.changed or r2.changed or r3.changed)
 
 - meta: flush_handlers
+
+
+- name: Install 'dovecot_stats_' Munin wildcard plugin
+  file: src=/usr/local/share/munin/plugins/dovecot_stats_
+        dest=/etc/munin/plugins/dovecot_stats_fripost.org
+        owner=root group=root
+        state=link force=yes
+  tags:
+    - munin
+    - munin-node
+  notify:
+    - Restart munin-node
+
+- name: Install 'dovecot_logins' and 'dovecot_who' Munin plugin
+  file: src=/usr/local/share/munin/plugins/{{ item }}
+        dest=/etc/munin/plugins/{{ item }}
+        owner=root group=root
+        state=link force=yes
+  with_items:
+    - dovecot_logins
+    - dovecot_who
+  tags:
+    - munin
+    - munin-node
+  notify:
+    - Restart munin-node

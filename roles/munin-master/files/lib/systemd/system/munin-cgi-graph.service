@@ -1,0 +1,14 @@
+[Unit]
+Description=Munin CGI Graph Service
+After=network.target
+PartOf=munin.service
+Requires=munin-cgi-graph.socket
+
+[Service]
+StandardInput=socket
+User=www-data
+Group=munin
+ExecStart=/usr/lib/munin/cgi/munin-cgi-graph
+
+[Install]
+WantedBy=multi-user.target

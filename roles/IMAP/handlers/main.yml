@@ -26,3 +26,6 @@
   mysql_db: name=spamassassin state=import
             target=/tmp/spamassassin.sql
             encoding=latin1 collation=latin1_unicode_ci
+
+- name: Restart munin-node
+  service: name=munin-node state=restarted

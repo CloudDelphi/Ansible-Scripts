@@ -1,0 +1,119 @@
+#!/bin/sh
+
+# Munin plugin for monitoring Dovecot logins and IMAP throughput.
+# Copyright © 2015 Guilhem Moulin <guilhem@fripost.org>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+PATH=/usr/bin:/bin:/usr/sbin:/sbin
+
+LOGFILE="/var/log/${logfile:-mail.log}"
+STATEFILE="$MUNIN_PLUGSTATE/${0##*/}.offset"
+
+. $MUNIN_LIBDIR/plugins/plugin.sh
+is_multigraph
+
+case "${1:-}" in
+    config) cat <<- EOF
+		multigraph dovecot_login_status
+		graph_title Dovecot login status
+		graph_vlabel logins per \${graph_period}
+		graph_args --base 1000 -l 0
+		graph_scale no
+		graph_period minute
+		graph_category dovecot
+		successful.label auth successful
+		successful.type DERIVE
+		successful.draw AREA
+		successful.min 0
+		failed.label auth failed
+		failed.type DERIVE
+		failed.draw STACK
+		failed.min 0
+		noauth.label no auth attempt
+		noauth.type DERIVE
+		noauth.draw STACK
+		noauth.min 0
+
+		multigraph dovecot_login_types
+		graph_title Dovecot login types
+		graph_vlabel logins per \${graph_period}
+		graph_args --base 1000 -l 0
+		graph_scale no
+		graph_period minute
+		graph_category dovecot
+		imap.label IMAP
+		imap.type DERIVE
+		imap.draw AREA
+		imap.min 0
+		pop3.label POP3
+		pop3.type DERIVE
+		pop3.draw STACK
+		pop3.min 0
+		managesieve.label managesieve
+		managesieve.type DERIVE
+		managesieve.draw STACK
+		managesieve.min 0
+
+		multigraph dovecot_imap_throughput
+		graph_title Dovecot IMAP throughput
+		graph_vlabel bytes per \${graph_period}
+		graph_args --base 1024 -l 0
+		graph_scale yes
+		graph_period minute
+		graph_category dovecot
+		read.label read
+		read.type DERIVE
+		read.min 0
+		written.label written
+		written.type DERIVE
+		written.min 0
+	EOF
+    exit 0
+    ;;
+esac
+
+if [ ! -f "$LOGFILE" ]; then
+    for field in successful failed noauth imap pop3 managesieve read written; do
+        echo $field.value U
+    done
+    exit 0;
+fi
+
+tmpfile="$(mktemp --tmpdir)"
+trap 'rm -f "$tmpfile"' EXIT
+
+logtail -f"$LOGFILE" -o"$STATEFILE" | sed -nr "s#^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ dovecot: ##p" >"$tmpfile"
+
+sum() {
+    awk 'BEGIN{x=0} {x+=$0} END{print x}'
+}
+
+prefix="^(pop3|imap|managesieve)-login"
+echo multigraph dovecot_login_status
+echo successful.value $(grep -Ec "$prefix: Login: user=<[^>]+>,\s" "$tmpfile")
+echo failed.value    $(sed -nr "s#$prefix: Aborted login \(auth failed, ([[:digit:]]+) attempts in [[:digit:]]+ secs\): user=<[^>]*>, .*#\2#p" "$tmpfile" | sum)
+echo noauth.value    $(grep -Ec "$prefix: Aborted login \(no auth attempts in [[:digit:]]+ secs\): user=<>,\s" "$tmpfile")
+
+
+echo multigraph dovecot_login_types
+for type in imap pop3 managesieve; do
+    echo $type.value $(grep -Ec "^$type-login:\s" "$tmpfile")
+done
+
+
+regexp="^imap\([-_.@[:alnum:]]+\): .* in=([[:digit:]]+) out=([[:digit:]]+)$"
+echo multigraph dovecot_imap_throughput
+echo read.value    $(sed -nr "s#$regexp#\1#p" "$tmpfile" | sum)
+echo written.value $(sed -nr "s#$regexp#\2#p" "$tmpfile" | sum)

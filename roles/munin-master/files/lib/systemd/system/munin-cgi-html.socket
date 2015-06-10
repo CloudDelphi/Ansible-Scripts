@@ -1,0 +1,11 @@
+[Unit]
+Description=Munin CGI HTML Listen Socket
+
+[Socket]
+SocketUser=www-data
+SocketGroup=www-data
+SocketMode=0600
+ListenStream=/run/munin/cgi-html.socket
+
+[Install]
+WantedBy=sockets.target

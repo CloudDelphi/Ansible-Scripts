@@ -1,0 +1,8 @@
+---
+- name: Configure the Munin master
+  hosts: munin-master
+  tags:
+    - munin
+    - munin-master
+  roles:
+    - munin-master

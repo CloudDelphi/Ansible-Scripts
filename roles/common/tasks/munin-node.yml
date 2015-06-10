@@ -1,0 +1,207 @@
+- name: Install munin-node
+  apt: pkg={{ item }}
+  with_items:
+    - munin-node
+    - munin-plugins-extra
+    ###
+    - acpi
+    - lm-sensors
+    - ethtool
+    - hdparm
+    - libwww-perl
+    - libxml-simple-perl
+    - logtail
+
+- name: Create directory /usr/local/share/munin/plugins
+  file: path=/usr/local/share/munin/plugins
+        state=directory
+        owner=root group=root
+        mode=0755
+
+- name: Copy our own Munin plugins
+  copy: src={{ item }}
+        dest=/usr/local/share/munin/plugins/
+        owner=root group=root
+        mode=0755
+  with_fileglob:
+    - usr/local/share/munin/plugins/*
+
+- name: Configure munin-node
+  template: src=etc/munin/{{ item }}.j2
+            dest=/etc/munin/{{ item }}
+            owner=root group=root
+            mode=0644
+  register: r1
+  with_items:
+    - munin-node.conf
+    - plugin-conf.d/munin-node
+  notify:
+    - Restart munin-node
+
+- name: Install Munin plugins
+  file: src=/usr/share/munin/plugins/{{ item }}
+        dest=/etc/munin/plugins/{{ item }}
+        owner=root group=root
+        state=link force=yes
+  register: r2
+  with_items:
+    - cpu
+    - df
+    - df_inode
+    - diskstats
+    - entropy
+    - fail2ban
+    - forks
+    - fw_conntrack
+    - fw_forwarded_local
+    - fw_packets
+    - hddtemp_smartctl
+    - interrupts
+    - irqstats
+    - load
+    - memory
+    - netstat
+    - ntp_kernel_err
+    - ntp_kernel_pll_freq
+    - ntp_kernel_pll_off
+    - ntp_offset
+    - open_files
+    - open_inodes
+    - processes
+    - proc_pri
+    - swap
+    - threads
+    - uptime
+    - users
+    - vmstat
+  notify:
+    - Restart munin-node
+
+- name: Delete Munin plugins
+  file: path=/etc/munin/plugins/{{ item }}
+        state=absent
+  register: r3
+  with_items:
+    - http_loadtime
+    - ip_255.255.255.255
+    - postfix_mailqueue
+    - postfix_mailvolume
+  notify:
+    - Restart munin-node
+
+- name: Install 'if_' Munin wildcard plugin
+  file: src=/usr/share/munin/plugins/{{ item.0 }}_
+        dest=/etc/munin/plugins/{{ item.0 }}_{{ item.1 }}
+        owner=root group=root
+        state=link force=yes
+  register: r4
+  with_nested:
+    - [ if, if_err ]
+    - [ lo, "{{ ansible_default_ipv4.interface }}" ]
+  notify:
+    - Restart munin-node
+
+- name: Install 'postfix_mailvolume2' Munin plugin
+  file: src=/usr/local/share/munin/plugins/postfix_mailvolume2
+        dest=/etc/munin/plugins/postfix_mailvolume2
+        owner=root group=root
+        state=link force=yes
+  register: r5
+  notify:
+    - Restart munin-node
+
+- name: Install 'postfix_mailqueue_' Munin wildcard plugin
+  file: src=/usr/local/share/munin/plugins/postfix_mailqueue_
+        dest=/etc/munin/plugins/postfix_mailqueue_postfix
+        owner=root group=root
+        state=link force=yes
+  register: r6
+  notify:
+    - Restart munin-node
+
+- name: Install 'postfix_stats_' Munin wildcard plugin
+  file: src=/usr/local/share/munin/plugins/postfix_stats_
+        dest=/etc/munin/plugins/postfix_stats_{{ item }}_postfix
+        owner=root group=root
+        state=link force=yes
+  register: r7
+  with_items:
+    - smtpd
+    - qmgr
+    - smtp
+  notify:
+    - Restart munin-node
+
+- name: Start munin-node
+  service: name=munin-node state=started
+  when: not (r1.changed or r2.changed or r3.changed or r4.changed or r5.changed or r6.changed or r7.changed)
+
+- meta: flush_handlers
+
+
+
+- name: Install stunnel
+  apt: pkg=stunnel4
+
+- name: Auto-enable stunnel
+  lineinfile: dest=/etc/default/stunnel4
+              regexp='^(\s*#)?\s*ENABLED='
+              line='ENABLED=1'
+              owner=root group=root
+              mode=0644
+
+- name: Create /etc/stunnel/certs
+  file: path=/etc/stunnel/certs
+        state=directory
+        owner=root group=root
+        mode=0755
+
+- name: Generate a private key and a X.509 certificate for munin-node
+  command: genkeypair.sh x509
+                         --pubkey=/etc/stunnel/certs/munin-{{ inventory_hostname_short }}.pem
+                         --privkey=/etc/stunnel/certs/munin-{{ inventory_hostname_short }}.key
+                         --ou=Munin --cn={{ inventory_hostname }} --dns={{ inventory_hostname }}
+                         -t rsa -b 4096 -h sha512
+  register: r1
+  changed_when: r1.rc == 0
+  failed_when: r1.rc > 1
+  notify:
+    - Restart stunnel
+  tags:
+    - genkey
+
+- name: Fetch Munin X.509 certificate
+  # Ensure we don't fetch private data
+  sudo: False
+  fetch: src=/etc/stunnel/certs/munin-{{ inventory_hostname_short }}.pem
+         dest=certs/munin/{{ inventory_hostname }}.pem
+         fail_on_missing=yes
+         flat=yes
+  tags:
+    - genkey
+
+- name: Copy munin-master X.509 certificates
+  assemble: src=certs/munin regexp="{{ groups['munin-master'] | join('|') }}\.pem$" remote_src=no
+            dest=/etc/stunnel/certs/munin-master.pem
+            owner=root group=root
+            mode=0644
+  register: r2
+  when: "'munin-master' not in group_names"
+  notify:
+    - Restart stunnel
+
+- name: Configure stunnel
+  template: src=etc/stunnel/munin-node.conf.j2
+            dest=/etc/stunnel/munin-node.conf
+            owner=root group=root
+            mode=0644
+  register: r3
+  when: "'munin-master' not in group_names"
+  notify:
+    - Restart stunnel
+
+- name: Start stunnel
+  service: name=stunnel4 pattern=/usr/bin/stunnel4 state=started
+  when: not (r1.changed or r2.changed or r3.changed)
+
+- meta: flush_handlers

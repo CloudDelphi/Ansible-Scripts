@@ -27,10 +27,11 @@
 - name: Generate DH parameters
   command: gendhparam.sh /etc/ssl/private/dhparams.pem creates=/etc/ssl/private/dhparams.pem
   tags: genkey
-- include: logging.yml  tags=logging
-- include: ntp.yml      tags=ntp
-- include: mail.yml     tags=mail,postfix
-- include: bacula.yml   tags=bacula-fd,bacula
+- include: logging.yml      tags=logging
+- include: ntp.yml          tags=ntp
+- include: mail.yml         tags=mail,postfix
+- include: bacula.yml       tags=bacula-fd,bacula
+- include: munin-node.yml   tags=munin-node,munin
 
 - name: Install common packages
   apt: pkg={{ item }}

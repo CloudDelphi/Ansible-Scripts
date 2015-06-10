@@ -1,0 +1,31 @@
+server {
+    listen 127.0.0.1:80;
+    listen [::1]:80;
+
+    server_name munin.fripost.org;
+
+    access_log /var/log/nginx/munin.access.log;
+    error_log  /var/log/nginx/munin.error.log info;
+
+    location = / {
+        return 302 /munin$args;
+    }
+
+    location /munin/static/ {
+        alias /etc/munin/static/;
+    }
+
+    location /munin-cgi/munin-cgi-graph/ {
+        fastcgi_split_path_info ^(/munin-cgi/munin-cgi-graph)(.*);
+        include fastcgi/params;
+        fastcgi_pass unix:/run/munin/cgi-graph.socket;
+        gzip off;
+    }
+
+    location /munin/ {
+        fastcgi_split_path_info ^(/munin)(.*);
+        include fastcgi/params;
+        fastcgi_pass unix:/run/munin/cgi-html.socket;
+        gzip off;
+    }
+}

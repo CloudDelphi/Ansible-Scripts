@@ -1,0 +1,14 @@
+[Unit]
+Description=Munin CGI HTML Service
+After=network.target
+PartOf=munin.service
+Requires=munin-cgi-html.socket
+
+[Service]
+StandardInput=socket
+User=www-data
+Group=munin
+ExecStart=/usr/lib/munin/cgi/munin-cgi-html
+
+[Install]
+WantedBy=multi-user.target

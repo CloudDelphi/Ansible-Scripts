@@ -8,3 +8,6 @@
 
 - name: Restart Amavis
   service: name=amavis state=restarted
+
+- name: Restart munin-node
+  service: name=munin-node state=restarted

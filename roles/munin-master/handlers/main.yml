@@ -1,0 +1,24 @@
+---
+- name: systemctl daemon-reload
+  command: /bin/systemctl daemon-reload
+
+- name: Restart rrdcached
+  service: name=rrdcached state=restarted
+
+- name: Restart munin
+  service: name=munin state=restarted
+
+- name: Restart munin-node
+  service: name=munin-node state=restarted
+
+- name: Restart munin-cgi-graph
+  service: name=munin-cgi-graph state=restarted
+
+- name: Restart munin-cgi-html
+  service: name=munin-cgi-html state=restarted
+
+- name: Restart Nginx
+  service: name=nginx state=restarted
+
+- name: Restart stunnel
+  service: name=stunnel4 pattern=/usr/bin/stunnel4 state=restarted

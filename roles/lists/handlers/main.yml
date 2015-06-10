@@ -13,3 +13,6 @@
 
 - name: Restart wwsympa
   service: name=wwsympa state=restarted
+
+- name: Restart munin-node
+  service: name=munin-node state=restarted

@@ -12,3 +12,4 @@
 - include: git.yml
 - include: wiki.yml
 - include: bacula.yml
+- include: munin.yml

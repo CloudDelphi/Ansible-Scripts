@@ -1,0 +1,62 @@
+; **************************************************************************
+; * Global options                                                         *
+; **************************************************************************
+
+; setuid()/setgid() to the specified user/group in daemon mode
+setuid = stunnel4
+setgid = stunnel4
+
+; PID is created inside the chroot jail
+pid = /var/run/stunnel4/munin-master.pid
+
+; Only log messages at severity warning (4) and higher
+debug = 4
+
+; **************************************************************************
+; * Service defaults may also be specified in individual service sections  *
+; **************************************************************************
+
+; Certificate/key is needed in server mode and optional in client mode
+cert = /etc/stunnel/certs/munin-{{ inventory_hostname_short }}.pem
+key  = /etc/stunnel/certs/munin-{{ inventory_hostname_short }}.key
+client = yes
+socket = a:SO_BINDTODEVICE=lo
+
+; Some performance tunings
+socket = l:TCP_NODELAY=1
+socket = r:TCP_NODELAY=1
+
+; Prevent MITM attacks
+verify = 4
+
+; Disable support for insecure protocols
+options = NO_SSLv2
+options = NO_SSLv3
+options = NO_TLSv1
+options = NO_TLSv1.1
+
+; These options provide additional security at some performance degradation
+options = SINGLE_ECDH_USE
+options = SINGLE_DH_USE
+
+; Select permitted SSL ciphers
+ciphers = EECDH+AES:EDH+AES:!MEDIUM:!LOW:!EXP:!aNULL:!eNULL:!SSLv2:!SSLv3:!TLSv1:!TLSv1.1
+
+; **************************************************************************
+; * Service definitions (remove all services for inetd mode)               *
+; **************************************************************************
+
+{% set n = 0 %}
+{% for node in groups.all | sort %}
+{% set n = n + 1 %}
+{% if node != inventory_hostname %}
+[{{ hostvars[node].inventory_hostname_short }}]
+accept  = 127.0.{{ n }}.1:4994
+connect = {{ node }}:4949
+delay   = yes
+CAfile  = /etc/stunnel/certs/munin-{{ hostvars[node].inventory_hostname_short }}.pem
+{% endif %}
+
+{% endfor %}
+
+; vim:ft=dosini

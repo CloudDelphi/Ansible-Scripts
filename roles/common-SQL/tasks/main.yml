@@ -10,6 +10,8 @@
     - mysql-common
     - mysql-server
     - python-mysqldb
+    # for the 'mysql_' munin plugin
+    - libcache-cache-perl
 
 - name: Copy MySQL's configuration
   copy: src=etc/mysql/my.cnf
@@ -43,3 +45,36 @@
 
 - name: Start MySQL
   service: name=mysql state=started
+
+
+- name: Install 'mysql_' Munin wildcard plugin
+  file: src=/usr/share/munin/plugins/mysql_
+        dest=/etc/munin/plugins/mysql_{{ item }}
+        owner=root group=root
+        state=link force=yes
+  with_items:
+    # sudo /usr/share/munin/plugins/mysql_ suggest
+    - bin_relay_log
+    - commands
+    - connections
+    - files_tables
+    - innodb_bpool
+    - innodb_bpool_act
+    - innodb_io
+    - innodb_log
+    - innodb_rows
+    - innodb_semaphores
+    - innodb_tnx
+    - myisam_indexes
+    - qcache
+    - qcache_mem
+    - select_types
+    - slow
+    - sorts
+    - table_locks
+    - tmp_tables
+  tags:
+    - munin
+    - munin-node
+  notify:
+    - Restart munin-node

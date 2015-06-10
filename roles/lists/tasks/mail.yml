@@ -52,3 +52,31 @@
         dest=/usr/local/bin/sympa-queue
         owner=root group=root
         mode=0755
+
+
+- name: Install 'postfix_mailqueue_' Munin wildcard plugin
+  file: src=/usr/local/share/munin/plugins/postfix_mailqueue_
+        dest=/etc/munin/plugins/postfix_mailqueue_postfix-{{ postfix_instance[inst].name }}
+        owner=root group=root
+        state=link force=yes
+  tags:
+    - munin
+    - munin-node
+  notify:
+    - Restart munin-node
+
+- name: Install 'postfix_stats_' Munin wildcard plugin
+  file: src=/usr/local/share/munin/plugins/postfix_stats_
+        dest=/etc/munin/plugins/postfix_stats_{{ item }}_postfix-{{ postfix_instance[inst].name }}
+        owner=root group=root
+        state=link force=yes
+  with_items:
+    - smtpd
+    - qmgr
+    - smtp
+    - pipe
+  tags:
+    - munin
+    - munin-node
+  notify:
+    - Restart munin-node
