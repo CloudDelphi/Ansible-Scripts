@@ -98,8 +98,7 @@ strict_rfc821_envelopes = yes
 smtpd_delay_reject      = yes
 disable_vrfy_command    = yes
 
-# UCE control
-unknown_client_reject_code       = 554
+unverified_recipient_defer_code  = 250
 unverified_recipient_reject_code = 550
 
 smtpd_client_restrictions =
