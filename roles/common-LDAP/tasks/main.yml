@@ -8,7 +8,7 @@
     - ldapvi
     - db-util
     - python-ldap
-    # for the 'slapd2_' munin plugin
+    # for the 'slapd2' munin plugin
     - libnet-ldap-perl
     - libauthen-sasl-perl
 
@@ -137,22 +137,13 @@
         mode=0755
 
 
-- name: Install 'slapd2_' Munin wildcard plugin
-  # we don't install 'slapd_' because it doesn't support SASL binds
-  file: src=/usr/local/share/munin/plugins/slapd2_
-        dest=/etc/munin/plugins/slapd2_{{ item }}
+- name: Install 'slapd2' Munin plugin
+  # we don't install 'slapd_' because it doesn't support SASL binds and
+  # ours is more parcimonious with LDAP connections
+  file: src=/usr/local/share/munin/plugins/slapd2
+        dest=/etc/munin/plugins/slapd2
         owner=root group=root
         state=link force=yes
-  with_items:
-    # sudo /usr/share/munin/plugins/slapd2_ suggest
-    - connections
-    - statistics_entries
-    - operations_diff
-    - statistics_referrals
-    - statistics_pdu
-    - waiters
-    - statistics_bytes
-    - operations
   tags:
     - munin
     - munin-node
