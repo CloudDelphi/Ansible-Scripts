@@ -50,7 +50,7 @@
 - name: Create a 'amavis' SQL user
   # This *must* be the user we run spamd as
   # See https://svn.apache.org/repos/asf/spamassassin/trunk/sql/README.bayes
-  mysql_user: >
+  mysql_user2: >
       name=amavis password= auth_plugin=auth_socket
       priv="spamassassin.awl:               SELECT,INSERT,UPDATE,DELETE
            /spamassassin.bayes_seen:        SELECT,INSERT,       DELETE

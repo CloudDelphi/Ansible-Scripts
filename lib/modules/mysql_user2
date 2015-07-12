@@ -20,7 +20,7 @@
 
 DOCUMENTATION = '''
 ---
-module: mysql_user
+module: mysql_user2
 short_description: Adds or removes a user from a MySQL database.
 description:
    - Adds or removes a user from a MySQL database.

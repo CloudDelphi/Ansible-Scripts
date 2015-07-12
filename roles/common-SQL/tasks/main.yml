@@ -28,12 +28,12 @@
 
 # XXX Dirty fix for #742046
 - name: Force root to use UNIX permissions
-  mysql_user: name=root password= auth_plugin=auth_socket
-              state=present
+  mysql_user2: name=root password= auth_plugin=auth_socket
+               state=present
 
 - name: Disallow anonymous and TCP/IP root login
-  mysql_user: name={{ item.name|default('') }} host={{ item.host }}
-              state=absent
+  mysql_user2: name={{ item.name|default('') }} host={{ item.host }}
+               state=absent
   with_items:
     - {             host: '{{ inventory_hostname_short }}' }
     - {             host: 'localhost' }

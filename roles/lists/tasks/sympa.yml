@@ -4,8 +4,8 @@
     - sympa
 
 - name: Make the 'sympa' MySQL user use auth_socket
-  mysql_user: name=sympa password= auth_plugin=auth_socket
-              state=present
+  mysql_user2: name=sympa password= auth_plugin=auth_socket
+               state=present
 
 # XXX We want to change the retun-path for sendpasswd notices from
 # 'sympa-request@$robot' to 'noreply@fripost.org'.
