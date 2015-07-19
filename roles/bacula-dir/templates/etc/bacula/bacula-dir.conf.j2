@@ -471,9 +471,9 @@ Catalog {
 # Reasonable message delivery -- send most everything to email address and to the console
 Messages {
   Name = Standard
-  MailCommand = "/usr/sbin/bsmtp -h localhost:16132 -f \"\(Bacula\) \<%r\>\" -s \"Bacula: %t %e of %n %l\" %r"
+  MailCommand = "/usr/sbin/bsmtp -h localhost:16132 -f \"\(Bacula\) \<bacula@fripost.org\>\" -s \"Bacula: %t %e of %n %l\" %r"
   Mail = admin@fripost.org = all, !skipped
-  OperatorCommand = "/usr/sbin/bsmtp -h localhost:16132 -f \"\(Bacula\) \<%r\>\" -s \"Bacula: Intervention needed for %j\" %r"
+  OperatorCommand = "/usr/sbin/bsmtp -h localhost:16132 -f \"\(Bacula\) \<bacula@fripost.org\>\" -s \"Bacula: Intervention needed for %j\" %r"
   Operator = admin@fripost.org = mount
   Console = all, !skipped, !saved
   Append = "/var/log/bacula/bacula.log" = all, !skipped
@@ -483,11 +483,11 @@ Messages {
 # Report upon error only
 Messages {
   Name = Quiet
-  MailCommand = "/usr/sbin/bsmtp -h localhost:16132 -f \"\(Bacula\) \<%r\>\" -s \"Bacula: %t %e of %n %l\" %r"
+  MailCommand = "/usr/sbin/bsmtp -h localhost:16132 -f \"\(Bacula\) \<bacula@fripost.org\>\" -s \"Bacula: %t %e of %n %l\" %r"
   Mail On Success = admin@fripost.org = all, !info, !fatal, !skipped, !notsaved, !restored
-  MailCommand = "/usr/sbin/bsmtp -h localhost:16132 -f \"\(Bacula\) \<%r\>\" -s \"Bacula: %t %e of %n %l\" %r"
+  MailCommand = "/usr/sbin/bsmtp -h localhost:16132 -f \"\(Bacula\) \<bacula@fripost.org\>\" -s \"Bacula: %t %e of %n %l\" %r"
   Mail On Error = admin@fripost.org = all, !skipped
-  OperatorCommand = "/usr/sbin/bsmtp -h localhost:16132 -f \"\(Bacula\) \<%r\>\" -s \"Bacula: Intervention needed for %j\" %r"
+  OperatorCommand = "/usr/sbin/bsmtp -h localhost:16132 -f \"\(Bacula\) \<bacula@fripost.org\>\" -s \"Bacula: Intervention needed for %j\" %r"
   Operator = admin@fripost.org = mount
   Console = all, !info, !restored, !skipped, !saved
   Append = "/var/lib/bacula/log" = all, !skipped
@@ -497,7 +497,7 @@ Messages {
 # Message delivery for daemon messages (no job).
 Messages {
   Name = Daemon
-  MailCommand = "/usr/sbin/bsmtp -h localhost:16132 -f \"\(Bacula\) \<%r\>\" -s \"Bacula daemon message\" %r"
+  MailCommand = "/usr/sbin/bsmtp -h localhost:16132 -f \"\(Bacula\) \<bacula@fripost.org\>\" -s \"Bacula daemon message\" %r"
   Mail = admin@fripost.org = all, !skipped
   Console = all, !skipped, !saved
   Append = "/var/log/bacula/bacula.log" = all, !skipped
