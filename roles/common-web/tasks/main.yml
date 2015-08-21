@@ -53,8 +53,17 @@
   notify:
     - Restart Nginx
 
+- name: Add .asc to text/plain MIME types
+  lineinfile: dest=/etc/nginx/mime.types
+              regexp='^(\s*text/plain\s+)'
+              backrefs=yes
+              line='\1txt asc;'
+  register: r3
+  notify:
+    - Restart Nginx
+
 - name: Start Nginx
   service: name=nginx state=started
-  when: not (r1.changed or r2.changed)
+  when: not (r1.changed or r2.changed or r3.changed)
 
 - meta: flush_handlers
