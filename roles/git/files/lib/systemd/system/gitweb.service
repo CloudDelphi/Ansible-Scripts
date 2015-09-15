@@ -9,6 +9,7 @@ User=gitweb
 Group=gitweb
 Environment=SCRIPT_FILENAME=/usr/lib/cgi-bin/gitweb-wrapper.fcgi
 ExecStart=/usr/lib/cgi-bin/gitweb-wrapper.fcgi
+Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
