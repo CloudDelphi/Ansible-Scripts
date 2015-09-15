@@ -86,12 +86,10 @@ smtpd_sender_restrictions =
     reject_non_fqdn_sender
 
 smtpd_relay_restrictions =
+    reject_non_fqdn_recipient
     permit_mynetworks
     permit_tls_clientcerts
     reject
-
-smtpd_recipient_restrictions =
-    reject_non_fqdn_recipient
 
 smtpd_data_restrictions =
     reject_unauth_pipelining
