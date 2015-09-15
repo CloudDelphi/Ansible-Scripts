@@ -5,6 +5,16 @@
     - clamav-daemon
     - clamav-freshclam
 
+- name: Configure FreshClam
+  lineinfile: "dest=/etc/clamav/freshclam.conf
+              line='DatabaseMirror {{ item }}'"
+  with_items:
+    - db.local.clamav.net
+    - database.clamav.net
+    - db.other.clamav.net
+  notify:
+    - Restart freshclam
+
 - name: Start ClamAV
   service: name={{ item }} state=started
   with_items:

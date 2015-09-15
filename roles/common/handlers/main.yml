@@ -49,3 +49,6 @@
 
 - name: Restart munin-node
   service: name=munin-node state=restarted
+
+- name: Restart freshclam
+  service: name=clamav-freshclam state=restarted
