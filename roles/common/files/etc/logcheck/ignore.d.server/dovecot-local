@@ -23,3 +23,4 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ dovecot: (pop3|imap|managesieve)-login: Login: user=<[^>]*>, method=[[:alnum:]-]+, rip=[.:[:xdigit:]]+, lip=[.:[:xdigit:]]+, mpid=[0-9]+(, TLS, session=<[^>]+>)?$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ dovecot: managesieve\([-_.@[:alnum:]]+\): Disconnected: Logged out bytes=[[:digit:]]+/[[:digit:]]+?$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ dovecot: ssl-params: (Generating SSL parameters|SSL parameters regeneration completed)$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ dovecot: stats: Error: Mail server input error: UPDATE-SESSION [-_.@[:alnum:]]+ imap: stats shrank: mcache [[:digit:]]+ < [[:digit:]]+$
