@@ -1,0 +1,111 @@
+- name: Install cgit
+  apt: pkg={{ item }}
+  with_items:
+    - cgit
+    - highlight
+    - uwsgi
+
+- name: Configure cgit
+  copy: src=etc/cgitrc
+        dest=/etc/cgitrc
+        owner=root group=root
+        mode=0644
+  register: r1
+  notify:
+    - Restart uWSGI
+
+- name: Copy /usr/lib/cgit/filters/syntax-highlighting2.sh
+  copy: src=usr/lib/cgit/filters/syntax-highlighting2.sh
+        dest=/usr/lib/cgit/filters/syntax-highlighting2.sh
+        owner=root group=root
+        mode=0755
+  register: r2
+  notify:
+    - Restart uWSGI
+
+- name: Create a user 'cgit'
+  user: name=cgit system=yes
+        home=/var/www
+        shell=/usr/sbin/nologin
+        password=!
+        state=present
+  register: r3
+  notify:
+    - Restart uWSGI
+
+- name: Create /etc/uwsgi/apps-available/{cgit,git-http-backend}.ini
+  copy: src=etc/uwsgi/apps-available/{{ item }}.ini
+        dest=/etc/uwsgi/apps-available/{{ item }}.ini
+        owner=root group=root
+        mode=0644
+  register: r4
+  with_items:
+    - cgit
+    - git-http-backend
+  notify:
+    - Restart uWSGI
+
+- name: Create /etc/uwsgi/apps-enabled/{cgit,git-http-backend}.ini
+  file: src=../apps-available/{{ item }}.ini
+        dest=/etc/uwsgi/apps-enabled/{{ item }}.ini
+        owner=root group=root
+        state=link force=yes
+  register: r5
+  with_items:
+    - cgit
+    - git-http-backend
+  notify:
+    - Restart uWSGI
+
+- name: Start uWSGI
+  service: name=nginx state=started
+  when: not (r1.changed or r2.changed or r3.changed or r4.changed or r5.changed)
+
+- meta: flush_handlers
+
+- name: Add 'cgit' & 'www-data' to the group 'gitolite'
+  user: name={{ item }} groups=gitolite append=yes
+  with_items:
+    # for the cgit interface
+    - cgit
+    # for pulls over HTTP/HTTPS
+    - www-data
+
+
+- name: Generate a private key and a X.509 certificate for Nginx
+  command: genkeypair.sh x509
+                         --pubkey=/etc/nginx/ssl/git.fripost.org.pem
+                         --privkey=/etc/nginx/ssl/git.fripost.org.key
+                         --ou=WWW --cn=git.fripost.org --dns=git.fripost.org
+                         -t rsa -b 4096 -h sha512
+  register: r1
+  changed_when: r1.rc == 0
+  failed_when: r1.rc > 1
+  notify:
+    - Restart Nginx
+  tags:
+    - genkey
+
+- name: Copy /etc/nginx/sites-available/git
+  copy: src=etc/nginx/sites-available/git
+        dest=/etc/nginx/sites-available/git
+        owner=root group=root
+        mode=0644
+  register: r2
+  notify:
+    - Restart Nginx
+
+- name: Create /etc/nginx/sites-enabled/git
+  file: src=../sites-available/git
+        dest=/etc/nginx/sites-enabled/git
+        owner=root group=root
+        state=link force=yes
+  register: r3
+  notify:
+    - Restart Nginx
+
+- name: Start Nginx
+  service: name=nginx state=started
+  when: not (r1.changed or r2.changed or r3.changed)
+
+- meta: flush_handlers

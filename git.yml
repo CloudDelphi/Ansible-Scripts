@@ -1,5 +1,5 @@
 ---
-- name: Configure gitweb & gitolite
+- name: Configure cgit & gitolite
   hosts: git
   tags:
     - git

@@ -1,2 +1,2 @@
 - include: gitolite.yml tags=gitolite
-- include: gitweb.yml   tags=gitweb
+- include: cgit.yml     tags=cgit

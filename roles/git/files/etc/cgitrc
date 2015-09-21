@@ -1,0 +1,85 @@
+#
+# cgit config
+# see cgitrc(5) for details
+
+# Enable caching of up to 1000 output entries
+cache-size=1000
+
+# Specify some default clone url prefixes
+clone-url=https://$HTTP_HOST/$CGIT_REPO_NAME ssh://$HTTP_HOST/$CGIT_REPO_NAME
+
+# Specify the css, logo and favicon urls
+css=/static/cgit.css
+logo=/static/cgit.png
+favicon=/static/favicon.ico
+
+# Show owner on index page
+enable-index-owner=1
+
+# Disallow dumb http transport git clone
+enable-http-clone=0
+
+# Show extra links for each repository on the index page
+enable-index-links=1
+
+# Enable ASCII art commit history graph on the log pages
+enable-commit-graph=1
+
+# Show number of affected files per commit on the log pages
+enable-log-filecount=1
+
+# Enable statistics per week, month and quarter
+max-stats=quarter
+
+# Set the title and heading of the repository index page
+root-title=Fripost's git repositories
+
+# Set a subheading for the repository index page
+root-desc=Git repositories hosted at fripost.org
+
+# Enable indexing by web crawlers
+robots=index
+
+# Use root URL for all cgit links
+virtual-root=/
+
+# Allow download of tar.gz, tar.bz2 and zip-files
+#tar.gz tar.bz2
+
+##
+## List of common mimetypes
+##
+
+mimetype.gif=image/gif
+mimetype.html=text/html
+mimetype.jpg=image/jpeg
+mimetype.jpeg=image/jpeg
+mimetype.pdf=application/pdf
+mimetype.png=image/png
+mimetype.svg=image/svg+xml
+
+# Highlight source code with python pygments-based highlighter
+source-filter=/usr/lib/cgit/filters/syntax-highlighting2.sh
+
+# Format markdown, restructuredtext, manpages, text files, and html files
+# through the right converters
+about-filter=/usr/lib/cgit/filters/about-formatting.sh
+
+# Search for these files in the root of the default branch of repositories
+# for coming up with the about page:
+readme=:README.html
+readme=:readme.html
+readme=:README.htm
+readme=:readme.htm
+readme=:README.txt
+readme=:readme.txt
+readme=:README
+readme=:readme
+readme=:INSTALL
+readme=:install
+
+# List of repositories.
+enable-git-config=1
+remove-suffix=1
+project-list=/var/lib/gitolite/projects.list
+scan-path=/var/lib/gitolite/repositories
