@@ -12,47 +12,53 @@
     - roundcube-core
     - roundcube-mysql
     - roundcube-plugins
+    - php-net-sieve
+    - php-net-ldap3
+    - php-mail-mimedecode
 
 - name: Copy fripost's logo
-  copy: src=var/lib/roundcube/skins/logo_webmail.png
-        dest=/var/lib/roundcube/skins/logo_webmail.png
+  copy: src=usr/share/roundcube/skins/{{ item }}/images/fripost_logo.png
+        dest=/usr/share/roundcube/skins/{{ item }}/images/fripost_logo.png
         owner=root group=root
         mode=0644
+  with_items:
+    - classic
+    - larry
 
 - name: Configure Roundcube
-  lineinfile: dest=/etc/roundcube/main.inc.php
-              "regexp=^\\s*\\$rcmail_config\\['{{ item.var }}'\\]\\s*="
-              "line=$rcmail_config['{{ item.var }}'] = {{ item.value }};"
+  lineinfile: dest=/etc/roundcube/config.inc.php
+              "regexp=^\\s*\\$config\\['{{ item.var }}'\\]\\s*="
+              "line=$config['{{ item.var }}'] = {{ item.value }};"
               owner=root group=www-data
               mode=0640
   with_items:
     # Logging/Debugging
-    - { var: smtp_log,               value: "FALSE" }
+    - { var: smtp_log,               value: "false" }
     # IMAP
     - { var: default_host,           value: "'localhost'" }
-    - { var: default_port,           value: "143"         }
-    - { var: imap_auth_type,         value: "'plain'"     }
+    - { var: default_port,           value: "143" }
+    - { var: imap_auth_type,         value: "'PLAIN'"     }
     - { var: imap_cache,             value: "null"        }
-    - { var: messages_cache,         value: "null"        }
+    - { var: messages_cache,         value: "false"       }
     # SMTP
     - { var: smtp_server,            value: "'localhost'" }
     - { var: smtp_port,              value: "2525"        }
     # System
-    - { var: force_https,            value: "TRUE"                     }
-    - { var: login_autocomplete,     value: "2"                        }
-    - { var: skin_logo,              value: "'skins/logo_webmail.png'" }
-    - { var: username_domain,        value: "'fripost.org'"            }
-    - { var: product_name,           value: "'Fripost'"                }
+    - { var: force_https,            value: "true"                       }
+    - { var: login_autocomplete,     value: "2"                          }
+    - { var: skin_logo,              value: "'/images/fripost_logo.png'" }
+    - { var: username_domain,        value: "'fripost.org'"              }
+    - { var: product_name,           value: "'Fripost Webmail'"          }
     # Plugins
-    - { var: plugins,                value: "array('additional_message_headers','managesieve','password')" }
+    - { var: plugins,                value: "array('archive','additional_message_headers','managesieve','password')" }
     # User Interface
-    - { var: skin,                   value: "'classic'" }
-    - { var: language,               value: "'sv_SE'"   }
-    - { var: create_default_folders, value: "TRUE"      }
+    - { var: skin,                   value: "'larry'" }
+    - { var: language,               value: "'sv_SE'" }
+    - { var: create_default_folders, value: "true"    }
     # User Preferences
-    - { var: htmleditor,             value: "TRUE"  }
-    - { var: skip_deleted,           value: "TRUE"  }
-    - { var: check_all_folders,      value: "FALSE" }
+    - { var: htmleditor,             value: "3"     }
+    - { var: skip_deleted,           value: "true"  }
+    - { var: check_all_folders,      value: "false" }
 
 - name: Make the logo a hyperlink to the website
   lineinfile: dest=/usr/share/roundcube/skins/{{ item }}/templates/login.html
@@ -66,8 +72,8 @@
     - larry
 
 - name: Configure Roundcube plugins
-  template: src=usr/share/roundcube/plugins/{{ item }}/config.inc.php.j2
-            dest=/usr/share/roundcube/plugins/{{ item }}/config.inc.php
+  template: src=etc/roundcube/plugins/{{ item }}/config.inc.php.j2
+            dest=/etc/roundcube/plugins/{{ item }}/config.inc.php
             owner=root group=root
             mode=0644
   with_items:
