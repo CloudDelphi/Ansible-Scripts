@@ -78,6 +78,7 @@
         mode=0644
   with_items:
     - additional_message_headers
+    - jqueryui
     - managesieve
     - password
 
