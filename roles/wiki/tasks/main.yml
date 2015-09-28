@@ -5,6 +5,8 @@
     - highlight-common
     - libhighlight-perl
     - libimage-magick-perl
+    - libmail-sendmail-perl
+    - libnet-dns-sec-perl
     - fcgiwrap
 
 - name: Create a user 'ikiwiki'

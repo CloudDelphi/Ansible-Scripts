@@ -51,6 +51,7 @@ add_plugins:
   - toc
   - htmlbalance
   - comments
+  - notifyemail
   ###
   - isWebsite
 # plugins to disable
