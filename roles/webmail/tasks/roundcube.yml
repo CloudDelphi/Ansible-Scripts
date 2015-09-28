@@ -72,10 +72,10 @@
     - larry
 
 - name: Configure Roundcube plugins
-  template: src=etc/roundcube/plugins/{{ item }}/config.inc.php.j2
-            dest=/etc/roundcube/plugins/{{ item }}/config.inc.php
-            owner=root group=root
-            mode=0644
+  copy: src=etc/roundcube/plugins/{{ item }}/config.inc.php
+        dest=/etc/roundcube/plugins/{{ item }}/config.inc.php
+        owner=root group=root
+        mode=0644
   with_items:
     - additional_message_headers
     - managesieve
