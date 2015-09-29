@@ -6,7 +6,7 @@
 cache-size=1000
 
 # Specify some default clone url prefixes
-clone-url=https://$HTTP_HOST/$CGIT_REPO_NAME ssh://$HTTP_HOST/$CGIT_REPO_NAME
+clone-url=https://$HTTP_HOST/$CGIT_REPO_NAME ssh://gitolite@$HTTP_HOST/$CGIT_REPO_NAME
 
 # Specify the css, logo and favicon urls
 css=/static/cgit.css
