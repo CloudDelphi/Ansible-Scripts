@@ -49,9 +49,10 @@
     - { var: smtp_log,               value: "false" }
     # IMAP
     - { var: default_host,           value: "'localhost'" }
-    - { var: default_port,           value: "143" }
+    - { var: default_port,           value: "143"         }
     - { var: imap_auth_type,         value: "'PLAIN'"     }
     - { var: imap_cache,             value: "null"        }
+    - { var: imap_timeout,           value: "180"         }
     - { var: messages_cache,         value: "false"       }
     # SMTP
     - { var: smtp_server,            value: "'localhost'" }
