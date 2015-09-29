@@ -4,7 +4,20 @@
     - php5-fpm
     - php5-ldap
     - php5-gd
-    - php5-pspell
+    # spell-checking
+    - php5-enchant
+
+- name: Install GNU Aspell and some dictionaries
+  apt: pkg={{ item }}
+  with_items:
+    - aspell
+    - aspell-da
+    - aspell-de
+    - aspell-en
+    - aspell-es
+    - aspell-fr
+    - aspell-no
+    - aspell-sv
 
 - name: Install Roundcube
   apt: pkg={{ item }} default_release={{ ansible_lsb.codename }}-backports
@@ -51,6 +64,10 @@
     - { var: product_name,           value: "'Fripost Webmail'"          }
     # Plugins
     - { var: plugins,                value: "array('archive','additional_message_headers','managesieve','password')" }
+    # Spell Checking
+    - { var: enable_spellcheck,      value: "'true'"                                    }
+    - { var: spellcheck_engine,      value: "'enchant'"                                 }
+    - { var: spellcheck_languages,   value: "array('da','de','en','es','fr','no','sv')" }
     # User Interface
     - { var: skin,                   value: "'larry'" }
     - { var: language,               value: "'sv_SE'" }
