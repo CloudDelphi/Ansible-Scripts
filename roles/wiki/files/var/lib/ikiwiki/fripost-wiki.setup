@@ -52,6 +52,7 @@ add_plugins:
   - htmlbalance
   - comments
   - notifyemail
+  - getsource
   ###
   - isWebsite
 # plugins to disable
@@ -284,7 +285,7 @@ comments_pagespec: tracker/*
 
 # getsource plugin
 # Mime type for returned source.
-#getsource_mimetype: text/plain; charset=utf-8
+getsource_mimetype: text/plain; charset=utf-8
 
 # mirrorlist plugin
 # list of mirrors
