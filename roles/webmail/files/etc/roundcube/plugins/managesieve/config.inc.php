@@ -33,9 +33,11 @@ $config['managesieve_usetls'] = false;
 // The example below enables server certificate validation
 $config['managesieve_conn_options'] = array(
   'ssl'         => array(
-     'verify_peer'  => true,
+     'verify_peer' => true,
      'verify_depth' => 3,
-     'cafile'       => '/etc/stunnel/certs/imap.fripost.org.pem',
+     'cafile' => '/etc/stunnel/certs/imap.fripost.org.pem',
+     'disable_compression' => true,
+     'ciphers' => 'EECDH+AESGCM:!MEDIUM:!LOW:!EXP:!aNULL:!eNULL',
    ),
  );
 
