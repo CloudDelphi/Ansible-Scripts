@@ -2,7 +2,7 @@
 # /!\ WARNING: smtp_tls_fingerprint_digest MUST be sha256!
 
 {% if 'out' not in group_names %}
-[outgoing.fripost.org]:{{ postfix_instance.out.port }} fingerprint ciphers=high protocols=TLSv1.2
+[outgoing.fripost.org]:{{ postfix_instance.out.port }} fingerprint ciphers=high protocols=!SSLv2:!SSLv3:!TLSv1:!TLSv1.1
 {% for h in groups.out | sort %}
     match={{ lookup('pipe', 'openssl x509 -in certs/postfix/'+h+'.pem -noout -fingerprint -sha256 | cut -d= -f2') }}
 {% endfor %}
@@ -10,14 +10,14 @@
 
 {% if 'MX' in group_names %}
 {% if 'IMAP' not in group_names %}
-[mda.fripost.org]:{{ postfix_instance.IMAP.port }} fingerprint ciphers=high protocols=TLSv1.2
+[mda.fripost.org]:{{ postfix_instance.IMAP.port }} fingerprint ciphers=high protocols=!SSLv2:!SSLv3:!TLSv1:!TLSv1.1
 {% for h in groups.IMAP | sort %}
     match={{ lookup('pipe', 'openssl x509 -in certs/postfix/'+h+'.pem -noout -fingerprint -sha256 | cut -d= -f2') }}
 {% endfor %}
 {% endif %}
 
 {% if 'lists' not in group_names %}
-[lists.fripost.org]:{{ postfix_instance.lists.port }} fingerprint ciphers=high protocols=TLSv1.2
+[lists.fripost.org]:{{ postfix_instance.lists.port }} fingerprint ciphers=high protocols=!SSLv2:!SSLv3:!TLSv1:!TLSv1.1
 {% for h in groups.lists | sort %}
    match={{ lookup('pipe', 'openssl x509 -in certs/postfix/'+h+'.pem -noout -fingerprint -sha256 | cut -d= -f2') }}
 {% endfor %}
