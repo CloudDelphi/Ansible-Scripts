@@ -3,7 +3,7 @@
   <emailProvider id="fripost.org">
     <domain>fripost.org</domain>
 
-    <displayName>Fripost &endash; demokratisk e-post</displayName>
+    <displayName>Fripost — demokratisk e-post</displayName>
     <displayShortName>Fripost</displayShortName>
 
     <incomingServer type="imap">
