@@ -57,7 +57,7 @@
                          --pubkey=/etc/postfix/ssl/{{ ansible_fqdn }}.pem
                          --privkey=/etc/postfix/ssl/{{ ansible_fqdn }}.key
                          --ou=Postfix --cn={{ ansible_fqdn }}
-                         -t ecdsa -b secp384r1 -h sha512
+                         -t rsa -b 4096 -h sha512
   register: r4
   changed_when: r4.rc == 0
   failed_when: r4.rc > 1
