@@ -7,7 +7,5 @@ privkey="$1"
 bits="${2:-2048}"
 rand=
 
-mv -f "$(mktemp)" "$privkey"
-chmod og-rwx "$privkey"
-
+install --mode=0600 /dev/null "$privkey"
 openssl dhparam -rand "${rand:-/dev/urandom}" "$bits" >"$privkey"

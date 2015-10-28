@@ -35,8 +35,9 @@ dns=
 ou=
 cn=
 usage=
-chmod=
-chown=
+mode=
+owner=
+group=
 rand=
 
 usage() {
@@ -60,10 +61,11 @@ usage() {
 		                                        2: overwrite both keys if they exist)
 		    --config:   configuration file
 		    --pubkey:   public key file (default: pubkey.pem)
-		    --privkey:  private key file (default: privkey.pem; created with og-rwx)
+		    --privkey:  private key file (default: privkey.pem)
 		    --usage:    key usage (default: digitalSignature,keyEncipherment,keyCertSign)
-		    --chmod:    chmod the private key
-		    --chown:    chown the private key
+		    --mode:     set privkey's permission mode (default: 0600)
+		    --owner:    set privkey's owner (default: the process' current owner)
+		    --group:    set privkey's group (default: the process' current group)
 
 		Return values:
 		    0  The key pair was successfully generated
@@ -115,8 +117,9 @@ while [ $# -gt 0 ]; do
         --usage=?*) usage="${usage:+$usage,}${1#--usage=}";;
         --config=?*) dns="${1#--config=}";;
 
-        --chmod=?*) chmod="${1#--chmod=}";;
-        --chown=?*) chown="${1#--chown=}";;
+        --mode=?*) mode="${1#--mode=}";;
+        --owner=?*) owner="${1#--owner=}";;
+        --group=?*) group="${1#--group=}";;
 
         --help) usage; exit;;
         *) echo "Unrecognized argument: $1" >&2; exit 2
@@ -181,10 +184,7 @@ if [ -s "$privkey" -a $force -eq 0 ]; then
     [ "$cmd" = dkim ] && dkiminfo
     exit 1
 elif [ ! -s "$privkey" -o $force -ge 2 ]; then
-    # Ensure "$privkey" is created with umask 0077
-    mv -f "$(mktemp)" "$privkey" || exit 2
-    chmod "${chmod:-og-rwx}" "$privkey" || exit 2
-    [ -z "$chown" ] || chown "$chown" "$privkey" || exit 2
+    install --mode="${mode:-0600}" ${owner:+--owner="$owner"} ${group:+--group="$group"} /dev/null "$privkey" || exit 2
     openssl $genkey -rand "${rand:-/dev/urandom}" $genkeyargs >"$privkey" || exit 2
     [ "$cmd" = dkim ] && { dkiminfo; exit; }
 fi

@@ -42,7 +42,7 @@
                          --ou=LDAP {{ item.ou }} --cn={{ item.name }}
                          --usage=digitalSignature,keyEncipherment,keyCertSign
                          -t rsa -b 4096 -h sha256
-                         --chown="root:openldap" --chmod=0640
+                         --owner=root --group=openldap --mode=0640
   register: r2
   changed_when: r2.rc == 0
   failed_when: r2.rc > 1
