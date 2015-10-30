@@ -30,6 +30,7 @@ server {
 
     location ^~ /static-sympa/ {
         alias /var/lib/sympa/static_content/;
+        expires 30d;
     }
 
     location ^~ /sympa {

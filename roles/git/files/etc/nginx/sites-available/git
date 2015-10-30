@@ -18,6 +18,7 @@ server {
         root /var/lib/gitolite/repositories;
         try_files /$1.git/objects/$2 /$1/objects/$2 =404;
         expires 30d;
+        gzip off;
         # TODO honor git-daemon-export-ok
     }
 
@@ -67,6 +68,7 @@ server {
         root /var/lib/gitolite/repositories;
         try_files /$1.git/objects/$2 /$1/objects/$2 =404;
         expires 30d;
+        gzip off;
         # TODO honor git-daemon-export-ok
     }
 

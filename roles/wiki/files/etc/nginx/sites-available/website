@@ -35,12 +35,15 @@ server {
     }
     location /static/ {
         alias /var/lib/ikiwiki/public_html/fripost-wiki/static/;
+        expires 30d;
     }
     location /material/ {
         alias /var/www/fripost.org/material/;
+        expires 30d;
     }
     location /minutes/ {
         alias /var/www/fripost.org/minutes/;
+        expires 30d;
     }
     location /.well-known/autoconfig/ {
         alias /var/www/fripost.org/autoconfig/;
