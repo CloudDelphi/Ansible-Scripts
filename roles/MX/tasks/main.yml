@@ -78,6 +78,17 @@
 - name: Start Postfix
   service: name=postfix state=started
 
+- name: Fetch Postfix's X.509 certificate
+  # Ensure we don't fetch private data
+  sudo: False
+  # `/usr/sbin/postmulti -i mx -x /usr/sbin/postconf -xh smtpd_tls_cert_file`
+  fetch: src=/etc/ssl/certs/ssl-cert-snakeoil.pem
+         dest=certs/public/mx{{ mxno | default('') }}.fripost.org.pem
+         fail_on_missing=yes
+         flat=yes
+  tags:
+    - genkey
+
 
 - name: Install 'postfix_mailqueue_' Munin wildcard plugin
   file: src=/usr/local/share/munin/plugins/postfix_mailqueue_

@@ -103,6 +103,22 @@
   notify:
     - Restart Nginx
 
+- name: Start Nginx
+  service: name=nginx state=started
+  when: not (r1.changed or r2.changed or r3.changed)
+
+- meta: flush_handlers
+
+- name: Fetch Nginx's X.509 certificate
+  # Ensure we don't fetch private data
+  sudo: False
+  fetch: src=/etc/nginx/ssl/fripost.org.pem
+         dest=certs/public/
+         fail_on_missing=yes
+         flat=yes
+  tags:
+    - genkey
+
 - name: Create directory /var/www/fripost.org/autoconfig/mail
   file: path=/var/www/fripost.org/autoconfig/mail
         state=directory

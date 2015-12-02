@@ -94,7 +94,7 @@
   # Ensure we don't fetch private data
   sudo: False
   fetch: src=/etc/dovecot/ssl/imap.fripost.org.pem
-         dest=certs/dovecot/
+         dest=certs/public/
          fail_on_missing=yes
          flat=yes
   tags:
