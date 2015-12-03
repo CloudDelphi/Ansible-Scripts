@@ -88,6 +88,7 @@ src2=$(mktemp --tmpdir)
 mdwn="${asc%.asc}.mdwn"
 mdwn2=$(mktemp --tmpdir)
 DIR="$(dirname "$0")/public"
+VCS_BROWSER='https://git.fripost.org/fripost-ansible'
 trap 'rm -f "$src" "$src2" "$asc2" "$mdwn2"' EXIT
 
 if [ -s "$asc" ]; then
@@ -105,7 +106,7 @@ immediately! -- admin@fripost.org
 
 All our X.509 certificates are available in PEM format under
 
-    https://git.fripost.org/fripost-ansible/tree/certs/public ,
+    $VCS_BROWSER/tree/certs/public ,
 
 Git repository from which this fingerprint list was generated, at commit ID
 $(git --no-pager --git-dir="$DIR/../../.git" --work-tree="$DIR" log -1 --pretty=format:'%h from %aD' -- "$DIR").
@@ -127,11 +128,9 @@ immediately!  (See also the [[signed version of this page|certs.asc]].)
 
 
 All our X.509 certificates are available in PEM format under our
-[[Git repository|https://git.fripost.org/fripost-ansible/tree/certs/public]],
-from which this fingerprint list was
-[[generated|https://git.fripost.org/fripost-ansible/tree/certs/gencerts.sh]],
-at $(git --no-pager --git-dir="$DIR/../../.git" --work-tree="$DIR" log -1 \
---pretty=format:'[[Commit ID %h from %aD|https://git.fripost.org/fripost-ansible/tree/certs/public?id=%H]]' -- "$DIR").
+[[Git repository|$VCS_BROWSER/tree/certs/public]],
+from which this fingerprint list was [[generated|$VCS_BROWSER/tree/certs/gencerts.sh]], at
+$(git --no-pager --git-dir="$DIR/../../.git" --work-tree="$DIR" log -1 --pretty=format:"[[Commit ID %h from %aD|$VCS_BROWSER/tree/certs/public?id=%H]]" -- "$DIR").
 
 
 EOF
