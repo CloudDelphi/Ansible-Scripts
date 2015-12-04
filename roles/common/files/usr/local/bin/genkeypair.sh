@@ -115,7 +115,7 @@ while [ $# -gt 0 ]; do
         --privkey=?*) privkey="${1#--privkey=}";;
 
         --usage=?*) usage="${usage:+$usage,}${1#--usage=}";;
-        --config=?*) dns="${1#--config=}";;
+        --config=?*) config="${1#--config=}";;
 
         --mode=?*) mode="${1#--mode=}";;
         --owner=?*) owner="${1#--owner=}";;
@@ -168,7 +168,7 @@ if [ -z "$config" -a \( "$cmd" = x509 -o "$cmd" = csr \) ]; then
 		organizationName       = Fripost
 		organizationalUnitName = SSLcerts
 		$(echo "$ou")
-		commonName             = $cn
+		commonName             = ${cn:-/}
 
 		[ v3_req ]
 		subjectAltName       = email:admin@fripost.org${dns:+, $dns}
