@@ -36,9 +36,9 @@
   notify:
     - Restart Nginx
 
-- name: Copy SSL configuration
-  copy: src=etc/nginx/ssl/config
-        dest=/etc/nginx/ssl/config
+- name: Copy SSL configuration snippet
+  copy: src=etc/nginx/conf.d/ssl
+        dest=/etc/nginx/conf.d/ssl
         owner=root group=root
         mode=0644
   register: r2

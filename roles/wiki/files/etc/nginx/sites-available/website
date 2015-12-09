@@ -18,7 +18,7 @@ server {
 
     server_name fripost.org;
 
-    include ssl/config;
+    include conf.d/ssl;
     # include the intermediate certificate, see
     # - https://www.ssllabs.com/ssltest/analyze.html?d=fripost.org
     # - http://nginx.org/en/docs/http/configuring_https_servers.html
