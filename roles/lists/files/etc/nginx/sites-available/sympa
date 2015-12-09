@@ -1,6 +1,6 @@
 server {
     listen      80;
-    listen [::]:80 ipv6only=on;
+    listen [::]:80;
 
     server_name lists.fripost.org;
 
@@ -13,7 +13,7 @@ server {
 
 server {
     listen      443;
-    listen [::]:443 ipv6only=on;
+    listen [::]:443;
 
     server_name  lists.fripost.org;
 
@@ -36,7 +36,7 @@ server {
     location ^~ /sympa {
         fastcgi_split_path_info ^(/sympa)(.*)$;
         include fastcgi/params;
-       
+
         fastcgi_pass unix:/run/wwsympa.socket;
         gzip off;
     }
@@ -53,10 +53,10 @@ server {
 
         fastcgi_split_path_info ^(/[^/]+/sympa)(.*)$;
         include fastcgi/params;
-        
+
         fastcgi_pass unix:/run/wwsympa.socket;
         gzip off;
-    
+
         fastcgi_param  SERVER_NAME        $vhost;
     }
 
