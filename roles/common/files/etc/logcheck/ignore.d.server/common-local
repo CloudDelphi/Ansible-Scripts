@@ -13,7 +13,7 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: fatal: (no hostkey alg|Unable to negotiate a key exchange method) \[preauth\]$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: fatal: no matching cipher found: client [.@[:alnum:]-]+(,[.@[:alnum:]-]+)* server [.@[:alnum:]-]+(,[.@[:alnum:]-]+)* \[preauth\]$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: Bad protocol version identification '.*' from [:.[:xdigit:]]+ port [[:digit:]]+$
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: Accepted publickey for [^[:space:]]+ from [^[:space:]]+ port [[:digit:]]+( (ssh|ssh2))?(: (RSA|ECDSA|ED25519) ([[:xdigit:]]{2}:){15}[[:xdigit:]]{2})?$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: Accepted publickey for [^[:space:]]+ from [^[:space:]]+ port [[:digit:]]+( (ssh|ssh2))?(: (DSA|RSA|ECDSA|ED25519) ([[:xdigit:]]{2}:){15}[[:xdigit:]]{2})?$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: WARNING: no suitable primes in /etc/ssh/primes$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ slapd\[[[:digit:]]+\]: connection_input: conn=[[:digit:]]+ deferring operation: binding$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (slapd\[[[:digit:]]+\]|slap(acl|add|auth|cat|dn|index)|ldap(add|compare|delete|exop|modify|modrdn|passwd|search|url|whoami)): DIGEST-MD5 common mech free$
@@ -37,4 +37,4 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ wwsympa\[[[:digit:]]+\]: err .* main::check_action_parameters\(\) user not logged in$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ rrdcached\[[[:digit:]]+\]: (flushing old values|rotating journals|started new journal /\S+$|removing old journal /\S+$)
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ rrdcached\[[[:digit:]]+\]: queue_thread_main: rrd_update_r \(([^)]+)\) failed with status -1. \(opening '\1': No such file or directory\)
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ stunnel: LOG3\[[[:digit:]]+\]: SSL_accept: (Peer suddenly disconnected|[[:xdigit:]]+: error:[[:xdigit:]]+:SSL routines:SSL2?3_GET_CLIENT_HELLO:(unknown protocol|http request))$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ stunnel: LOG3\[[[:digit:]]+\]: SSL_accept: (Peer suddenly disconnected|[[:xdigit:]]+: error:[[:xdigit:]]+:SSL routines:SSL2?3_GET_CLIENT_HELLO:(unknown protocol|http request|no shared cipher))$
