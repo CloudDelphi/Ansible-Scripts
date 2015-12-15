@@ -50,7 +50,7 @@ server {
 
     server_name  git.fripost.org;
 
-    include conf.d/ssl;
+    include include.d/ssl;
     ssl_certificate     /etc/nginx/ssl/git.fripost.org.pem;
     ssl_certificate_key /etc/nginx/ssl/git.fripost.org.key;
 
