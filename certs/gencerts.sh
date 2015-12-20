@@ -22,11 +22,11 @@ x509fpr() {
     host="${msg%%,*}"; host="${msg%% *}"
     cert="$DIR/${host%%:*}.pem"
     spki=$(openssl x509 -noout -pubkey<"$cert" | openssl pkey -pubin -outform DER | openssl dgst -sha1  | sed -nr 's/^[^=]+=\s*//p')
-    [ "$typ" = mdwn ] && { echo; echo "    $msg"; echo; } || echo "    $msg"
-    echo "${indent}X.509: https://crt.sh/?spkisha1=${spki}&iCAID=7395"
-    echo "${indent}SPKI:"
+    [ "$typ" = mdwn ] && printf '\n    [[%s|https://crt.sh/?spkisha1=%s&iCAID=7395]]\n\n' "$msg" "$spki" \
+                      || printf '    %s\n    X.509: https://crt.sh/?spkisha1=%s&iCAID=7395\n    SPKI:\n' "$msg" "$spki"
     for h in sha1 sha256; do
-        echo -n "  $h" | tr '[a-z]' '[A-Z]'
+        [ "$typ" = mdwn ] || echo -n '  '
+        echo -n "$h" | tr '[a-z]' '[A-Z]'
         for i in $(seq 1 $((7 - ${#h}))); do echo -n ' '; done
         openssl x509 -noout -pubkey<"$cert" | openssl pkey -pubin -outform DER | openssl dgst -"$h" -c | sed -nr 's/^[^=]+=\s*//p'
     done | sed -r "s/(\S+)(.*)/$indent\1\U\2/"
