@@ -20,7 +20,7 @@ server {
     access_log /var/log/nginx/lists.access.log;
     error_log  /var/log/nginx/lists.error.log info;
 
-    include include.d/ssl;
+    include snippets/ssl.conf;
     ssl_certificate     /etc/nginx/ssl/lists.fripost.org.pem;
     ssl_certificate_key /etc/nginx/ssl/lists.fripost.org.key;
 
@@ -35,7 +35,7 @@ server {
 
     location ^~ /sympa {
         fastcgi_split_path_info ^(/sympa)(.*)$;
-        include fastcgi/params;
+        include snippets/fastcgi.conf;
 
         fastcgi_pass unix:/run/wwsympa.socket;
         gzip off;
@@ -52,7 +52,7 @@ server {
         }
 
         fastcgi_split_path_info ^(/[^/]+/sympa)(.*)$;
-        include fastcgi/params;
+        include snippets/fastcgi.conf;
 
         fastcgi_pass unix:/run/wwsympa.socket;
         gzip off;

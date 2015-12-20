@@ -8,40 +8,35 @@
   tags:
     - logrotate
 
-- name: Delete /etc/nginx/sites-{available,enabled}/default
-  file: path=/etc/nginx/sites-{{ item }}/default state=absent
-  with_items:
-    - enabled
-    - available
-
-- name: Create directory /etc/nginx/{fastcgi,ssl}
-  file: path=/etc/nginx/{{ item }}
-        state=directory
-        owner=root group=root
-        mode=0755
-  with_items:
-    - fastcgi
-    - ssl
-
-- name: Copy fastcgi parameters
-  copy: src=etc/nginx/fastcgi/{{ item }}
-        dest=/etc/nginx/fastcgi/{{ item }}
+- name: Copy fastcgi parameters and SSL configuration snippets
+  copy: src=etc/nginx/snippets/{{ item }}
+        dest=/etc/nginx/snippets/{{ item }}
         owner=root group=root
         mode=0644
   register: r1
   with_items:
-    - params
-    - php
-    - php-ssl
+    - fastcgi.conf
+    - fastcgi-php.conf
+    - fastcgi-php-ssl.conf
+    - ssl.conf
   notify:
     - Restart Nginx
 
-- name: Copy SSL configuration snippet
-  copy: src=etc/nginx/include.d/ssl
-        dest=/etc/nginx/include.d/ssl
+- name: Copy /etc/nginx/sites-available/default
+  copy: src=etc/nginx/sites-available/default
+        dest=/etc/nginx/sites-available/default
         owner=root group=root
         mode=0644
   register: r2
+  notify:
+    - Restart Nginx
+
+- name: Create /etc/nginx/sites-enabled/default
+  file: src=../sites-available/default
+        dest=/etc/nginx/sites-enabled/default
+        owner=root group=root
+        state=link force=yes
+  register: r3
   notify:
     - Restart Nginx
 
@@ -50,12 +45,12 @@
               regexp='^(\s*text/plain\s+)'
               backrefs=yes
               line='\1txt asc;'
-  register: r3
+  register: r4
   notify:
     - Restart Nginx
 
 - name: Start Nginx
   service: name=nginx state=started
-  when: not (r1.changed or r2.changed or r3.changed)
+  when: not (r1.changed or r2.changed or r3.changed or r4.changed)
 
 - meta: flush_handlers

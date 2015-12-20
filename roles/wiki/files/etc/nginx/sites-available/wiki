@@ -26,12 +26,9 @@ server {
 
     server_name wiki.fripost.org;
 
-    include include.d/ssl;
-    # include the intermediate certificate, see
-    # - https://www.ssllabs.com/ssltest/analyze.html?d=wiki.fripost.org
-    # - http://nginx.org/en/docs/http/configuring_https_servers.html
-    ssl_certificate     /etc/nginx/ssl/fripost.org.chained.pem;
-    ssl_certificate_key /etc/nginx/ssl/fripost.org.key;
+    include snippets/ssl.conf;
+    ssl_certificate     /etc/nginx/ssl/www.fripost.org.chained.pem;
+    ssl_certificate_key /etc/nginx/ssl/www.fripost.org.key;
 
     access_log /var/log/nginx/wiki.access.log;
     error_log  /var/log/nginx/wiki.error.log info;
@@ -47,7 +44,7 @@ server {
         fastcgi_param DOCUMENT_ROOT   /var/lib/ikiwiki/public_html/fripost-wiki;
         fastcgi_param SCRIPT_FILENAME /var/lib/ikiwiki/public_html/ikiwiki.cgi;
         fastcgi_index ikiwiki.cgi;
-        include fastcgi/params;
+        include snippets/fastcgi.conf;
         fastcgi_pass unix:/var/run/fcgiwrap.socket;
         gzip off;
     }

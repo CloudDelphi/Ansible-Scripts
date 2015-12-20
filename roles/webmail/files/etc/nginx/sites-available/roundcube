@@ -19,10 +19,7 @@ server {
     server_name  mail.fripost.org;
     root         /var/lib/roundcube;
 
-    include include.d/ssl;
-    # include the intermediate certificate, see
-    # - https://www.ssllabs.com/ssltest/analyze.html?d=mail.fripost.org
-    # - http://nginx.org/en/docs/http/configuring_https_servers.html
+    include snippets/ssl.conf;
     ssl_certificate     /etc/nginx/ssl/mail.fripost.org.chained.pem;
     ssl_certificate_key /etc/nginx/ssl/mail.fripost.org.key;
 
@@ -49,8 +46,7 @@ server {
     index index.php;
     client_max_body_size 64m;
     location = /index.php {
-        include fastcgi/php;
-        include fastcgi/php-ssl;
+        include snippets/fastcgi-php-ssl.conf;
 
         # From /var/lib/roundcube/.htaccess
         fastcgi_param PHP_VALUE "upload_max_filesize=25M
