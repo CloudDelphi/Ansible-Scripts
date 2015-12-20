@@ -45,6 +45,9 @@
     - rsync
     - screen
     - telnet-ssl
+    # for letencrypt
+    - liblwp-protocol-https-perl
+    - socat
 
 # XXX: this is a workaround the CAcert root CAs not being present in
 # Jessie.  In stretch, we would merely install the 'ca-cacert' package.

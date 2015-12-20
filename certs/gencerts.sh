@@ -18,20 +18,17 @@ usage() {
 }
 
 x509fpr() {
-    local msg="$1" host cert h t
+    local msg="$1" host cert h spki
     host="${msg%%,*}"; host="${msg%% *}"
     cert="$DIR/${host%%:*}.pem"
+    spki=$(openssl x509 -noout -pubkey<"$cert" | openssl pkey -pubin -outform DER | openssl dgst -sha1  | sed -nr 's/^[^=]+=\s*//p')
     [ "$typ" = mdwn ] && { echo; echo "    $msg"; echo; } || echo "    $msg"
-    for t in X.509 PKey; do
-        for h in sha1 sha256; do
-            [ "$t" = PKey ] && echo -n "$t  $h" || echo -n "$t $h"
-            for i in $(seq 1 $((7 - ${#h}))); do echo -n ' '; done
-            if [ "$t" = PKey ]; then
-                openssl x509 -noout -pubkey | openssl pkey -pubin -outform DER | openssl dgst -"$h" -c
-            else
-                openssl x509 -noout -fingerprint -"$h"
-            fi <"$cert" | sed -nr 's/^[^=]+=\s*//p'
-        done
+    echo "${indent}X.509: https://crt.sh/?spkisha1=${spki}&iCAID=7395"
+    echo "${indent}SPKI:"
+    for h in sha1 sha256; do
+        echo -n "  $h" | tr '[a-z]' '[A-Z]'
+        for i in $(seq 1 $((7 - ${#h}))); do echo -n ' '; done
+        openssl x509 -noout -pubkey<"$cert" | openssl pkey -pubin -outform DER | openssl dgst -"$h" -c | sed -nr 's/^[^=]+=\s*//p'
     done | sed -r "s/(\S+)(.*)/$indent\1\U\2/"
 }
 
@@ -98,13 +95,20 @@ fi
 
 # Generate ASCII file to be clearsigned
 cat >"$src2" << EOF
-The following is an up-to date list of SHA-1 and SHA-256 fingerprints of all
-X.509 certificates Fripost uses on its publicly available services.  Please
-consider any mismatch as a man-in-the-middle attack, and let us know
-immediately! -- admin@fripost.org
+The following is an up-to date list of SHA-1 and SHA-256 fingerprints of
+all SPKI (Subject Public Key Info) of each X.509 certificate Fripost
+uses on its publicly available services.  Please consider any mismatch
+as a man-in-the-middle attack, and let us know immediately! --
+admin@fripost.org
 
 
-All our X.509 certificates are available in PEM format under
+These certificates are all issued by the Let's Encrypt Certificate
+Authority, and are submitted to Certificate Transparency logs. You can
+view all issued Let's Encrypt certificates at crt.sh:
+
+    https://crt.sh/?Identity=%25fripost.org&iCAID=7395
+
+Our X.509 certificates are also available in PEM format at:
 
     $VCS_BROWSER/tree/certs/public ,
 
@@ -120,14 +124,20 @@ allfpr asc >>"$src2"
 cat >"$mdwn2" << EOF
 # Certificates at Fripost
 
-The following is an up-to date list of SHA-1 and SHA-256 fingerprints of all
-X.509 certificates Fripost uses on its publicly available services.  Please
-consider any mismatch as a man-in-the-middle attack, and let us know
-immediately!  (See also the [[signed version of this page|certs.asc]].)
+The following is an up-to date list of SHA-1 and SHA-256 fingerprints of
+all SPKI (Subject Public Key Info) of each X.509 certificate Fripost
+uses on its publicly available services.  Please consider any mismatch
+as a man-in-the-middle attack, and let us know immediately!  (See also
+the [[signed version of this page|certs.asc]].)
 -- [[admin@fripost.org|mailto:admin@fripost.org]]
 
 
-All our X.509 certificates are available in PEM format under our
+These certificates are all issued by the [[Let's Encrypt Certificate
+Authority|https://letsencrypt.org]], and are submitted to [[Certificate
+Transparency logs|https://www.certificate-transparency.org]].
+You can view all issued Let's Encrypt certificates at
+[[crt.sh|https://crt.sh/?Identity=%25fripost.org&iCAID=7395]].
+Our X.509 certificates are also available in PEM format under our
 [[Git repository|$VCS_BROWSER/tree/certs/public]],
 from which this fingerprint list was [[generated|$VCS_BROWSER/tree/certs/gencerts.sh]], at
 $(git --no-pager --git-dir="$DIR/../../.git" --work-tree="$DIR" log -1 --pretty=format:"[[Commit ID %h from %aD|$VCS_BROWSER/tree/certs/public?id=%H]]" -- "$DIR").
@@ -135,15 +145,6 @@ $(git --no-pager --git-dir="$DIR/../../.git" --work-tree="$DIR" log -1 --pretty=
 
 EOF
 allfpr mdwn >>"$mdwn2"
-tee -a "$src2" >> "$mdwn2" << EOF
-
-
-If your SSL/TLS-capable client is able to validate the public key
-fingerprint of the remote peer certificate, then you should probably use
-this (the above values prefixed with "PKey") instead of the fingerprint
-of the certificate instead (the above values prefixed with "X.509"),
-since the former typically doesn't change upon certificate renewal.
-EOF
 echo >>"$src2"
 
 

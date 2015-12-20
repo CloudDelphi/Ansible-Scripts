@@ -72,26 +72,12 @@
     - www-data
 
 
-- name: Generate a private key and a X.509 certificate for Nginx
-  command: genkeypair.sh x509
-                         --pubkey=/etc/nginx/ssl/git.fripost.org.pem
-                         --privkey=/etc/nginx/ssl/git.fripost.org.key
-                         --ou=WWW --cn=git.fripost.org --dns=git.fripost.org
-                         -t rsa -b 4096 -h sha512
-  register: r1
-  changed_when: r1.rc == 0
-  failed_when: r1.rc > 1
-  notify:
-    - Restart Nginx
-  tags:
-    - genkey
-
 - name: Copy /etc/nginx/sites-available/git
   copy: src=etc/nginx/sites-available/git
         dest=/etc/nginx/sites-available/git
         owner=root group=root
         mode=0644
-  register: r2
+  register: r1
   notify:
     - Restart Nginx
 
@@ -100,13 +86,13 @@
         dest=/etc/nginx/sites-enabled/git
         owner=root group=root
         state=link force=yes
-  register: r3
+  register: r2
   notify:
     - Restart Nginx
 
 - name: Start Nginx
   service: name=nginx state=started
-  when: not (r1.changed or r2.changed or r3.changed)
+  when: not (r1.changed or r2.changed)
 
 - meta: flush_handlers
 

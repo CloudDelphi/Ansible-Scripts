@@ -52,3 +52,6 @@
 
 - name: Restart freshclam
   service: name=clamav-freshclam state=restarted
+
+- name: Install LetsEncrypt's ACME client
+  apt: deb=/tmp/letsencrypt-tiny_0.1-1_all.deb

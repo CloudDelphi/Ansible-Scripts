@@ -5,10 +5,14 @@ server {
     server_name     fripost.org;
     server_name www.fripost.org;
 
-    access_log /var/log/nginx/access.log;
-    error_log  /var/log/nginx/error.log info;
+    include snippets/acme-challenge.conf;
 
-    return 301 https://fripost.org$request_uri;
+    access_log /var/log/nginx/www.access.log;
+    error_log  /var/log/nginx/www.error.log info;
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
 }
 
 
@@ -16,14 +20,15 @@ server {
     listen      443;
     listen [::]:443;
 
-    server_name fripost.org;
+    server_name     fripost.org;
+    server_name www.fripost.org;
 
     include snippets/ssl.conf;
     ssl_certificate     /etc/nginx/ssl/www.fripost.org.chained.pem;
     ssl_certificate_key /etc/nginx/ssl/www.fripost.org.key;
 
-    access_log /var/log/nginx/access.log;
-    error_log  /var/log/nginx/error.log info;
+    access_log /var/log/nginx/www.access.log;
+    error_log  /var/log/nginx/www.error.log info;
 
     location / {
         try_files $uri $uri/ =404;

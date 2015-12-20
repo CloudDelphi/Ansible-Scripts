@@ -4,42 +4,13 @@ server {
 
     server_name  git.fripost.org;
 
+    include snippets/acme-challenge.conf;
+
     access_log /var/log/nginx/git.access.log;
     error_log  /var/log/nginx/git.error.log info;
 
-    location ^~ /static/ {
-        alias /usr/share/cgit/;
-        expires 30d;
-    }
-
-    # Bypass the CGI to return static files stored on disk. Try first repo with
-    # a trailing '.git', then without.
-    location ~* "^/((?U)[^/]+)(?:\.git)?/objects/(?:[0-9a-f]{2}/[0-9a-f]{38}|pack/pack-[0-9a-f]{40}\.(?:pack|idx))$" {
-        root /var/lib/gitolite/repositories;
-        try_files /$1.git/objects/$2 /$1/objects/$2 =404;
-        expires 30d;
-        gzip off;
-        # TODO honor git-daemon-export-ok
-    }
-
-    # disallow push over HTTP/HTTPS
-    location ~* "^/[^/]+/git-receive-pack$" { return 403; }
-
-    location ~* "^/[^/]+/(?:HEAD|info/refs|objects/info/[^/]+|git-upload-pack)$" {
-        gzip off;
-        include uwsgi_params;
-        uwsgi_modifier1 9;
-        uwsgi_param GIT_PROJECT_ROOT /var/lib/gitolite/repositories;
-        uwsgi_pass unix:/run/uwsgi/app/git-http-backend/socket;
-    }
-
-
-    # send all other URLs to cgit
     location / {
-        gzip off;
-        include uwsgi_params;
-        uwsgi_modifier1 9;
-        uwsgi_pass unix:/run/uwsgi/app/cgit/socket;
+        return 301 https://$host$request_uri;
     }
 }
 
@@ -51,7 +22,7 @@ server {
     server_name  git.fripost.org;
 
     include snippets/ssl.conf;
-    ssl_certificate     /etc/nginx/ssl/git.fripost.org.pem;
+    ssl_certificate     /etc/nginx/ssl/git.fripost.org.chained.pem;
     ssl_certificate_key /etc/nginx/ssl/git.fripost.org.key;
 
     access_log /var/log/nginx/git.access.log;

@@ -4,18 +4,14 @@ server {
 
     server_name wiki.fripost.org;
 
+    include snippets/acme-challenge.conf;
+
     access_log /var/log/nginx/wiki.access.log;
     error_log  /var/log/nginx/wiki.error.log info;
 
     location / {
         location ~ ^/website(/.*)?$ { return 302 $scheme://fripost.org$1; }
-        try_files $uri $uri/ =404;
-        index index.html;
-        root /var/lib/ikiwiki/public_html/fripost-wiki;
-    }
-
-    location = /ikiwiki.cgi {
-        return 302 https://$host$request_uri;
+        return 301 https://$host$request_uri;
     }
 }
 

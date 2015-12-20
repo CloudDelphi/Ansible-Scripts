@@ -75,8 +75,8 @@ smtp_tls_fingerprint_digest     = sha256
 {% endif %}
 
 smtpd_tls_security_level        = encrypt
-smtpd_tls_cert_file             = /etc/postfix/ssl/smtp.fripost.org.pem
-smtpd_tls_key_file              = /etc/postfix/ssl/private/smtp.fripost.org.key
+smtpd_tls_cert_file             = /etc/postfix/ssl/smtp.fripost.org.chained.pem
+smtpd_tls_key_file              = /etc/postfix/ssl/smtp.fripost.org.key
 smtpd_tls_dh1024_param_file     = /etc/ssl/private/dhparams.pem
 smtpd_tls_session_cache_database= btree:$data_directory/smtpd_tls_session_cache
 smtpd_tls_received_header       = yes

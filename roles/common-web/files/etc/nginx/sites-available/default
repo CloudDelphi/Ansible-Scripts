@@ -1,0 +1,11 @@
+server {
+    listen      80 default_server;
+    listen [::]:80 default_server;
+
+    access_log /var/log/nginx/access.log;
+    error_log /var/log/nginx/error.log info;
+
+    # serve ACME challenges on all virtual hosts
+    # /!\ need to be served individually for each explicit virtual host as well!
+    include snippets/acme-challenge.conf;
+}

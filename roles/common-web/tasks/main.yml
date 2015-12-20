@@ -8,7 +8,7 @@
   tags:
     - logrotate
 
-- name: Copy fastcgi parameters and SSL configuration snippets
+- name: Copy fastcgi parameters, acme-challenge and SSL configuration snippets
   copy: src=etc/nginx/snippets/{{ item }}
         dest=/etc/nginx/snippets/{{ item }}
         owner=root group=root
@@ -19,6 +19,7 @@
     - fastcgi-php.conf
     - fastcgi-php-ssl.conf
     - ssl.conf
+    - acme-challenge.conf
   notify:
     - Restart Nginx
 
