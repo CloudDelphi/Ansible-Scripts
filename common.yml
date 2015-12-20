@@ -12,6 +12,29 @@
   roles:
     - common
 
+- name: Base system
+  hosts: IMAP:MX:MSA:webmail:lists:wiki:git
+  gather_facts: False
+  tasks:
+    - name: Copy LetsEncrypt's ACME client
+      copy: src=deb/letsencrypt-tiny_0.1-1_all.deb
+            dest=/tmp
+      notify: Install LetsEncrypt's ACME client
+       - genkey
+    - name: Create a user 'letsencrypt'
+      user: name=letsencrypt system=yes
+            group=nogroup
+            createhome=no
+            home=/nonexistent
+            shell=/usr/sbin/nologin
+            password=!
+            state=present
+  handlers:
+    - name: Install LetsEncrypt's ACME client
+      apt: deb=/tmp/letsencrypt-tiny_0.1-1_all.deb
+  tags:
+   - letsencrypt
+
 - name: Common SQL tasks
   hosts: MDA:webmail:lists:bacula-dir
   gather_facts: False
