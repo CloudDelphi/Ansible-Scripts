@@ -44,9 +44,6 @@
 - name: Restart bacula-fd
   service: name=bacula-fd state=restarted
 
-- name: Update certificate
-  command: update-ca-certificates
-
 - name: Restart munin-node
   service: name=munin-node state=restarted
 

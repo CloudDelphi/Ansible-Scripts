@@ -16,11 +16,15 @@
   hosts: IMAP:MX:MSA:webmail:lists:wiki:git
   gather_facts: False
   tasks:
+    - name: Install dependencies for letsencrypt-tiny
+      apt: pkg={{ item }}
+      with_items:
+        - liblwp-protocol-https-perl
+        - socat
     - name: Copy LetsEncrypt's ACME client
       copy: src=deb/letsencrypt-tiny_0.1-1_all.deb
             dest=/tmp
       notify: Install LetsEncrypt's ACME client
-       - genkey
     - name: Create a user 'letsencrypt'
       user: name=letsencrypt system=yes
             group=nogroup
