@@ -22,7 +22,7 @@
        <authentication>password-cleartext</authentication>
     </outgoingServer>
 
-    <documentation url="http://wiki.fripost.org/konfigurera/">
+    <documentation url="https://wiki.fripost.org/konfigurera/">
        <descr lang="en">Configure your email client for Fripost</descr>
        <descr lang="sv">Konfigurerar din e-postklient för Fripost</descr>
     </documentation>
