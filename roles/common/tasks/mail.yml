@@ -68,7 +68,7 @@
 
 - name: Fetch Postfix's X.509 certificate
   # Ensure we don't fetch private data
-  sudo: False
+  become: False
   fetch: src=/etc/postfix/ssl/{{ ansible_fqdn }}.pem
          dest=certs/postfix/
          fail_on_missing=yes
@@ -78,8 +78,8 @@
 
 - name: Add a 'root' alias
   lineinfile: dest=/etc/aliases create=yes
-              regexp="^root:"" "
-              line="root:"" root@fripost.org"
+              regexp="^root{{':'}} "
+              line="root{{':'}} root@fripost.org"
 
 - name: Compile the static local Postfix database
   postmap: cmd=postalias src=/etc/aliases db=cdb

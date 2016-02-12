@@ -56,7 +56,7 @@
 
 - name: Fetch slapd's X.509 certificate
   # Ensure we don't fetch private data
-  sudo: False
+  become: False
   fetch: src=/etc/ldap/ssl/{{ item.name }}.pem
          dest=certs/ldap/
          fail_on_missing=yes

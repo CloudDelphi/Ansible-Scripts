@@ -6,7 +6,7 @@
   service: name=postfix state=reloaded
 
 - name: Compile Spamassassin rules
-  sudo_user: debian-spamd
+  become_user: debian-spamd
   # it might take a while...
   command: /usr/bin/sa-compile --quiet
            chdir=/var/lib/spamassassin/

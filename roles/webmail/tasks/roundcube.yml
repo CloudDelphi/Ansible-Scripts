@@ -40,8 +40,8 @@
 
 - name: Configure Roundcube
   lineinfile: dest=/etc/roundcube/config.inc.php
-              "regexp=^\\s*\\$config\\['{{ item.var }}'\\]\\s*="
-              "line=$config['{{ item.var }}'] = {{ item.value }};"
+              regexp='^\\s*\\$config\\[\'{{ item.var }}\'\\]\\s*='
+              line='$config[\'{{ item.var }}\'] = {{ item.value }};'
               owner=root group=www-data
               mode=0640
   with_items:
@@ -129,7 +129,7 @@
 
 - name: Fetch Nginx's X.509 certificate
   # Ensure we don't fetch private data
-  sudo: False
+  become: False
   fetch: src=/etc/nginx/ssl/mail.fripost.org.pem
          dest=certs/public/
          fail_on_missing=yes

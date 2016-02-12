@@ -1,3 +1,9 @@
-- include: mail.yml      tags=postfix,mail
+- include: mail.yml
   when: "'out' not in group_names"
-- include: roundcube.yml tags=roundcube,webmail
+  tags:
+    - postfix
+    - mail
+- include: roundcube.yml
+  tags:
+    - roundcube
+    - webmail

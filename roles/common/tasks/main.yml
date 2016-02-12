@@ -1,20 +1,36 @@
 ---
-- include: sysctl.yml   tags=sysctl
+- include: sysctl.yml
+  tags: sysctl
 - include: hosts.yml
-- include: apt.yml      tags=apt
+- include: apt.yml
+  tags: apt
 - name: Install intel-microcode
   apt: pkg=intel-microcode
   when: "ansible_processor[0] | search('^(Genuine)?Intel.*') and not (ansible_virtualization_role == 'guest' and ansible_virtualization_type == 'xen')"
   tags: intel
-- include: firewall.yml tags=firewall,iptables
-- include: samhain.yml  tags=samhain
-- include: auditd.yml   tags=auditd
-- include: rkhunter.yml tags=rkhunter
-- include: clamav.yml   tags=clamav
-- include: fail2ban.yml tags=fail2ban
-- include: smart.yml    tags=smartmontools,smart
+- include: firewall.yml
+  tags:
+    - firewall
+    - iptables
+- include: samhain.yml
+  tags: samhain
+- include: auditd.yml
+  tags: auditd
+- include: rkhunter.yml
+  tags: rkhunter
+- include: clamav.yml
+  tags: clamav
+- include: fail2ban.yml
+  tags: fail2ban
+- include: smart.yml
+  tags:
+    - smartmontools
+    - smart
   when: "not ((ansible_virtualization_role == 'guest' and ansible_virtualization_type == 'xen') or ansible_system_vendor == 'QEMU')"
-- include: haveged.yml  tags=haveged,entropy
+- include: haveged.yml
+  tags:
+    - haveged
+    - entropy
 - name: Copy genkeypair.sh and gendhparam.sh
   copy: src=usr/local/bin/{{ item }}
         dest=/usr/local/bin/{{ item }}
@@ -27,11 +43,22 @@
 - name: Generate DH parameters
   command: gendhparam.sh /etc/ssl/private/dhparams.pem creates=/etc/ssl/private/dhparams.pem
   tags: genkey
-- include: logging.yml      tags=logging
-- include: ntp.yml          tags=ntp
-- include: mail.yml         tags=mail,postfix
-- include: bacula.yml       tags=bacula-fd,bacula
-- include: munin-node.yml   tags=munin-node,munin
+- include: logging.yml
+  tags: logging
+- include: ntp.yml
+  tags: ntp
+- include: mail.yml
+  tags:
+    - mail
+    - postfix
+- include: bacula.yml
+  tags:
+    - bacula-fd
+    - bacula
+- include: munin-node.yml
+  tags:
+    - munin-node
+    - munin
 
 - name: Install common packages
   apt: pkg={{ item }}

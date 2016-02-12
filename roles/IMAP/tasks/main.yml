@@ -1,4 +1,16 @@
 ---
-- include: imap.yml   tags=imap,dovecot
-- include: mda.yml    tags=mda,mail,postfix
-#- include: spam.yml   tags=spam,spamassassin # TODO spam filter
+- include: imap.yml
+  tags:
+    - imap
+    - dovecot
+- include: mda.yml
+  tags:
+    - mda
+    - mail
+    - postfix
+# TODO spam filter
+#- include: spam.yml
+#  tags
+#    - spam
+#    - spamassassin
+#

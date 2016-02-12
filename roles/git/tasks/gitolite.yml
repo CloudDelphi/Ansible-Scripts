@@ -26,8 +26,8 @@
 
 - name: Configure gitolite
   lineinfile: dest=/var/lib/gitolite/.gitolite.rc
-              "regexp=^(\\s*{{ item.var }}\\s*=>\\s*)"
-              "line=    {{ item.var }} =>  {{ item.value }},"
+              regexp='^(\\s*{{ item.var }}\\s*=>\\s*)'
+              line='    {{ item.var }} =>  {{ item.value }},'
               owner=root group=root
               mode=0644
   with_items:

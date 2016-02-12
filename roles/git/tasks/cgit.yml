@@ -98,7 +98,7 @@
 
 - name: Fetch Nginx's X.509 certificate
   # Ensure we don't fetch private data
-  sudo: False
+  become: False
   fetch: src=/etc/nginx/ssl/git.fripost.org.pem
          dest=certs/public/
          fail_on_missing=yes

@@ -26,7 +26,7 @@
 
 - name: Fetch Postfix's X.509 certificate
   # Ensure we don't fetch private data
-  sudo: False
+  become: False
   # `/usr/sbin/postmulti -i msa -x /usr/sbin/postconf -xh smtpd_tls_cert_file`
   fetch: src=/etc/postfix/ssl/smtp.fripost.org.pem
          dest=certs/public/

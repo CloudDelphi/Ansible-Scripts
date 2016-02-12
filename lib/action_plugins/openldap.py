@@ -14,73 +14,55 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
-import pipes
-import tempfile
+from ansible.plugins.action import ActionBase
+from ansible.utils.unicode import to_bytes, to_unicode
 
-from ansible.utils import template
-from ansible import utils
-from ansible.runner.return_data import ReturnData
-
-class ActionModule(object):
+class ActionModule(ActionBase):
     TRANSFERS_FILES = True
 
-    def __init__(self, runner):
-        self.runner = runner
+    def run(self, tmp=None, task_vars=None):
+        if task_vars is None:
+            task_vars = dict()
 
-    def run(self, conn, tmp, module_name, module_args, inject, complex_args=None, **kwargs):
-        ''' handler for file transfer operations '''
+        if self._play_context.check_mode:
+            return dict(skipped=True, msg='check mode not supported for this module')
 
-        if self.runner.noop_on_check(inject):
-            return ReturnData(conn=conn, comm_ok=True, result=dict(skipped=True))
+        result = super(ActionModule, self).run(tmp, task_vars)
 
-        # load up options
-        options  = {}
-        if complex_args:
-            options.update(complex_args)
-        options.update(utils.parse_kv(module_args))
-
-        target = options.get('target', None)
-        local = options.get('local', 'no')
+        target = self._task.args.get('target', None)
+        local = self._task.args.get('local', 'no')
 
         if local not in [ 'no', 'file', 'template' ]:
-            result = dict(failed=True, msg="local must be in ['no','file','template']")
-            return ReturnData(conn=conn, comm_ok=False, result=result)
+            return dict(failed=True, msg="local must be in ['no','file','template']")
 
         if local != 'no' and target is None:
-            result = dict(failed=True, msg="target is required in local mode")
-            return ReturnData(conn=conn, comm_ok=False, result=result)
+            return dict(failed=True, msg="target is required in local mode")
 
         if local == 'no':
             # run the module remotely
-            return self.runner._execute_module(conn, tmp, 'openldap', module_args, inject=inject, complex_args=complex_args)
-        elif '_original_file' in inject:
-            target = utils.path_dwim_relative(inject['_original_file'], local+'s', target, self.runner.basedir)
+            return self._execute_module(module_args=self._task.args, task_vars=task_vars)
+
+        if self._task._role is not None:
+            target = self._loader.path_dwim_relative(self._task._role._role_path, local+'s', target)
         else:
-            # the source is local, so expand it here
-            target = os.path.expanduser(target)
+            target = self._loader.path_dwim_relative(self._loader.get_basedir(), local+'s', target)
 
-        options['local'] = 'no'
-        options['target'] = os.path.join(tmp, os.path.basename(target))
+        new_module_args = self._task.args.copy()
+        new_module_args['target'] = self._connection._shell.join_path(self._make_tmp_path(), 'target.ldif')
+        new_module_args['local'] = 'no'
+
         if local == 'template':
-            # template the source data locally and transfer it
+            # template the source data locally
             try:
-                s = template.template_from_file(self.runner.basedir, target, inject, vault_password=self.runner.vault_pass)
-                tmpfile = tempfile.NamedTemporaryFile(delete=False)
-                tmpfile.write(s)
-                tmpfile.close()
-                target = tmpfile.name
-            except Exception, e:
-                result = dict(failed=True, msg=str(e))
-                return ReturnData(conn=conn, comm_ok=False, result=result)
-            conn.put_file(tmpfile.name, options['target'])
-            os.unlink(tmpfile.name)
+                with open(target, 'r') as f:
+                    template_data = to_unicode(f.read())
+                target = self._templar.template(template_data, preserve_trailing_newlines=True, escape_backslashes=False, convert_data=False)
+            except Exception as e:
+                result['failed'] = True
+                result['msg'] = type(e).__name__ + ": " + str(e)
+                return result
 
-        elif local == 'file':
-            conn.put_file(target, options['target'])
-
-        # run the script remotely with the new (temporary) filename
-        module_args = ""
-        for o in options:
-            module_args = "%s %s=%s" % (module_args, o, pipes.quote(options[o]))
-        return self.runner._execute_module(conn, tmp, 'openldap', module_args, inject=inject)
+        # transfer the file and run the module remotely
+        self._transfer_data(new_module_args['target'], target)
+        result.update(self._execute_module(module_args=new_module_args, task_vars=task_vars))
+        return result

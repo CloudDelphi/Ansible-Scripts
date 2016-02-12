@@ -59,7 +59,7 @@
 
 - name: Add fripost-wiki to /etc/ikiwiki/wikilist
   lineinfile: dest=/etc/ikiwiki/wikilist
-              "line=ikiwiki /var/lib/ikiwiki/fripost-wiki.setup"
+              line='ikiwiki /var/lib/ikiwiki/fripost-wiki.setup'
               owner=root group=root
               mode=0644
 
@@ -97,7 +97,7 @@
 
 - name: Fetch Nginx's X.509 certificate
   # Ensure we don't fetch private data
-  sudo: False
+  become: False
   fetch: src=/etc/nginx/ssl/www.fripost.org.pem
          dest=certs/public/fripost.org.pem
          fail_on_missing=yes

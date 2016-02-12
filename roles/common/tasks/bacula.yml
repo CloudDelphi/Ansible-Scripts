@@ -30,7 +30,7 @@
 
 - name: Fetch Bacula FD X.509 certificate
   # Ensure we don't fetch private data
-  sudo: False
+  become: False
   fetch: src=/etc/stunnel/certs/{{ inventory_hostname_short }}-fd.pem
          dest=certs/bacula/
          fail_on_missing=yes

@@ -1,3 +1,13 @@
-- include: mail.yml      tags=postfix,mail
-- include: nginx.yml     tags=nginx,www,web
-- include: sympa.yml     tags=sympa,lists
+- include: mail.yml
+  tags:
+    - postfix
+    - mail
+- include: nginx.yml
+  tags:
+    - nginx
+    - www
+    - web
+- include: sympa.yml
+  tags:
+    - sympa
+    - lists
