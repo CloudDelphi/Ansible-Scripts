@@ -23,7 +23,7 @@ ignoreip = 127.0.0.0/8 {{ groups.all | sort | join(' ') }}
 [ssh]
 
 enabled  = true
-port     = {{ ansible_ssh_port|default('22') }}
+port     = {{ ansible_port|default('22') }}
 filter   = sshd
 logpath  = /var/log/auth.log
 maxretry = 5
@@ -31,7 +31,7 @@ maxretry = 5
 [ssh-ddos]
 
 enabled  = true
-port     = {{ ansible_ssh_port|default('22') }}
+port     = {{ ansible_port|default('22') }}
 filter   = sshd-ddos
 logpath  = /var/log/auth.log
 maxretry = 2
