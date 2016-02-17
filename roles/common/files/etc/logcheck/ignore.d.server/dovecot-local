@@ -18,7 +18,7 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ dovecot: lmtp\([-_.@[:alnum:]]+\): Connect from local$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ dovecot: lmtp\([-_.@[:alnum:]]+\): Disconnect from local: (Client quit|Connection closed) \(in reset\)$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ dovecot: lmtp\([-_.@[:alnum:]]+, [^@]+@[^@]+\): [+/[:alnum:]]{22}: sieve: msgid=(\S+ )?|<[^>]*>( \(added by \S+\))?: (stored mail into mailbox '|marked message to be discarded if not explicitly delivered \(discard action\)$|forwarded to )
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ dovecot: lmtp\([-_.@[:alnum:]]+, [^@]+@[^@]+\): Error: [+/[:alnum:]]{22}: sieve: execution of script \S+ failed, but implicit keep was successful \(user logfile \S+ may reveal additional details\)$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ dovecot: lmtp\([-_.@[:alnum:]]+, [^@]+@[^@]+\): [+/[:alnum:]]{22}: sieve: execution of script \S+ script failed, but implicit keep was successful \(user logfile \S+ may reveal additional details\)$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ dovecot: lmtp\([0-9]+\): Disconnect from local: Successful quit$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ dovecot: managesieve\([-_.@[:alnum:]]+\): Disconnected: Logged out bytes=[[:digit:]]+/[[:digit:]]+?$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ dovecot: ssl-params: (Generating SSL parameters|SSL parameters regeneration completed)$
