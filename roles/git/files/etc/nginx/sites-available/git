@@ -22,7 +22,7 @@ server {
     server_name  git.fripost.org;
 
     include snippets/ssl.conf;
-    ssl_certificate     /etc/nginx/ssl/git.fripost.org.chained.pem;
+    ssl_certificate     /etc/nginx/ssl/git.fripost.org.pem;
     ssl_certificate_key /etc/nginx/ssl/git.fripost.org.key;
 
     access_log /var/log/nginx/git.access.log;

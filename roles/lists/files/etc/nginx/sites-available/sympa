@@ -25,7 +25,7 @@ server {
     error_log  /var/log/nginx/lists.error.log info;
 
     include snippets/ssl.conf;
-    ssl_certificate     /etc/nginx/ssl/lists.fripost.org.chained.pem;
+    ssl_certificate     /etc/nginx/ssl/lists.fripost.org.pem;
     ssl_certificate_key /etc/nginx/ssl/lists.fripost.org.key;
 
     location = / {

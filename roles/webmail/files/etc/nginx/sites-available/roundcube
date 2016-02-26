@@ -27,7 +27,7 @@ server {
     root         /var/lib/roundcube;
 
     include snippets/ssl.conf;
-    ssl_certificate     /etc/nginx/ssl/mail.fripost.org.chained.pem;
+    ssl_certificate     /etc/nginx/ssl/mail.fripost.org.pem;
     ssl_certificate_key /etc/nginx/ssl/mail.fripost.org.key;
 
     location = /favicon.ico {

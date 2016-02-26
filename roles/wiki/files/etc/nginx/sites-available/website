@@ -24,7 +24,7 @@ server {
     server_name www.fripost.org;
 
     include snippets/ssl.conf;
-    ssl_certificate     /etc/nginx/ssl/www.fripost.org.chained.pem;
+    ssl_certificate     /etc/nginx/ssl/www.fripost.org.pem;
     ssl_certificate_key /etc/nginx/ssl/www.fripost.org.key;
 
     access_log /var/log/nginx/www.access.log;

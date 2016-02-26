@@ -1,0 +1,63 @@
+hash = sha512
+keyusage = digitalSignature, keyEncipherment
+
+{% if 'IMAP' in group_names %}
+[imap]
+certificate-key = /etc/dovecot/ssl/imap.fripost.org.key
+certificate-chain = /etc/dovecot/ssl/imap.fripost.org.pem
+subject = /O=Fripost/CN=imap.fripost.org
+subjectAltName = DNS:imap.fripost.org,DNS:sieve.fripost.org
+notify = /bin/systemctl restart dovecot
+{% endif %}
+
+{% if 'MSA' in group_names %}
+[smtp]
+certificate-key = /etc/postfix/ssl/smtp.fripost.org.key
+certificate-chain = /etc/postfix/ssl/smtp.fripost.org.pem
+subject = /O=Fripost/CN=smtp.fripost.org
+notify = /bin/systemctl restart postfix
+{% endif %}
+
+{% if 'MX' in group_names %}
+[mx]
+certificate-key = /etc/postfix/ssl/mx.fripost.org.key
+certificate-chain = /etc/postfix/ssl/mx.fripost.org.pem
+subject = /O=Fripost/CN=mx{{ mxno }}.fripost.org
+notify = /bin/systemctl restart postfix
+{% endif %}
+
+{% if 'lists' in group_names %}
+[lists]
+certificate-key = /etc/nginx/ssl/lists.fripost.org.key
+certificate-chain = /etc/nginx/ssl/lists.fripost.org.pem
+subject = /O=Fripost/CN=lists.fripost.org
+notify = /bin/systemctl restart nginx
+{% endif %}
+
+{% if 'wiki' in group_names %}
+[www]
+certificate-key = /etc/nginx/ssl/www.fripost.org.key
+certificate-chain = /etc/nginx/ssl/www.fripost.org.pem
+subject = /O=Fripost/CN=fripost.org
+subjectAltName = DNS:fripost.org,DNS:www.fripost.org,DNS:wiki.fripost.org
+notify = /bin/systemctl restart nginx
+{% endif %}
+
+{% if 'webmail' in group_names %}
+[webmail]
+certificate-key = /etc/nginx/ssl/mail.fripost.org.key
+certificate-chain = /etc/nginx/ssl/mail.fripost.org.pem
+subject = /O=Fripost/CN=mail.fripost.org
+subjectAltName = DNS:mail.fripost.org,DNS:webmail.fripost.org
+notify = /bin/systemctl restart nginx
+{% endif %}
+
+{% if 'git' in group_names %}
+[git]
+certificate-key = /etc/nginx/ssl/git.fripost.org.key
+certificate-chain = /etc/nginx/ssl/git.fripost.org.pem
+subject = /O=Fripost/CN=git.fripost.org
+notify = /bin/systemctl restart nginx
+{% endif %}
+
+; vim:ft=dosini

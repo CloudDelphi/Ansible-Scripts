@@ -12,30 +12,11 @@
   roles:
     - common
 
-- name: Base system
+- name: Let's Encrypt
   hosts: IMAP:MX:MSA:webmail:lists:wiki:git
   gather_facts: False
-  tasks:
-    - name: Install dependencies for letsencrypt-tiny
-      apt: pkg={{ item }}
-      with_items:
-        - liblwp-protocol-https-perl
-        - socat
-    - name: Copy LetsEncrypt's ACME client
-      copy: src=deb/letsencrypt-tiny_0.1-1_all.deb
-            dest=/tmp
-      notify: Install LetsEncrypt's ACME client
-    - name: Create a user 'letsencrypt'
-      user: name=letsencrypt system=yes
-            group=nogroup
-            createhome=no
-            home=/nonexistent
-            shell=/usr/sbin/nologin
-            password=!
-            state=present
-  handlers:
-    - name: Install LetsEncrypt's ACME client
-      apt: deb=/tmp/letsencrypt-tiny_0.1-1_all.deb
+  roles:
+    - letsencrypt
   tags:
    - letsencrypt
 
