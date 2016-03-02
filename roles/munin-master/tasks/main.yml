@@ -100,7 +100,7 @@
         dest=/etc/stunnel/certs/munin-{{ hostvars[item].inventory_hostname_short }}.pem
         owner=root group=root
         mode=0644
-  with_items: groups.all | difference([inventory_hostname])
+  with_items: "{{ groups.all | difference([inventory_hostname]) }}"
   register: r1
   notify:
     - Restart stunnel

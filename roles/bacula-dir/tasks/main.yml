@@ -43,7 +43,7 @@
         dest=/etc/stunnel/certs/
         owner=root group=root
         mode=0644
-  with_items: groups['bacula-sd'] | difference([inventory_hostname]) | sort
+  with_items: "{{ groups['bacula-sd'] | difference([inventory_hostname]) | sort }}"
   register: r2
   notify:
     - Restart stunnel
@@ -53,7 +53,7 @@
         dest=/etc/stunnel/certs/
         owner=root group=root
         mode=0644
-  with_items: groups.all | difference([inventory_hostname]) | sort
+  with_items: "{{ groups.all | difference([inventory_hostname]) | sort }}"
   register: r3
   notify:
     - Restart stunnel

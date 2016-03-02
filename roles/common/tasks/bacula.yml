@@ -54,7 +54,7 @@
         owner=root group=root
         mode=0644
   register: r3
-  with_items: groups['bacula-sd'] | difference([inventory_hostname])
+  with_items: "{{ groups['bacula-sd'] | difference([inventory_hostname]) }}"
   notify:
     - Restart stunnel
 

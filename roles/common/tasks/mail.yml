@@ -10,7 +10,7 @@
   postmulti: instance={{ postfix_instance[item].name }}
              group={{ postfix_instance[item].group | default('') }}
   register: r1
-  with_items: postfix_instance.keys() | intersect(group_names) | list
+  with_items: "{{ postfix_instance.keys() | intersect(group_names) | list }}"
   notify:
     - Restart Postfix
 
@@ -22,7 +22,7 @@
         state=link force=yes
   register: r2
   with_nested:
-    - postfix_instance.keys() | intersect(group_names) | list
+    - "{{ postfix_instance.keys() | intersect(group_names) | list }}"
     - [ 'dynamicmaps.cf', 'master.cf' ]
   notify:
     - Restart Postfix
