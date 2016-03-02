@@ -33,6 +33,12 @@
   notify:
     - Restart uWSGI
 
+- name: Create cache directory /var/cache/cgit
+  file: path=/var/cache/cgit
+        state=directory
+        owner=cgit group=cgit
+        mode=0700
+
 - name: Create /etc/uwsgi/apps-available/{cgit,git-http-backend}.ini
   copy: src=etc/uwsgi/apps-available/{{ item }}.ini
         dest=/etc/uwsgi/apps-available/{{ item }}.ini
