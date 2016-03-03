@@ -136,6 +136,7 @@ $sa_quarantine_cutoff_level = undef;
 $policy_bank{'OUTGOING'} = {
   originating              => 1,
   enable_dkim_verification => 0,
+  protocol                 => 'LMTP',
   smtpd_greeting_banner    => '${helo-name} ${protocol} ${product} OUTGOING service ready',
   forward_method           => $forward_method,
 
@@ -162,6 +163,7 @@ $policy_bank{'OUTGOING'} = {
 $policy_bank{'INCOMING'} = {
   originating              => 0,
   enable_dkim_verification => 1,
+  protocol                 => 'LMTP',
   smtpd_greeting_banner    => '${helo-name} ${protocol} ${product} INCOMING service ready',
   forward_method           => $forward_method,
   message_size_limit_maps  => [],
