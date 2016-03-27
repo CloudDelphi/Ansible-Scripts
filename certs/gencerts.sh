@@ -22,8 +22,8 @@ x509fpr() {
     host="${msg%%,*}"; host="${msg%% *}"
     cert="$DIR/${host%%:*}.pem"
     spki=$(openssl x509 -noout -pubkey<"$cert" | openssl pkey -pubin -outform DER | openssl dgst -sha1  | sed -nr 's/^[^=]+=\s*//p')
-    [ "$typ" = mdwn ] && printf '\n    [[%s|https://crt.sh/?spkisha1=%s&iCAID=7395]]\n\n' "$msg" "$spki" \
-                      || printf '    %s\n    X.509: https://crt.sh/?spkisha1=%s&iCAID=7395\n    SPKI:\n' "$msg" "$spki"
+    [ "$typ" = mdwn ] && printf '\n    [[%s|https://crt.sh/?spkisha1=%s&iCAID=16418]]\n\n' "$msg" "$spki" \
+                      || printf '    %s\n    X.509: https://crt.sh/?spkisha1=%s&iCAID=16418\n    SPKI:\n' "$msg" "$spki"
     for h in sha1 sha256; do
         [ "$typ" = mdwn ] || echo -n '  '
         echo -n "$h" | tr '[a-z]' '[A-Z]'
@@ -106,7 +106,7 @@ These certificates are all issued by the Let's Encrypt Certificate
 Authority, and are submitted to Certificate Transparency logs. You can
 view all issued Let's Encrypt certificates at crt.sh:
 
-    https://crt.sh/?Identity=%25fripost.org&iCAID=7395
+    https://crt.sh/?Identity=%25fripost.org&iCAID=16418
 
 Our X.509 certificates are also available in PEM format at:
 
@@ -136,7 +136,7 @@ These certificates are all issued by the [[Let's Encrypt Certificate
 Authority|https://letsencrypt.org]], and are submitted to [[Certificate
 Transparency logs|https://www.certificate-transparency.org]].
 You can view all issued Let's Encrypt certificates at
-[[crt.sh|https://crt.sh/?Identity=%25fripost.org&iCAID=7395]].
+[[crt.sh|https://crt.sh/?Identity=%25fripost.org&iCAID=16418]].
 Our X.509 certificates are also available in PEM format under our
 [[Git repository|$VCS_BROWSER/tree/certs/public]],
 from which this fingerprint list was [[generated|$VCS_BROWSER/tree/certs/gencerts.sh]], at
