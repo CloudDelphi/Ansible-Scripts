@@ -19,11 +19,12 @@ usage() {
 
 x509fpr() {
     local msg="$1" host cert h spki
-    host="${msg%%,*}"; host="${msg%% *}"
+    host="${msg%%,*}"; host="${host%% *}"; host="${host#\`}"
     cert="$DIR/${host%%:*}.pem"
     spki=$(openssl x509 -noout -pubkey<"$cert" | openssl pkey -pubin -outform DER | openssl dgst -sha1  | sed -nr 's/^[^=]+=\s*//p')
     [ "$typ" = mdwn ] && printf '\n    [[%s|https://crt.sh/?spkisha1=%s&iCAID=16418]]\n\n' "$msg" "$spki" \
-                      || printf '    %s\n    X.509: https://crt.sh/?spkisha1=%s&iCAID=16418\n    SPKI:\n' "$msg" "$spki"
+                      || printf '    %s\n    X.509: https://crt.sh/?spkisha1=%s&iCAID=16418\n    SPKI:\n' \
+                                "$( echo "$msg" | tr -d '`' )" "$spki"
     for h in sha1 sha256; do
         [ "$typ" = mdwn ] || echo -n '  '
         echo -n "$h" | tr '[a-z]' '[A-Z]'
@@ -34,8 +35,8 @@ x509fpr() {
 
 sshfpr() {
     local msg="$1" host t h fpr
-    host="${msg%%,*}"; host="${msg%% *}"; host="${host#*@}"
-    [ "$typ" = mdwn ] && { echo; echo "    $msg"; echo; } || echo "    $msg"
+    host="${msg%%,*}"; host="${host%% *}"; host="${host#*@}"; host="${host#\`}"; host="${host%\`}"
+    [ "$typ" = mdwn ] && { echo; echo "    $msg"; echo; } || { echo " $msg" | tr -d '`'; }
     [ "${host#*:}" != 22 ] || host="${host%%:*}"
     for h in MD5 SHA256; do
         ssh-keygen -E "$h" -f "$DIR/../ssh_known_hosts" -lF "${host#*@}"
@@ -52,26 +53,26 @@ allfpr() {
     [ "$typ" = mdwn ] && indent='        ' || indent='    '
 	cat <<- EOF
 	 * IMAP server
-		$(x509fpr 'imap.fripost.org:993 (IMAP over SSL), sieve.fripost.org:4190 (ManageSieve, STARTTLS)')
+		$(x509fpr '`imap.fripost.org:993` (IMAP over SSL), `sieve.fripost.org:4190` (ManageSieve, `STARTTLS`)')
 
-	 * SMTP servers (STARTTLS)
-		$(x509fpr 'smtp.fripost.org:587 (Mail Submission Agent)')
+	 * SMTP servers
+		$(x509fpr '`smtp.fripost.org:587` (Mail Submission Agent, `STARTTLS`)')
 	
-		$(x509fpr 'mx1.fripost.org:25 (1st Mail eXchange)')
+		$(x509fpr '`mx1.fripost.org:25` (1st Mail eXchange, `STARTTLS`)')
 	
-		$(x509fpr 'mx2.fripost.org:25 (2nd Mail eXchange)')
+		$(x509fpr '`mx2.fripost.org:25` (2nd Mail eXchange, `STARTTLS`)')
 
 	 * Web servers
-		$(x509fpr 'fripost.org:443 (website), wiki.fripost.org:443 (wiki)')
+		$(x509fpr '`fripost.org:443` (website), `wiki.fripost.org:443` (wiki)')
 	
-		$(x509fpr 'mail.fripost.org:443 (webmail)')
+		$(x509fpr '`mail.fripost.org:443` (webmail)')
 	
-		$(x509fpr 'lists.fripost.org:443 (list manager)')
+		$(x509fpr '`lists.fripost.org:443` (list manager)')
 	
-		$(x509fpr 'git.fripost.org:443 (git server and its web interface)')
+		$(x509fpr '`git.fripost.org:443` (git server and its web interface)')
 
 	 * SSH server
-		$(sshfpr 'gitolite@git.fripost.org:22')
+		$(sshfpr '`gitolite@git.fripost.org:22`')
 	EOF
 }
 
