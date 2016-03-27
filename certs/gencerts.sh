@@ -36,7 +36,7 @@ x509fpr() {
 sshfpr() {
     local msg="$1" host t h fpr
     host="${msg%%,*}"; host="${host%% *}"; host="${host#*@}"; host="${host#\`}"; host="${host%\`}"
-    [ "$typ" = mdwn ] && { echo; echo "    $msg"; echo; } || { echo " $msg" | tr -d '`'; }
+    [ "$typ" = mdwn ] && { echo; echo "    $msg"; echo; } || { echo "    $msg" | tr -d '`'; }
     [ "${host#*:}" != 22 ] || host="${host%%:*}"
     for h in MD5 SHA256; do
         ssh-keygen -E "$h" -f "$DIR/../ssh_known_hosts" -lF "${host#*@}"
