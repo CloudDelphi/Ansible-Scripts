@@ -8,4 +8,5 @@ server {
     # serve ACME challenges on all virtual hosts
     # /!\ need to be served individually for each explicit virtual host as well!
     include snippets/acme-challenge.conf;
+    include snippets/headers.conf;
 }

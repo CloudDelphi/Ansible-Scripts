@@ -11,6 +11,8 @@ server {
     access_log /var/log/nginx/munin.access.log;
     error_log  /var/log/nginx/munin.error.log info;
 
+    include snippets/headers.conf;
+
     location = / {
         return 302 /munin$args;
     }

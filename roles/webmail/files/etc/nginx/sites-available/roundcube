@@ -7,6 +7,7 @@ server {
     server_name webmail.fripost.org;
 
     include snippets/acme-challenge.conf;
+    include snippets/headers.conf;
 
     access_log  /var/log/nginx/roundcube.access.log;
     error_log   /var/log/nginx/roundcube.error.log info;
@@ -27,6 +28,7 @@ server {
     root         /var/lib/roundcube;
 
     include snippets/ssl.conf;
+    include snippets/headers.conf;
     ssl_certificate     /etc/nginx/ssl/mail.fripost.org.pem;
     ssl_certificate_key /etc/nginx/ssl/mail.fripost.org.key;
 

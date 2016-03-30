@@ -5,6 +5,7 @@ server {
     server_name lists.fripost.org;
 
     include snippets/acme-challenge.conf;
+    include snippets/headers.conf;
 
     access_log /var/log/nginx/lists.access.log;
     error_log  /var/log/nginx/lists.error.log info;
@@ -25,6 +26,7 @@ server {
     error_log  /var/log/nginx/lists.error.log info;
 
     include snippets/ssl.conf;
+    include snippets/headers.conf;
     ssl_certificate     /etc/nginx/ssl/lists.fripost.org.pem;
     ssl_certificate_key /etc/nginx/ssl/lists.fripost.org.key;
 
