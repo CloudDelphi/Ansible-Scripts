@@ -22,12 +22,6 @@
     - { name: 'net.ipv4.ip_forward',          value: 0 }
     - { name: 'net.ipv6.conf.all.forwarding', value: 0 }
 
-      # Enable IPv6 Privacy Extensions.
-    - { name: 'net.ipv6.conf.default.use_tempaddr', value: 2 }
-    - { name: 'net.ipv6.conf.all.use_tempaddr',     value: 2 }
-    - { name: 'net.ipv6.conf.all.autoconf',         value: 0 }
-    - { name: 'net.ipv6.conf.all.accept_ra',        value: 0 }
-
       # Do not accept ICMP redirects (prevent MITM attacks).
     - { name: 'net.ipv4.conf.all.accept_redirects', value: 0 }
     - { name: 'net.ipv6.conf.all.accept_redirects', value: 0 }
