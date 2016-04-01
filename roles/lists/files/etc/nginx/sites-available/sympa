@@ -5,7 +5,6 @@ server {
     server_name lists.fripost.org;
 
     include snippets/acme-challenge.conf;
-    include snippets/headers.conf;
 
     access_log /var/log/nginx/lists.access.log;
     error_log  /var/log/nginx/lists.error.log info;
@@ -25,8 +24,11 @@ server {
     access_log /var/log/nginx/lists.access.log;
     error_log  /var/log/nginx/lists.error.log info;
 
-    include snippets/ssl.conf;
     include snippets/headers.conf;
+    add_header Content-Security-Policy
+               "default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; upgrade-insecure-requests; block-all-mixed-content; reflected-xss block; referrer no-referrer-when-downgrade; frame-ancestors 'none'; form-action 'self'; base-uri lists.fripost.org";
+
+    include snippets/ssl.conf;
     ssl_certificate     /etc/nginx/ssl/lists.fripost.org.pem;
     ssl_certificate_key /etc/nginx/ssl/lists.fripost.org.key;
 

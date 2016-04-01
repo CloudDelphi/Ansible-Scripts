@@ -5,7 +5,6 @@ server {
     server_name wiki.fripost.org;
 
     include snippets/acme-challenge.conf;
-    include snippets/headers.conf;
 
     access_log /var/log/nginx/wiki.access.log;
     error_log  /var/log/nginx/wiki.error.log info;
@@ -24,12 +23,15 @@ server {
     server_name wiki.fripost.org;
 
     include snippets/ssl.conf;
-    include snippets/headers.conf;
     ssl_certificate     /etc/nginx/ssl/www.fripost.org.pem;
     ssl_certificate_key /etc/nginx/ssl/www.fripost.org.key;
 
     access_log /var/log/nginx/wiki.access.log;
     error_log  /var/log/nginx/wiki.error.log info;
+
+    include snippets/headers.conf;
+    add_header Content-Security-Policy
+              "default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; upgrade-insecure-requests; block-all-mixed-content; reflected-xss block; referrer no-referrer-when-downgrade; frame-ancestors 'none'; form-action 'self'; base-uri wiki.fripost.org";
 
     location / {
         location ~ ^/website(/.*)?$ { return 302 $scheme://fripost.org$1; }

@@ -7,7 +7,6 @@ server {
     server_name webmail.fripost.org;
 
     include snippets/acme-challenge.conf;
-    include snippets/headers.conf;
 
     access_log  /var/log/nginx/roundcube.access.log;
     error_log   /var/log/nginx/roundcube.error.log info;
@@ -27,8 +26,11 @@ server {
 
     root         /var/lib/roundcube;
 
-    include snippets/ssl.conf;
     include snippets/headers.conf;
+    add_header Content-Security-Policy
+              "default-src 'none'; child-src 'self'; frame-src 'self'; connect-src 'self'; object-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; upgrade-insecure-requests; block-all-mixed-content; reflected-xss block; referrer no-referrer-when-downgrade; frame-ancestors 'none'; form-action 'self'; base-uri mail.fripost.org webmail.fripost.org";
+
+    include snippets/ssl.conf;
     ssl_certificate     /etc/nginx/ssl/mail.fripost.org.pem;
     ssl_certificate_key /etc/nginx/ssl/mail.fripost.org.key;
 

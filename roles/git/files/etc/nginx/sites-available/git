@@ -5,7 +5,6 @@ server {
     server_name  git.fripost.org;
 
     include snippets/acme-challenge.conf;
-    include snippets/headers.conf;
 
     access_log /var/log/nginx/git.access.log;
     error_log  /var/log/nginx/git.error.log info;
@@ -23,12 +22,13 @@ server {
     server_name  git.fripost.org;
 
     include snippets/ssl.conf;
-    include snippets/headers.conf;
     ssl_certificate     /etc/nginx/ssl/git.fripost.org.pem;
     ssl_certificate_key /etc/nginx/ssl/git.fripost.org.key;
 
     access_log /var/log/nginx/git.access.log;
     error_log  /var/log/nginx/git.error.log info;
+
+    include snippets/headers.conf;
 
     location ^~ /static/ {
         alias /usr/share/cgit/;
