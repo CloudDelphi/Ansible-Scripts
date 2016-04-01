@@ -33,6 +33,7 @@ server {
     include snippets/ssl.conf;
     ssl_certificate     /etc/nginx/ssl/mail.fripost.org.pem;
     ssl_certificate_key /etc/nginx/ssl/mail.fripost.org.key;
+    add_header Public-Key-Pins 'pin-sha256="SHfniMEapxeYo5YT/2jP+n+WstNaYghDMhZUadLlPDk="; pin-sha256="/Tt92H3ZkfEW1/AOCoGVm1TxZl7u4c+tIBnuvAc7d5w="; max-age=15778800';
 
     location = /favicon.ico {
         root          /usr/share/roundcube/skins/default/images;

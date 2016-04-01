@@ -22,16 +22,17 @@ server {
 
     server_name wiki.fripost.org;
 
-    include snippets/ssl.conf;
-    ssl_certificate     /etc/nginx/ssl/www.fripost.org.pem;
-    ssl_certificate_key /etc/nginx/ssl/www.fripost.org.key;
-
     access_log /var/log/nginx/wiki.access.log;
     error_log  /var/log/nginx/wiki.error.log info;
 
     include snippets/headers.conf;
     add_header Content-Security-Policy
               "default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; upgrade-insecure-requests; block-all-mixed-content; reflected-xss block; referrer no-referrer-when-downgrade; frame-ancestors 'none'; form-action 'self'; base-uri wiki.fripost.org";
+
+    include snippets/ssl.conf;
+    ssl_certificate     /etc/nginx/ssl/www.fripost.org.pem;
+    ssl_certificate_key /etc/nginx/ssl/www.fripost.org.key;
+    add_header Public-Key-Pins 'pin-sha256="fQ+gau72iwOf6rmXvY7/QemB+kYhixPCY/A/EIr3ats="; pin-sha256="MYhOgCyUOp8NRGxa1LZc57g0wREA3kV8C+4SsrDajt8="; max-age=15778800';
 
     location / {
         location ~ ^/website(/.*)?$ { return 302 $scheme://fripost.org$1; }

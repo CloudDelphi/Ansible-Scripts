@@ -31,6 +31,7 @@ server {
     include snippets/ssl.conf;
     ssl_certificate     /etc/nginx/ssl/lists.fripost.org.pem;
     ssl_certificate_key /etc/nginx/ssl/lists.fripost.org.key;
+    add_header Public-Key-Pins 'pin-sha256="OLx1hOEqnCdS/7ZgzTzAl8Ig/Cwpz5MY9J9Fishg6/0="; pin-sha256="v/Ow0Ou2m08HO10wxci1IVrMC/pbihnoDNxvUwKBsMY="; max-age=15778800';
 
     location = / {
         return 302 /sympa$args;

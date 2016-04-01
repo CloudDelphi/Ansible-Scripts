@@ -21,14 +21,15 @@ server {
 
     server_name  git.fripost.org;
 
-    include snippets/ssl.conf;
-    ssl_certificate     /etc/nginx/ssl/git.fripost.org.pem;
-    ssl_certificate_key /etc/nginx/ssl/git.fripost.org.key;
-
     access_log /var/log/nginx/git.access.log;
     error_log  /var/log/nginx/git.error.log info;
 
     include snippets/headers.conf;
+
+    include snippets/ssl.conf;
+    ssl_certificate     /etc/nginx/ssl/git.fripost.org.pem;
+    ssl_certificate_key /etc/nginx/ssl/git.fripost.org.key;
+    add_header Public-Key-Pins 'pin-sha256="HOoiXgC7tolzZ31b65UzbAKhpCCA7I0iNdO7NEuL0lU="; pin-sha256="7F+6dSG3D3X3SSLXmb4GWWqUViztamLmmCBlYCi4a10="; max-age=15778800';
 
     location ^~ /static/ {
         alias /usr/share/cgit/;

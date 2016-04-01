@@ -23,16 +23,17 @@ server {
     server_name     fripost.org;
     server_name www.fripost.org;
 
-    include snippets/ssl.conf;
-    ssl_certificate     /etc/nginx/ssl/www.fripost.org.pem;
-    ssl_certificate_key /etc/nginx/ssl/www.fripost.org.key;
-
     access_log /var/log/nginx/www.access.log;
     error_log  /var/log/nginx/www.error.log info;
 
     include snippets/headers.conf;
     add_header Content-Security-Policy
               "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; upgrade-insecure-requests; block-all-mixed-content; reflected-xss block; referrer no-referrer-when-downgrade; frame-ancestors 'none'; form-action 'none'; base-uri fripost.org www.fripost.org";
+
+    include snippets/ssl.conf;
+    ssl_certificate     /etc/nginx/ssl/www.fripost.org.pem;
+    ssl_certificate_key /etc/nginx/ssl/www.fripost.org.key;
+    add_header Public-Key-Pins 'pin-sha256="fQ+gau72iwOf6rmXvY7/QemB+kYhixPCY/A/EIr3ats="; pin-sha256="MYhOgCyUOp8NRGxa1LZc57g0wREA3kV8C+4SsrDajt8="; max-age=15778800';
 
     location / {
         try_files $uri $uri/ =404;
