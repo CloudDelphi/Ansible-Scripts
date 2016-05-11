@@ -1,0 +1,23 @@
+[Unit]
+Description=SSL tunnel for network daemons (instance %i)
+After=network.target nss-lookup.target
+PartOf=stunnel4.service
+ReloadPropagatedFrom=stunnel4.service
+
+[Service]
+ExecStart=/usr/bin/stunnel4 /etc/stunnel/%i.conf
+ExecReload=/bin/kill -HUP ${MAINPID}
+KillSignal=SIGINT
+TimeoutStartSec=120
+TimeoutStopSec=60
+Restart=on-failure
+
+# Hardening
+NoNewPrivileges=yes
+PrivateDevices=yes
+ProtectHome=yes
+ProtectSystem=full
+ReadOnlyDirectories=/
+
+[Install]
+WantedBy=multi-user.target

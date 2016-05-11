@@ -2,8 +2,8 @@
 - name: systemctl daemon-reload
   command: /bin/systemctl daemon-reload
 
-- name: Restart stunnel
-  service: name=stunnel4 pattern=/usr/bin/stunnel4 state=restarted
+- name: Restart stunnel@bacula-sd
+  service: name=stunnel4@bacula-sd state=restarted
 
 - name: Restart bacula-sd
   service: name=bacula-sd state=restarted

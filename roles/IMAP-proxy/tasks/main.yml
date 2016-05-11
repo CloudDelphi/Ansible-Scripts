@@ -43,16 +43,6 @@
 - meta: flush_handlers
 
 
-- name: Install stunnel
-  apt: pkg=stunnel4
-
-- name: Auto-enable stunnel
-  lineinfile: dest=/etc/default/stunnel4
-              regexp='^(\s*#)?\s*ENABLED='
-              line='ENABLED=1'
-              owner=root group=root
-              mode=0644
-
 - name: Create /etc/stunnel/certs
   file: path=/etc/stunnel/certs
         state=directory
@@ -70,7 +60,7 @@
             mode=0644
   register: r1
   notify:
-    - Restart stunnel
+    - Restart stunnel@roundcube
 
 - name: Copy slapd's X.509 certificate
   copy: src=certs/ldap/ldap.fripost.org.pem
@@ -79,7 +69,7 @@
         mode=0644
   register: r2
   notify:
-    - Restart stunnel
+    - Restart stunnel@roundcube
 
 - name: Configure stunnel
   copy: src=etc/stunnel/roundcube.conf
@@ -88,10 +78,13 @@
         mode=0644
   register: r3
   notify:
-    - Restart stunnel
+    - Restart stunnel@roundcube
 
-- name: Start stunnel
-  service: name=stunnel4 pattern=/usr/bin/stunnel4 state=started
+- name: Enable stunnel@roundcube
+  service: name=stunnel4@roundcube enabled=yes
+
+- name: Start stunnel@roundcube
+  service: name=stunnel4@roundcube state=started
   when: not (r1.changed or r2.changed or r3.changed)
 
 - meta: flush_handlers

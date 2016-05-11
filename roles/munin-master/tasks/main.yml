@@ -103,7 +103,7 @@
   with_items: "{{ groups.all | difference([inventory_hostname]) }}"
   register: r1
   notify:
-    - Restart stunnel
+    - Restart stunnel@munin-master
 
 - name: Configure stunnel
   template: src=etc/stunnel/munin-master.conf.j2
@@ -112,10 +112,13 @@
             mode=0644
   register: r2
   notify:
-    - Restart stunnel
+    - Restart stunnel@munin-master
 
-- name: Start stunnel
-  service: name=stunnel4 pattern=/usr/bin/stunnel4 state=started
+- name: Enable stunnel@munin-master
+  service: name=stunnel4@munin-master enabled=yes
+
+- name: Start stunnel@munin-master
+  service: name=stunnel4@munin-master state=started
   when: not (r1.changed or r2.changed)
 
 - meta: flush_handlers

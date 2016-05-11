@@ -37,4 +37,4 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ wwsympa\[[[:digit:]]+\]: err .* main::check_action_parameters\(\) user not logged in$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ rrdcached\[[[:digit:]]+\]: (flushing old values|rotating journals|started new journal /\S+$|removing old journal /\S+$)
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ rrdcached\[[[:digit:]]+\]: queue_thread_main: rrd_update_r \(([^)]+)\) failed with status -1. \(opening '\1': No such file or directory\)
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ stunnel: LOG3\[[[:digit:]]+\]: SSL_accept: (Peer suddenly disconnected|[[:xdigit:]]+: error:[[:xdigit:]]+:SSL routines:SSL2?3_GET_CLIENT_HELLO:(unknown protocol|http request|no shared cipher))$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ stunnel(:|4\[[[:digit:]]+\]: [0-9]{4}\.[0-9]{2}\.[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}) LOG3\[[[:digit:]]+\]: SSL_accept: (Peer suddenly disconnected|[[:xdigit:]]+: error:[[:xdigit:]]+:SSL routines:SSL2?3_GET_CLIENT_HELLO:(unknown protocol|http request|no shared cipher))$

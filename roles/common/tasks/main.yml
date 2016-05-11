@@ -12,6 +12,9 @@
   tags:
     - firewall
     - iptables
+
+- include: stunnel.yml
+  tags: stunnel
 - include: samhain.yml
   tags: samhain
 - include: auditd.yml
@@ -56,6 +59,11 @@
     - bacula-fd
     - bacula
 - include: munin-node.yml
+  tags:
+    - munin-node
+    - munin
+- include: munin-node-ssl.yml
+  when: "'munin-master' not in group_names"
   tags:
     - munin-node
     - munin

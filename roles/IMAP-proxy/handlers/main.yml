@@ -1,6 +1,6 @@
 ---
-- name: Restart stunnel
-  service: name=stunnel4 pattern=/usr/bin/stunnel4 state=restarted
+- name: Restart stunnel@roundcube
+  service: name=stunnel4@roundcube state=restarted
 
 - name: Restart Dovecot
   service: name=dovecot state=restarted

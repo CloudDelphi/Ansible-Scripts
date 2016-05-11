@@ -20,5 +20,5 @@
 - name: Restart Nginx
   service: name=nginx state=restarted
 
-- name: Restart stunnel
-  service: name=stunnel4 pattern=/usr/bin/stunnel4 state=restarted
+- name: Restart stunnel@munin-master
+  service: name=stunnel4@munin-master state=restarted
