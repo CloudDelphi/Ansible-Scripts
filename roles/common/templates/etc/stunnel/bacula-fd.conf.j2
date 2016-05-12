@@ -21,9 +21,17 @@ debug = 4
 cert = /etc/stunnel/certs/{{ inventory_hostname_short }}-fd.pem
 key  = /etc/stunnel/certs/{{ inventory_hostname_short }}-fd.key
 
-; Some performance tunings
 socket = l:TCP_NODELAY=1
+socket = l:SO_KEEPALIVE=1
+socket = l:TCP_KEEPIDLE=60
+socket = l:TCP_KEEPINTVL=15
+socket = l:TCP_KEEPCNT=116
+
 socket = r:TCP_NODELAY=1
+socket = r:SO_KEEPALIVE=1
+socket = r:TCP_KEEPIDLE=60
+socket = r:TCP_KEEPINTVL=15
+socket = r:TCP_KEEPCNT=116
 
 ; Prevent MITM attacks
 verify = 4

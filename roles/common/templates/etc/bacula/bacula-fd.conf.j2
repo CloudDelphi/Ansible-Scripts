@@ -30,9 +30,8 @@ FileDaemon {  # define myself
   FDAddress = 127.0.0.1
   FDPort = 9112
   FDSourceAddress = 127.0.0.1
-{% if 'bacula-dir' not in group_names or 'bacula-sd' not in group_names %}
-  Heartbeat Interval = 60s
-{% endif %}
+  SDConnectTimeout = 5 min
+  Heartbeat Interval = 1 min
 
   PKI Signatures = Yes  # Enable Data Signing
   PKI Encryption = Yes  # Enable Data Encryption

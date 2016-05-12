@@ -14,6 +14,9 @@ Director {  # define myself
   DirAddress = 127.0.0.1
   DirSourceAddress = 127.0.0.1
   DirPort = 9101
+  FDConnectTimeout = 5 min
+  SDConnectTimeout = 5 min
+  Heartbeat Interval = 1 min
 }
 
 
@@ -391,6 +394,7 @@ Storage {
   @|"sed -n '/^{{ hostvars[ groups['bacula-sd'][0] ].inventory_hostname_short }}-sd\\s/ {s//Password = /p; q}' /etc/bacula/passwords-dir"
   Device = FileStorage
   Media Type = File
+  Heartbeat Interval = 1 min
 }
 
 
