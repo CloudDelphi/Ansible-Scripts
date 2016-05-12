@@ -24,8 +24,9 @@ JobDefs {
   Storage = {{ hostvars[ groups['bacula-sd'][0] ].inventory_hostname_short }}-sd
   Messages = Standard
   Accurate = yes
+  #Rerun Failed Levels = yes
   Reschedule On Error = yes
-  Reschedule Interval = 17m
+  Reschedule Interval = 17 min
   Reschedule Times = 3
   Pool = Default
   Priority = 10
@@ -41,7 +42,7 @@ JobDefs {
   FileSet = SQL
   Schedule = WeeklyCycleAfterBackup
   Reschedule On Error = yes
-  Reschedule Interval = 17m
+  Reschedule Interval = 17 min
   Reschedule Times = 3
   # This creates an ASCII copy of the databases
   Client Run Before Job = "/usr/bin/mysqldump -r /var/lib/bacula/tmp/dump.sql --events --all-databases"
@@ -67,7 +68,7 @@ JobDefs {
   FileSet = LDAP
   Schedule = WeeklyCycleAfterBackup
   Reschedule On Error = yes
-  Reschedule Interval = 17m
+  Reschedule Interval = 17 min
   Reschedule Times = 3
   # This creates an ASCII copy of the databases
   Client Run Before Job = "/usr/local/sbin/slapcat-all.sh /var/lib/bacula/tmp"
