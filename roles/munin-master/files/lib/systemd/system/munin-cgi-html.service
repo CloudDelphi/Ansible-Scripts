@@ -10,5 +10,13 @@ User=www-data
 Group=munin
 ExecStart=/usr/lib/munin/cgi/munin-cgi-html
 
+# Hardening
+NoNewPrivileges=yes
+PrivateDevices=yes
+ProtectHome=yes
+ProtectSystem=full
+ReadOnlyDirectories=/
+ReadWriteDirectories=-/var/log/munin
+
 [Install]
 WantedBy=multi-user.target

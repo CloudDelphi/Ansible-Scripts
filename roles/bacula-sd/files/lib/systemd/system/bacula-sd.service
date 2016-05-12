@@ -10,5 +10,15 @@ User=bacula
 Group=tape
 ExecStart=/usr/sbin/bacula-sd -c /etc/bacula/bacula-sd.conf
 
+# Hardening
+NoNewPrivileges=yes
+PrivateDevices=yes
+ProtectHome=yes
+ProtectSystem=full
+ReadOnlyDirectories=/
+ReadWriteDirectories=-/var/lib/bacula
+ReadWriteDirectories=-/var/run/bacula
+ReadWriteDirectories=/mnt/backup/bacula
+
 [Install]
 WantedBy=multi-user.target

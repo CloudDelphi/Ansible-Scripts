@@ -10,5 +10,14 @@ User=sympa
 Group=sympa
 ExecStart=/usr/lib/cgi-bin/sympa/wwsympa.fcgi
 
+# Hardening
+NoNewPrivileges=yes
+PrivateDevices=yes
+ProtectHome=yes
+ProtectSystem=full
+ReadOnlyDirectories=/
+ReadWriteDirectories=-/var/lib/sympa
+ReadWriteDirectories=-/var/run/sympa
+
 [Install]
 WantedBy=multi-user.target

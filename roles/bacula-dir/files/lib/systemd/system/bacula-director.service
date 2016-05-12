@@ -7,8 +7,18 @@ Type=forking
 PIDFile=/var/run/bacula/bacula-dir.9101.pid
 StandardOutput=syslog
 User=bacula
-Group=tape
+Group=bacula
 ExecStart=/usr/sbin/bacula-dir -c /etc/bacula/bacula-dir.conf
+
+# Hardening
+NoNewPrivileges=yes
+PrivateDevices=yes
+ProtectHome=yes
+ProtectSystem=full
+ReadOnlyDirectories=/
+ReadWriteDirectories=-/var/lib/bacula
+ReadWriteDirectories=-/var/log/bacula
+ReadWriteDirectories=-/var/run/bacula
 
 [Install]
 WantedBy=multi-user.target
