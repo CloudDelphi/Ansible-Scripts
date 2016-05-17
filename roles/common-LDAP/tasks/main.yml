@@ -57,10 +57,9 @@
 - name: Fetch slapd's X.509 certificate
   # Ensure we don't fetch private data
   become: False
-  fetch: src=/etc/ldap/ssl/{{ item.name }}.pem
-         dest=certs/ldap/
-         fail_on_missing=yes
-         flat=yes
+  fetch_cmd: cmd="openssl x509"
+             stdin=/etc/ldap/ssl/{{ item.name }}.pem
+             dest=certs/ldap/{{ item.name }}.pem
   with_items:
     - { group: 'LDAP-provider', name: ldap.fripost.org }
     - { group: 'MX',            name: mx               }

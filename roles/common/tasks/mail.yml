@@ -69,10 +69,9 @@
 - name: Fetch Postfix's X.509 certificate
   # Ensure we don't fetch private data
   become: False
-  fetch: src=/etc/postfix/ssl/{{ ansible_fqdn }}.pem
-         dest=certs/postfix/
-         fail_on_missing=yes
-         flat=yes
+  fetch_cmd: cmd="openssl x509"
+             stdin=/etc/postfix/ssl/{{ ansible_fqdn }}.pem
+             dest=certs/postfix/{{ ansible_fqdn }}.pem
   tags:
     - genkey
 

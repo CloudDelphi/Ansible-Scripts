@@ -21,10 +21,9 @@
 - name: Fetch Bacula FD X.509 certificate
   # Ensure we don't fetch private data
   become: False
-  fetch: src=/etc/stunnel/certs/{{ inventory_hostname_short }}-fd.pem
-         dest=certs/bacula/
-         fail_on_missing=yes
-         flat=yes
+  fetch_cmd: cmd="openssl x509"
+             stdin=/etc/stunnel/certs/{{ inventory_hostname_short }}-fd.pem
+             dest=certs/bacula/{{ inventory_hostname_short }}-fd.pem
   tags:
     - genkey
 

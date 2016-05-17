@@ -21,10 +21,9 @@
 - name: Fetch Munin X.509 certificate
   # Ensure we don't fetch private data
   become: False
-  fetch: src=/etc/stunnel/certs/munin-{{ inventory_hostname_short }}.pem
-         dest=certs/munin/{{ inventory_hostname }}.pem
-         fail_on_missing=yes
-         flat=yes
+  fetch_cmd: cmd="openssl x509"
+             stdin=/etc/stunnel/certs/munin-{{ inventory_hostname_short }}.pem
+             dest=certs/munin/{{ inventory_hostname }}.pem
   tags:
     - genkey
 
