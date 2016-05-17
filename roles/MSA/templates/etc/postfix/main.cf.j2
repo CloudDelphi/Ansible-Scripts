@@ -67,6 +67,7 @@ smtp_tls_security_level         = none
 smtp_bind_address               = 127.0.0.1
 {% else %}
 smtp_tls_security_level         = encrypt
+smtp_tls_exclude_ciphers        = EXPORT, LOW, MEDIUM, aNULL, eNULL, DES, RC4, MD5
 smtp_tls_cert_file              = /etc/postfix/ssl/{{ ansible_fqdn }}.pem
 smtp_tls_key_file               = /etc/postfix/ssl/{{ ansible_fqdn }}.key
 smtp_tls_session_cache_database = btree:$data_directory/smtp_tls_session_cache
@@ -75,6 +76,7 @@ smtp_tls_fingerprint_digest     = sha256
 {% endif %}
 
 smtpd_tls_security_level        = encrypt
+smtpd_tls_exclude_ciphers       = EXPORT, LOW, MEDIUM, aNULL, eNULL, DES, RC4, MD5
 smtpd_tls_cert_file             = /etc/postfix/ssl/smtp.fripost.org.pem
 smtpd_tls_key_file              = /etc/postfix/ssl/smtp.fripost.org.key
 smtpd_tls_dh1024_param_file     = /etc/ssl/private/dhparams.pem
