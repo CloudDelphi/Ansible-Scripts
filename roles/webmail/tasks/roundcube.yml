@@ -27,7 +27,6 @@
     - roundcube-plugins
     - php-net-sieve
     - php-net-ldap3
-    - php-mail-mimedecode
 
 - name: Copy fripost's logo
   copy: src=usr/share/roundcube/skins/{{ item }}/images/fripost_logo.png
@@ -97,8 +96,15 @@
   with_items:
     - additional_message_headers
     - jqueryui
-    - managesieve
     - password
+
+- name: Configure Roundcube plugins (2)
+  template: src=etc/roundcube/plugins/{{ item }}/config.inc.php.j2
+            dest=/etc/roundcube/plugins/{{ item }}/config.inc.php
+            owner=root group=root
+            mode=0644
+  with_items:
+    - managesieve
 
 - name: Start php5-fpm
   service: name=php5-fpm state=started

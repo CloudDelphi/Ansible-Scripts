@@ -26,7 +26,7 @@ $config['managesieve_auth_pw'] = null;
 
 // use or not TLS for managesieve server connection
 // Note: tls:// prefix in managesieve_host is also supported
-$config['managesieve_usetls'] = false;
+$config['managesieve_usetls'] = true;
 
 // Connection scket context options
 // See http://php.net/manual/en/context.ssl.php
@@ -34,10 +34,9 @@ $config['managesieve_usetls'] = false;
 $config['managesieve_conn_options'] = array(
   'ssl'         => array(
      'verify_peer' => true,
-     'verify_depth' => 3,
-     'cafile' => '/etc/stunnel/certs/imap.fripost.org.pem',
      'disable_compression' => true,
-     'ciphers' => 'EECDH+AESGCM:!MEDIUM:!LOW:!EXP:!aNULL:!eNULL',
+     'ciphers' => 'EECDH+AES!MEDIUM!LOW!EXP!aNULL!eNULL',
+     'peer_fingerprint' => array('sha1' => '{{ lookup('pipe', 'openssl x509 -in certs/public/imap.fripost.org.pem -noout -fingerprint -sha1 | sed "s/[^=]*=\s*//" | tr -d :') }}'),
    ),
  );
 
