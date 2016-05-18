@@ -44,7 +44,8 @@
     - genkeypair.sh
     - gendhparam.sh
 - name: Generate DH parameters
-  command: gendhparam.sh /etc/ssl/private/dhparams.pem creates=/etc/ssl/private/dhparams.pem
+  command: gendhparam.sh /etc/ssl/dhparams.pem 2048
+           creates=/etc/ssl/dhparams.pem
   tags: genkey
 - include: logging.yml
   tags: logging
