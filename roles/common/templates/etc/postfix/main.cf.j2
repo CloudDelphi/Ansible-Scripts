@@ -42,6 +42,8 @@ smtp_tls_security_level         = none
 smtp_bind_address               = 127.0.0.1
 {% else %}
 smtp_tls_security_level         = encrypt
+smtp_tls_ciphers                = high
+smtp_tls_protocols              = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
 smtp_tls_exclude_ciphers        = EXPORT, LOW, MEDIUM, aNULL, eNULL, DES, RC4, MD5
 smtp_tls_cert_file              = $config_directory/ssl/{{ ansible_fqdn }}.pem
 smtp_tls_key_file               = $config_directory/ssl/{{ ansible_fqdn }}.key

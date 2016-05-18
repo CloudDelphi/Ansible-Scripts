@@ -84,6 +84,8 @@ smtp_tls_security_level         = none
 smtp_bind_address               = 127.0.0.1
 {% else %}
 smtp_tls_security_level         = encrypt
+smtp_tls_ciphers                = high
+smtp_tls_protocols              = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
 smtp_tls_exclude_ciphers        = EXPORT, LOW, MEDIUM, aNULL, eNULL, DES, RC4, MD5
 smtp_tls_cert_file              = /etc/postfix/ssl/{{ ansible_fqdn }}.pem
 smtp_tls_key_file               = /etc/postfix/ssl/{{ ansible_fqdn }}.key
@@ -93,7 +95,8 @@ smtp_tls_fingerprint_digest     = sha256
 {% endif %}
 
 smtpd_tls_security_level        = may
-smtpd_tls_exclude_ciphers       = EXPORT, LOW, MEDIUM, aNULL, eNULL, DES, RC4, MD5
+smtpd_tls_ciphers               = medium
+smtpd_tls_protocols             = !SSLv2, !SSLv3
 smtpd_tls_cert_file             = /etc/postfix/ssl/mx.fripost.org.pem
 smtpd_tls_key_file              = /etc/postfix/ssl/mx.fripost.org.key
 smtpd_tls_dh1024_param_file     = /etc/ssl/dhparams.pem
