@@ -47,6 +47,7 @@
     - ignore.d.server/common-local
     - ignore.d.server/dovecot-local
     - ignore.d.server/postfix-local
+    - ignore.d.server/strongswan-local
     # logcheck-sudo already exists, but changing the filename for our
     # local modifications would defeat the ruleset
     - violations.ignore.d/logcheck-sudo

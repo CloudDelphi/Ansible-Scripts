@@ -17,8 +17,14 @@
 - name: Update rkhunter's data file
   command: /usr/bin/rkhunter --propupd
 
+- name: Update firewall
+  command: /usr/local/sbin/update-firewall.sh -c
+
 - name: Restart fail2ban
   service: name=fail2ban state=restarted
+
+- name: Restart IPSec
+  service: name=ipsec state=restarted
 
 - name: Reload networking
   # /etc/init.d/networking doesn't answer the status command; but since

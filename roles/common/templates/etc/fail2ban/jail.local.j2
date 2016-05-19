@@ -14,7 +14,7 @@ chain = fail2ban
 action = %(action_)s
 
 # Don't ban ourselves.
-ignoreip = 127.0.0.0/8 {{ groups.all | sort | join(' ') }}
+ignoreip = 127.0.0.0/8 {{ ipsec_subnet }}
 
 #
 # JAILS

@@ -8,3 +8,18 @@ postfix_instance:
   out:     { name: out, group: mta, port: 2525 }
   MSA:     { name: msa                         }
   lists:   { name: lists,           port: 2527 }
+
+
+# Virtual (non-routable) IPv4 subnet for IPSec.  It is always nullrouted
+# on in the absence of xfrm lookup (i.e., when there is no matching
+# IPSec Security Association) to avoid data leaks.
+ipsec_subnet: 172.16.0.0/24
+ipsec:
+  # Virtual (non-routable) addresses for IPSec.  They all need to be
+  # distinct and belong to the above subnet 'ipsec_subnet'.
+  antilop:  172.16.0.1
+  benjamin: 172.16.0.2
+  civett:   172.16.0.3
+  elefant:  172.16.0.4
+  giraff:   172.16.0.5
+  mistral:  172.16.0.6

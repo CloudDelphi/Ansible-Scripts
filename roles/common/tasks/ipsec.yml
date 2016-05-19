@@ -1,0 +1,96 @@
+- name: Install strongSwan
+  apt: pkg={{ item }}
+  with_items:
+    - strongswan-charon
+      # for the GCM and openssl plugins
+    - libstrongswan-standard-plugins
+  notify:
+    - Update firewall
+    - Restart IPSec
+
+- name: Auto-create a dedicated virtual subnet for IPSec
+  template: src=etc/network/if-up.d/ipsec.j2
+            dest=/etc/network/if-up.d/ipsec
+            owner=root group=root
+            mode=0755
+  notify:
+    - Reload networking
+
+- name: Auto-deactivate the dedicated virtual subnet for IPSec
+  file: src=../if-up.d/ipsec
+        dest=/etc/network/if-down.d/ipsec
+        owner=root group=root state=link force=yes
+
+- meta: flush_handlers
+
+
+- name: Configure IPSec
+  template: src=etc/ipsec.conf.j2
+            dest=/etc/ipsec.conf
+            owner=root group=root
+            mode=0644
+  register: r1
+  notify:
+    - Restart IPSec
+
+- name: Configure IPSec's secrets
+  template: src=etc/ipsec.secrets.j2
+            dest=/etc/ipsec.secrets
+            owner=root group=root
+            mode=0600
+  register: r2
+  notify:
+    - Restart IPSec
+
+- name: Configure Charon
+  copy: src=etc/strongswan.d/{{ item }}
+        dest=/etc/strongswan.d/{{ item }}
+        owner=root group=root
+        mode=0644
+  with_items:
+    - charon.conf
+    - charon/socket-default.conf
+  register: r3
+  notify:
+    - Restart IPSec
+
+- name: Generate a private key and a X.509 certificate for IPSec
+  command: genkeypair.sh x509
+                         --pubkey=/etc/ipsec.d/certs/{{ inventory_hostname_short }}.pem
+                         --privkey=/etc/ipsec.d/private/{{ inventory_hostname_short }}.key
+                         --ou=IPSec --cn={{ inventory_hostname_short }}
+                         -t rsa -b 4096 -h sha512
+  register: r4
+  changed_when: r4.rc == 0
+  failed_when: r4.rc > 1
+  notify:
+    - Restart IPSec
+  tags:
+    - genkey
+
+- name: Fetch IPSec X.509 certificate
+  # Ensure we don't fetch private data
+  become: False
+  fetch_cmd: cmd="openssl x509"
+             stdin=/etc/ipsec.d/certs/{{ inventory_hostname_short }}.pem
+             dest=certs/ipsec/{{ inventory_hostname_short }}.pem
+  tags:
+    - genkey
+
+# Don't copy our pubkey due to a possible race condition.  Only the
+# remote machine has authority regarding its key.
+- name: Copy IPSec X.509 certificates (except ours)
+  copy: src=certs/ipsec/{{ hostvars[item].inventory_hostname_short }}.pem
+        dest=/etc/ipsec.d/certs/{{ hostvars[item].inventory_hostname_short }}.pem
+        owner=root group=root
+        mode=0644
+  with_items: "{{ groups.all | difference([inventory_hostname]) }}"
+  register: r5
+  tags:
+    - genkey
+  notify:
+    - Restart IPSec
+
+- name: Start IPSec
+  service: name=ipsec state=started
+  when: not (r1.changed or r2.changed or r3.changed or r4.changed or r5.changed)

@@ -73,3 +73,11 @@ elefant
 
 [backports:children]
 webmail
+
+# machines behind NAT
+[NATed:children]
+benjamin
+
+# hostnames resolving to a dynamic IP
+[DynDNS:children]
+benjamin

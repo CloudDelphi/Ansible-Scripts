@@ -47,6 +47,11 @@
   command: gendhparam.sh /etc/ssl/dhparams.pem 2048
            creates=/etc/ssl/dhparams.pem
   tags: genkey
+- include: ipsec.yml
+  tags:
+    - strongswan
+    - ipsec
+  when: "groups.all | length > 1"
 - include: logging.yml
   tags: logging
 - include: ntp.yml

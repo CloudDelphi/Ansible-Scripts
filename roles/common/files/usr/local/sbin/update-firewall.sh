@@ -40,8 +40,12 @@ check=0
 verbose=0
 addrfam=
 
-secmark=0xA99   # must match that in /etc/network/if-up.d/ipsec
-secproto=esp    # must match /etc/ipsec.conf; ESP is the default (vs AH/IPComp)
+secproto=esp # must match /etc/ipsec.conf; ESP is the default (vs AH/IPComp)
+if [ -x /usr/sbin/ipsec ] && /usr/sbin/ipsec status >/dev/null; then
+    ipsec=y
+else
+    ipsec=n
+fi
 
 fail2ban_re='^(\[[0-9]+:[0-9]+\]\s+)?-A fail2ban-\S'
 IPSec_re=" -m policy --dir (in|out) --pol ipsec --reqid [0-9]+ --proto $secproto -j ACCEPT$"
@@ -152,20 +156,8 @@ run() {
     tables[$f]=filter
 
     # The default interface associated with this address.
-    local if=$( /bin/ip -$f route show to default scope global \
+    local if=$( /bin/ip -$f -o route show to default scope global \
               | sed -nr '/^default via \S+ dev (\S+).*/ {s//\1/p;q}' )
-
-    # The virtual interface reserved for IPSec.
-    local ifsec=$( /bin/ip -o -$f link show \
-                 | sed -nr "/^[0-9]+:\s+(sec[0-9]+)@$if:\s.*/ {s//\1/p;q}" )
-
-    # The (host-scoped) IP reserved for IPSec.
-    local ipsec=
-    if [ "$ifsec" -a $f = 4 ]; then
-        tables[$f]='mangle nat filter'
-        ipsec=$( /bin/ip -$f address show dev "$ifsec" scope host \
-               | sed -nr '/^\s+inet\s(\S+).*/ {s//\1/p;q}' )
-    fi
 
     # Store the old (current) ruleset
     local old=$(mktemp --tmpdir current-rules.v$f.XXXXXX) \
@@ -203,8 +195,9 @@ run() {
         grep -E -- "$fail2ban_re"       "$old" || true
     fi >> "$new"
 
-    if [ "$ipsec" ]; then
-        # (Host-to-host) IPSec tunnels come first. TODO: test IPSec with IPv6.
+    if [ "$f" = 4 -a "$ipsec" = y ]; then
+        # Our IPSec tunnels are IPv4 only.
+        # (Host-to-host) IPSec tunnels come first.
         grep -E -- "$IPSec_re" "$old" >> "$new" || true
 
         # Allow any IPsec $secproto protocol packets to be sent and received.
@@ -219,15 +212,24 @@ run() {
     #            http://baldric.net/loose-iptables-firewall-for-servers/
 
     local ip
-    if [ "$f" = 4 ]; then
+    if [ "$f" = 4 -a "$ipsec" = y ]; then
         # Private-use networks (RFC 1918) and link local (RFC 3927)
-        local MyNetwork=$( /bin/ip -4 address show dev $if scope global \
-                         | sed -nr 's/^\s+inet\s(\S+).*/\1/p')
+        local MyIPSec="$( /bin/ip -4 -o route show table 220 dev $if | sed 's/\s.*//' )"
+        local MyNetwork="$( /bin/ip -4 -o address show dev $if scope global \
+                          | sed -nr "s/^[0-9]+:\s+$if\s+inet\s(\S+).*/\1/p" \
+                          | while read ip; do
+                              for ips in $MyIPSec; do
+                                [ "$ips" = "$(/usr/bin/netmask -nc "$ip" "$ips" | sed 's/^ *//')" ] || echo "$ip"
+                              done
+                            done
+                          )"
         [ "$MyNetwork" ] && \
         for ip in 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 169.254.0.0/16; do
             # Don't lock us out if we are behind a NAT ;-)
-            [ "$ip" = "$(/usr/bin/netmask -nc $ip $MyNetwork | sed 's/ //g')" ] \
-            || iptables -A INPUT -i $if -s "$ip" -j DROP
+            for myip in $MyNetwork; do
+                [ "$ip" = "$(/usr/bin/netmask -nc "$ip" "$myip" | sed 's/^ *//')" ] \
+                || iptables -A INPUT -i $if -s "$ip" -j DROP
+            done
         done
 
         # Other martian packets: "This" network, multicast, broadcast (RFCs
@@ -259,14 +261,14 @@ run() {
     local localhost=$(inet46 $f '127.0.0.1/8' '::1/128')
     iptables -A INPUT  -i lo -s "$localhost" -d "$localhost" -j ACCEPT
     iptables -A OUTPUT -o lo -s "$localhost" -d "$localhost" -j ACCEPT
-
-    if [ "$ipsec" ]; then
-        # ACCEPT any, *IPSec* traffic destinating to the non-routable
-        # $ipsec.  Also ACCEPT all traffic originating from $ipsec, as
-        # it is MASQUERADE'd.
-        iptables -A INPUT  -d "$ipsec" -i $if -m policy --dir in \
-            --pol ipsec --proto $secproto -j ACCEPT
-        iptables -A OUTPUT -m mark --mark "$secmark" -o $if -j ACCEPT
+    if [ "$f" = 4 -a "$ipsec" = y ]; then
+        # Allow local access to our virtual IP
+        /bin/ip -4 -o route show table 220 dev $if \
+        | sed -nr 's/.*\ssrc\s+([[:digit:].]{7,15})(\s.*)?/\1/p' \
+        | while read ipsec; do
+            iptables -A INPUT  -i lo -s "$ipsec" -d "$ipsec" -j ACCEPT
+            iptables -A OUTPUT -o lo -s "$ipsec" -d "$ipsec" -j ACCEPT
+        done
     fi
 
     # Prepare fail2ban.  We make fail2ban insert its rules in a
@@ -329,46 +331,6 @@ run() {
 
     ########################################################################
     commit
-
-    if [ "$ipsec" ]; then
-        # DNAT the IPSec paquets to $ipsec after decapsulation, and SNAT
-        # them before encapsulation.  We need to do the NAT'ing before
-        # packets enter the IPSec stack because they are signed
-        # afterwards, and NAT'ing would mess up the signature.
-        ipt-chains mangle PREROUTING:ACCEPT INPUT:ACCEPT \
-                          FORWARD:DROP \
-                          OUTPUT:ACCEPT POSTROUTING:ACCEPT
-
-        # Packets which destination is $ipsec *must* be associated with
-        # an IPSec policy.
-        iptables -A INPUT -d "$ipsec" -i $if -m policy --dir in \
-            --pol ipsec --proto $secproto -j ACCEPT
-        iptables -A INPUT -d "$ipsec" -i $if -j DROP
-
-        # Packets originating from our (non-routable) $ipsec are marked;
-        # if there is no xfrm lookup (i.e., no matching IPSec
-        # association), the packet will retain its mark and be null
-        # routed later on.  Otherwise, the packet is re-queued unmarked.
-        iptables -A OUTPUT -o $if -j MARK --set-mark 0x0
-        iptables -A OUTPUT -s "$ipsec" -o $if -m policy --dir out \
-            --pol none -j MARK --set-mark $secmark
-        commit
-
-        ipt-chains nat PREROUTING:ACCEPT INPUT:ACCEPT \
-                       OUTPUT:ACCEPT POSTROUTING:ACCEPT
-
-        # DNAT all marked packets after decapsulation.
-        iptables -A PREROUTING \! -d "$ipsec" -i $if -m policy --dir in \
-            --pol ipsec --proto $secproto -j DNAT --to "${ipsec%/*}"
-
-        # Packets originating from our IPSec are SNAT'ed (MASQUERADE).
-        # (And null-routed later on unless there is an xfrm
-        # association.)
-        iptables -A POSTROUTING -m mark --mark $secmark -o $if -j MASQUERADE
-        commit
-    fi
-
-    ########################################################################
 
 
     local rv1=0 rv2=0 persistent=/etc/iptables/rules.v$f
