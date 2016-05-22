@@ -16,7 +16,8 @@
 
 service imap-login {
   inet_listener imap {
-    port = 0
+    address = {{ ipsec[inventory_hostname_short] }}
+    port = 143
   }
   inet_listener imaps {
     #port = 993

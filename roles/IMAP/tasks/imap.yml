@@ -96,7 +96,6 @@
     - conf.d/10-auth.conf
     - conf.d/10-logging.conf
     - conf.d/10-mail.conf
-    - conf.d/10-master.conf
     - conf.d/10-ssl.conf
     - conf.d/15-mailboxes.conf
     - conf.d/20-imap.conf
@@ -109,23 +108,33 @@
   notify:
     - Restart Dovecot
 
+- name: Configure Dovecot (2)
+  template: src=etc/dovecot/{{ item }}.j2
+            dest=/etc/dovecot/{{ item }}
+            owner=root group=root
+            mode=0644
+  register: r2
+  with_items:
+    - conf.d/10-master.conf
+  notify:
+    - Restart Dovecot
+
 - name: Tell Dovecot we have a remote IMAP proxy
-  # XXX: we should have an automatic lookup here
   lineinfile: dest=/etc/dovecot/dovecot.conf
               regexp='^(\s*#)?\s*login_trusted_networks\s*='
-              line='login_trusted_networks = 171.25.193.76/32'
+              line="login_trusted_networks = {{ ipsec_subnet }}"
               state=present
               create=yes
               owner=root group=root
               mode=0644
-  register: r2
-  when: "'IMAP' in group_names and 'webmail' not in group_names"
+  register: r3
+  when: "groups.all | length > 1"
   notify:
     - Restart Dovecot
 
 - name: Start Dovecot
   service: name=dovecot state=started
-  when: not (r1.changed or r2.changed)
+  when: not (r1.changed or r2.changed or r3.changed)
 
 - meta: flush_handlers
 
