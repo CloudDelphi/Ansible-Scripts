@@ -1,6 +1,9 @@
 - name: Install Dovecot
-  #apt: pkg={{ item }} default_release={{ ansible_lsb.codename }}-backports
-  apt: pkg={{ item }}
+  # WARNING: "The destination servers don't need to be running Dovecot,
+  #   but you should make sure that the Dovecot proxy doesn't advertise
+  #   more capabilities than the destination server can handle."
+  # http://wiki2.dovecot.org/PasswordDatabase/ExtraFields/Proxy
+  apt: pkg={{ item }} default_release={{ ansible_lsb.codename }}-backports
   with_items:
     - dovecot-core
     - dovecot-imapd
