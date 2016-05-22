@@ -13,5 +13,5 @@ passdb {
 # <doc/wiki/UserDatabase.Prefetch.txt>
 userdb {
   driver         = prefetch
-  default_fields = home=/home/imapproxy/%d/%n
+  default_fields = home=/var/lib/imapproxy/%d/%n
 }

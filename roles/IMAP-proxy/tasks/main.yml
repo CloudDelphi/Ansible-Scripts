@@ -8,13 +8,13 @@
 - name: Create a user 'imapproxy'
   user: name=imapproxy system=yes
         createhome=no
-        home=/home/imapproxy
+        home=/var/lib/imapproxy
         shell=/usr/sbin/nologin
         password=!
         state=present
 
 - name: Create a home directory for user 'imapproxy'
-  file: path=/home/imapproxy
+  file: path=/var/lib/imapproxy
         state=directory
         owner=imapproxy group=imapproxy
         mode=0700
