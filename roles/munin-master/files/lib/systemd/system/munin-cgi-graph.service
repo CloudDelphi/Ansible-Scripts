@@ -17,6 +17,7 @@ ProtectHome=yes
 ProtectSystem=full
 ReadOnlyDirectories=/
 ReadWriteDirectories=-/var/log/munin
+ReadWriteDirectories=-/var/lib/munin/cgi-tmp/munin-cgi-graph
 
 [Install]
 WantedBy=multi-user.target

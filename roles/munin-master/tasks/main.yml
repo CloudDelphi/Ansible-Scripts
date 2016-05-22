@@ -19,6 +19,11 @@
 
 - meta: flush_handlers
 
+- name: Create directory /var/lib/munin/cgi-tmp/munin-cgi-graph
+  file: path=/var/lib/munin/cgi-tmp/munin-cgi-graph
+        state=directory
+        owner=www-data group=www-data
+        mode=0755
 
 - name: Configure munin
   template: src=etc/munin/munin.conf.j2
