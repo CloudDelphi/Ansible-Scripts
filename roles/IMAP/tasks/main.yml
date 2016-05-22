@@ -8,9 +8,9 @@
     - mda
     - mail
     - postfix
-# TODO spam filter
+## TODO spam filter
 #- include: spam.yml
-#  tags
+#  tags:
 #    - spam
+#    - amavis
 #    - spamassassin
-#

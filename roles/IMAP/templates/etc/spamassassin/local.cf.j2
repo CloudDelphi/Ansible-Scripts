@@ -21,12 +21,14 @@ report_safe 0
 #   Set which networks or hosts are considered 'trusted' by your mail
 #   server (i.e. not spammers)
 #
-# TODO: Unclear how to do with IPSec and dynamic IPs.
 clear_trusted_networks
-trusted_networks 192.168.122.2 192.168.122.3
+trusted_networks 127.0.0.1/8 {{ ipsec_subnet }} {{ groups.MX | join(' ') }}
 
+# MXes and internal relays should be listed in bouth trusted_networks
+# and clear_internal_networks, cf.
+# https://spamassassin.apache.org/full/3.4.x/doc/Mail_SpamAssassin_Conf.html
 clear_internal_networks
-internal_networks 192.168.122.2 192.168.122.3
+internal_networks {{ groups.MX | join(' ') }}
 
 
 #   Set file-locking method (flock is not safe over NFS, but is faster)

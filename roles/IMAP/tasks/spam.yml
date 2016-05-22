@@ -25,22 +25,34 @@
 
 - meta: flush_handlers
 
+
 - name: Copy SpamAssassin's configuration
   copy: src=etc/{{ item }}
         dest=/etc/{{ item }}
         owner=root group=root
         mode=0644
   with_items:
-    - spamassassin/local.cf
     - spamassassin/v310.pre
     - spamassassin/v320.pre
+  register: r1
+  notify:
+    - Restart Amavis
+
+- name: Copy SpamAssassin's configuration (2)
+  template: src=etc/{{ item }}.j2
+            dest=/etc/{{ item }}
+            owner=root group=root
+            mode=0644
+  with_items:
+    - spamassassin/local.cf
+  register: r2
   notify:
     - Restart Amavis
 
 - name: Provision /etc/default/spamassassin
   lineinfile: dest=/etc/default/spamassassin
-              regexp='^(\s*#)?\s*{{ item.var }}='
-              "line={{ item.var }}={{ item.value }}"
+              regexp='^(\\s*#)?\\s*{{ item.var }}\\s*='
+              line='{{ item.var }}={{ item.value }}'
               owner=root group=root
               mode=0644
   with_items:
@@ -59,5 +71,12 @@
            /spamassassin.bayes_vars:        SELECT,INSERT,UPDATE,DELETE
            /spamassassin.bayes_expire:      SELECT,INSERT,       DELETE"
       state=present
+  register: r3
   notify:
     - Restart Amavis
+
+- name: Start Amavis
+  service: name=amavis state=started
+  when: not (r1.changed or r2.changed or r3.changed)
+
+- meta: flush_handlers
