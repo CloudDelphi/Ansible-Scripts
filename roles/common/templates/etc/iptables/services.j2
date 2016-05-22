@@ -61,16 +61,6 @@ in      tcp     80,443                                  # HTTP/HTTPS
 out     tcp     993                                     # IMAP
 out     tcp     4190                                    # MANAGESIEVE
 {% endif %}
-{% if 'bacula-dir' in group_names and groups.all | difference(groups['bacula-dir']) %}
-out     tcp     9102                                    # BACULA-FD
-{% elif groups['bacula-dir'] | difference([inventory_hostname]) %}
-in      tcp     9102                                    # BACULA-FD
-{% endif %}
-{% if 'bacula-sd' in group_names and groups.all | difference(groups['bacula-sd']) %}
-in      tcp     9103                                    # BACULA-SD
-{% elif groups['bacula-sd'] | difference([inventory_hostname]) %}
-out     tcp     9103                                    # BACULA-SD
-{% endif %}
 {% if 'LDAP-provider' in group_names %}
 out     tcp     11371                                   # HKP
 out     tcp     43                                      # WHOIS

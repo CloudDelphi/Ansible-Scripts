@@ -15,9 +15,8 @@ Storage {  # define myself
   Working Directory = /var/lib/bacula
   Pid Directory = /var/run/bacula
   Maximum Concurrent Jobs = 20
-  SDAddress = 127.0.0.1
-  SDPort = 9113
-  Heartbeat Interval = 1 min
+  SDAddress = {{ ipsec[inventory_hostname_short] }}
+  SDPort = 9103
 }
 
 #

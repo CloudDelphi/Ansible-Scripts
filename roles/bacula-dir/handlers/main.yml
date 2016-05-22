@@ -2,8 +2,5 @@
 - name: systemctl daemon-reload
   command: /bin/systemctl daemon-reload
 
-- name: Restart stunnel@bacula-dir
-  service: name=stunnel4@bacula-dir state=restarted
-
 - name: Restart bacula-director
   service: name=bacula-director state=restarted

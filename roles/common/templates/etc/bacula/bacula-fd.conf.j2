@@ -27,11 +27,9 @@ FileDaemon {  # define myself
   Working Directory = /var/lib/bacula
   Pid Directory = /var/run/bacula
   Maximum Concurrent Jobs = 20
-  FDAddress = 127.0.0.1
-  FDPort = 9112
-  FDSourceAddress = 127.0.0.1
+  FDAddress = {{ ipsec[inventory_hostname_short] }}
+  FDPort = 9102
   SDConnectTimeout = 5 min
-  Heartbeat Interval = 1 min
 
   PKI Signatures = Yes  # Enable Data Signing
   PKI Encryption = Yes  # Enable Data Encryption

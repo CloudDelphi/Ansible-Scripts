@@ -44,9 +44,6 @@
 - name: Reload Postfix
   service: name=postfix state=reloaded
 
-- name: Restart stunnel@bacula-fd
-  service: name=stunnel4@bacula-fd state=restarted
-
 - name: Restart bacula-fd
   service: name=bacula-fd state=restarted
 

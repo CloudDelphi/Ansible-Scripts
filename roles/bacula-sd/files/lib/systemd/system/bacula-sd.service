@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=forking
-PIDFile=/var/run/bacula/bacula-sd.9113.pid
+PIDFile=/var/run/bacula/bacula-sd.9103.pid
 StandardOutput=syslog
 User=bacula
 Group=tape

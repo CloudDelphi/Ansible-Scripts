@@ -12,11 +12,9 @@ Director {  # define myself
   QueryFile = "/etc/bacula/scripts/query.sql"
   Maximum Concurrent Jobs = 1
   DirAddress = 127.0.0.1
-  DirSourceAddress = 127.0.0.1
   DirPort = 9101
   FDConnectTimeout = 5 min
   SDConnectTimeout = 5 min
-  Heartbeat Interval = 1 min
 }
 
 
@@ -365,17 +363,11 @@ FileSet {
 
 
 # Client (File Services) to backup
-{% set n = 0 %}
 {% for fd in groups.all | sort %}
-{% set n = n + 1 %}
 Client {
   Name = {{ hostvars[fd].inventory_hostname_short }}-fd
-{% if fd == inventory_hostname %}
-  Address = 127.0.0.1
-{% else %}
-  Address = 127.0.{{ n }}.1
-{% endif %}
-  FDPort  = 9112
+  Address = {{ ipsec[ hostvars[fd].inventory_hostname_short ] }}
+  FDPort  = 9102
   Catalog = MyCatalog
   @|"sed -n '/^{{ hostvars[fd].inventory_hostname_short }}-fd\\s/ {s//Password = /p; q}' /etc/bacula/passwords-dir"
   File Retention = 4 months
@@ -387,16 +379,17 @@ Client {
 
 
 # Definition of file storage device
+{% for sd in groups['bacula-sd'] | sort %}
 Storage {
-  Name = {{ hostvars[ groups['bacula-sd'][0] ].inventory_hostname_short }}-sd
-  Address = 127.0.0.1
-  SDPort  = 9113
-  @|"sed -n '/^{{ hostvars[ groups['bacula-sd'][0] ].inventory_hostname_short }}-sd\\s/ {s//Password = /p; q}' /etc/bacula/passwords-dir"
+  Name = {{ hostvars[sd].inventory_hostname_short }}-sd
+  Address = {{ ipsec[ hostvars[sd].inventory_hostname_short ] }}
+  SDPort  = 9103
+  @|"sed -n '/^{{ hostvars[sd].inventory_hostname_short }}-sd\\s/ {s//Password = /p; q}' /etc/bacula/passwords-dir"
   Device = FileStorage
   Media Type = File
-  Heartbeat Interval = 1 min
 }
 
+{% endfor %}
 
 # Default pool definition
 Pool {
