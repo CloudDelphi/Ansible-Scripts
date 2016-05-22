@@ -7,4 +7,4 @@ out="$1"
 bits="${2:-2048}"
 
 install --mode=0644 /dev/null "$out"
-openssl dhparam "$bits" >"$out"
+openssl dhparam -rand /dev/urandom "$bits" >"$out"

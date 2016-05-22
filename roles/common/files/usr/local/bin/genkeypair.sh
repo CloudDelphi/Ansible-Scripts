@@ -38,7 +38,6 @@ usage=
 mode=
 owner=
 group=
-rand=
 
 usage() {
     cat >&2 <<- EOF
@@ -185,7 +184,7 @@ if [ -s "$privkey" -a $force -eq 0 ]; then
     exit 1
 elif [ ! -s "$privkey" -o $force -ge 2 ]; then
     install --mode="${mode:-0600}" ${owner:+--owner="$owner"} ${group:+--group="$group"} /dev/null "$privkey" || exit 2
-    openssl $genkey -rand "${rand:-/dev/urandom}" $genkeyargs >"$privkey" || exit 2
+    openssl $genkey -rand /dev/urandom $genkeyargs >"$privkey" || exit 2
     [ "$cmd" = dkim ] && { dkiminfo; exit; }
 fi
 
