@@ -22,7 +22,7 @@ x509fpr() {
     host="${msg%%,*}"; host="${host%% *}"; host="${host#\`}"
     cert="$DIR/${host%%:*}.pem"
     spki=$(openssl x509 -noout -pubkey<"$cert" | openssl pkey -pubin -outform DER | openssl dgst -sha1  | sed -nr 's/^[^=]+=\s*//p')
-    [ "$typ" = mdwn ] && printf '\n    [[%s|https://crt.sh/?spkisha1=%s&iCAID=16418]]\n\n' "$msg" "$spki" \
+    [ "$typ" = mdwn ] && printf '\n    [%s](https://crt.sh/?spkisha1=%s&iCAID=16418)\n\n' "$msg" "$spki" \
                       || printf '    %s\n    X.509: https://crt.sh/?spkisha1=%s&iCAID=16418\n    SPKI:\n' \
                                 "$( echo "$msg" | tr -d '`' )" "$spki"
     for h in sha1 sha256; do
@@ -129,19 +129,19 @@ The following is an up-to date list of SHA-1 and SHA-256 fingerprints of
 all SPKI (Subject Public Key Info) of each X.509 certificate Fripost
 uses on its publicly available services.  Please consider any mismatch
 as a man-in-the-middle attack, and let us know immediately!  (See also
-the [[signed version of this page|certs.asc]].)
--- [[admin@fripost.org|mailto:admin@fripost.org]]
+the [signed version of this page](certs.asc).)
+-- [the admin team](mailto:admin@fripost.org)
 
 
-These certificates are all issued by the [[Let's Encrypt Certificate
-Authority|https://letsencrypt.org]], and are submitted to [[Certificate
-Transparency logs|https://www.certificate-transparency.org]].
+These certificates are all issued by the [Let's Encrypt Certificate
+Authority](https://letsencrypt.org), and are submitted to [Certificate
+Transparency logs](https://www.certificate-transparency.org).
 You can view all issued Let's Encrypt certificates at
-[[crt.sh|https://crt.sh/?Identity=%25fripost.org&iCAID=16418]].
+[crt.sh](https://crt.sh/?Identity=%25fripost.org&iCAID=16418).
 Our X.509 certificates are also available in PEM format under our
-[[Git repository|$VCS_BROWSER/tree/certs/public]],
-from which this fingerprint list was [[generated|$VCS_BROWSER/tree/certs/gencerts.sh]], at
-$(git --no-pager --git-dir="$DIR/../../.git" --work-tree="$DIR" log -1 --pretty=format:"[[Commit ID %h from %aD|$VCS_BROWSER/tree/certs/public?id=%H]]" -- "$DIR").
+[Git repository]($VCS_BROWSER/tree/certs/public),
+from which this fingerprint list was [generated]($VCS_BROWSER/tree/certs/gencerts.sh), at
+$(git --no-pager --git-dir="$DIR/../../.git" --work-tree="$DIR" log -1 --pretty=format:"[Commit ID %h from %aD]($VCS_BROWSER/tree/certs/public?id=%H)" -- "$DIR").
 
 
 EOF
