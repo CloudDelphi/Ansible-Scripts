@@ -71,12 +71,6 @@ in      tcp     9103                                    # BACULA-SD
 {% elif groups['bacula-sd'] | difference([inventory_hostname]) %}
 out     tcp     9103                                    # BACULA-SD
 {% endif %}
-{% if 'munin-master' in group_names and groups.all | difference([inventory_hostname]) %}
-out     tcp     4949                                    # MUNIN
-{% endif %}
-{% if groups['munin-master'] | difference([inventory_hostname]) %}
-in      tcp     4949                                    # MUNIN
-{% endif %}
 {% if 'LDAP-provider' in group_names %}
 out     tcp     11371                                   # HKP
 out     tcp     43                                      # WHOIS

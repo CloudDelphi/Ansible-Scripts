@@ -68,11 +68,6 @@
   tags:
     - munin-node
     - munin
-- include: munin-node-ssl.yml
-  when: "'munin-master' not in group_names"
-  tags:
-    - munin-node
-    - munin
 
 - name: Install common packages
   apt: pkg={{ item }}

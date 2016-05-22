@@ -77,7 +77,7 @@
   notify:
     - Restart munin-node
 
-- name: Delete Munin plugins
+- name: Delete unnecessary Munin plugins
   file: path=/etc/munin/plugins/{{ item }}
         state=absent
   register: r3

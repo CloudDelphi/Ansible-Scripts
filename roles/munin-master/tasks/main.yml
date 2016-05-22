@@ -95,35 +95,6 @@
 - meta: flush_handlers
 
 
-- name: Copy munin-node X.509 certificates
-  copy: src=certs/munin/{{ item }}.pem
-        dest=/etc/stunnel/certs/munin-{{ hostvars[item].inventory_hostname_short }}.pem
-        owner=root group=root
-        mode=0644
-  with_items: "{{ groups.all | difference([inventory_hostname]) }}"
-  register: r1
-  notify:
-    - Restart stunnel@munin-master
-
-- name: Configure stunnel
-  template: src=etc/stunnel/munin-master.conf.j2
-            dest=/etc/stunnel/munin-master.conf
-            owner=root group=root
-            mode=0644
-  register: r2
-  notify:
-    - Restart stunnel@munin-master
-
-- name: Enable stunnel@munin-master
-  service: name=stunnel4@munin-master enabled=yes
-
-- name: Start stunnel@munin-master
-  service: name=stunnel4@munin-master state=started
-  when: not (r1.changed or r2.changed)
-
-- meta: flush_handlers
-
-
 - name: Install 'munin_stats' and 'munin_update' plugins
   file: src=/usr/share/munin/plugins/{{ item }}
         dest=/etc/munin/plugins/{{ item }}

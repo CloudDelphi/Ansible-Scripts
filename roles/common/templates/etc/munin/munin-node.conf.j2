@@ -32,7 +32,7 @@ ignore_file \.rpm(save|new)$
 ignore_file \.pod$
 
 # Set this if the client doesn't report the correct hostname when
-# telnetting to localhost, port 4949
+# telnetting to {{ ipsec[inventory_hostname_short] }}, port 4949
 #
 host_name {{ inventory_hostname_short }}
 
@@ -41,11 +41,12 @@ host_name {{ inventory_hostname_short }}
 # network notation unless the perl module Net::CIDR is installed.  You
 # may repeat the allow line as many times as you'd like
 
-allow ^127\.0\.0\.1$
-allow ^::1$
+{% for host in groups['munin-master'] %}
+allow ^{{ ipsec[ hostvars[host].inventory_hostname_short ] | ipv4 | replace(".","\.") }}$
+{% endfor %}
 
 # Which address to bind to;
-host 127.0.0.1
+host {{ ipsec[inventory_hostname_short] }}
 
 # And which port
 port 4994

@@ -47,9 +47,6 @@
 - name: Restart stunnel@bacula-fd
   service: name=stunnel4@bacula-fd state=restarted
 
-- name: Restart stunnel@munin-node
-  service: name=stunnel4@munin-node state=restarted
-
 - name: Restart bacula-fd
   service: name=bacula-fd state=restarted
 
