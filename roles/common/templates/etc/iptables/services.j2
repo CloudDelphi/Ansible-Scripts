@@ -16,12 +16,7 @@ out     tcp     9418                                    # GIT
 out     udp     53                                      # DNS
 out     udp     67                                      # DHCP
 out     tcp     22                                      # SSH
-{% if 'NTP-master' in group_names %}
-in      udp     123                                     # NTP
-out     udp     123                                     # NTP
-{% else %}
 out     udp     123      123                            # NTP
-{% endif %}
 
 in      tcp     {{ ansible_port|default('22') }}        # SSH
 {% if 'LDAP-provider' in group_names %}

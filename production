@@ -20,7 +20,6 @@ benjamin.skangas.se
 [LDAP-provider:children]
 mistral
 
-# ntp.fripost.org
 [NTP-master:children]
 mistral
 
