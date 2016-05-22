@@ -4,7 +4,7 @@
 
 passdb {
   driver         = imap
-  args           = host=localhost port=993
+  args           = host={{ ipsec[imapsvr.inventory_hostname_short] }} port=143
   default_fields = userdb_imapc_password=%w
 }
 
