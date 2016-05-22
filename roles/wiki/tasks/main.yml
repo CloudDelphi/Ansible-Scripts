@@ -9,6 +9,7 @@
     - libmail-sendmail-perl
     - libnet-dns-sec-perl
     - fcgiwrap
+    - pandoc
 
 - name: Create a user 'ikiwiki'
   user: name=ikiwiki system=yes
@@ -28,11 +29,14 @@
         owner=ikiwiki group=ikiwiki
         mode=0755
 
-- name: Copy isWebsite plugin
-  copy: src=var/lib/ikiwiki/IkiWiki/Plugin/isWebsite.pm
-        dest=/var/lib/ikiwiki/IkiWiki/Plugin/isWebsite.pm
+- name: Copy ikiwiki plugins
+  copy: src=var/lib/ikiwiki/IkiWiki/Plugin/{{ item }}.pm
+        dest=/var/lib/ikiwiki/IkiWiki/Plugin/{{ item }}.pm
         owner=root group=root
         mode=0644
+  with_items:
+    - isWebsite
+    - pandoc
   notify:
     - Refresh ikiwiki
 

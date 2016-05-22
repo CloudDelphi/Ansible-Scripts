@@ -55,6 +55,7 @@ add_plugins:
   - getsource
   ###
   - isWebsite
+  - pandoc
 # plugins to disable
 disable_plugins:
   - smiley
@@ -413,3 +414,7 @@ getsource_mimetype: text/plain; charset=utf-8
 #tag_autocreate: 1
 # commit autocreated tag pages
 #tag_autocreate_commit: 1
+
+# pandoc plugin
+pandoc_smart: 1
+pandoc_html5: 1
