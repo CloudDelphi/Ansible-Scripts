@@ -16,8 +16,12 @@
 
 service imap-login {
   inet_listener imap {
+{% if groups.all | length > 1 %}
     address = {{ ipsec[inventory_hostname_short] }}
     port = 143
+{% else %}
+    port = 0
+{% endif %}
   }
   inet_listener imaps {
     #port = 993
