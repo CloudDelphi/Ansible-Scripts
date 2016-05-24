@@ -71,9 +71,10 @@
     - { var: spellcheck_engine,      value: "'enchant'"                                 }
     - { var: spellcheck_languages,   value: "array('da','de','en','es','fr','no','sv')" }
     # User Interface
-    - { var: skin,                   value: "'larry'" }
-    - { var: language,               value: "'sv_SE'" }
-    - { var: create_default_folders, value: "true"    }
+    - { var: skin,                   value: "'larry'"                        }
+    - { var: language,               value: "'sv_SE'"                        }
+    - { var: create_default_folders, value: "true"                           }
+    - { var: support_url,            value: "'https://fripost.org/kontakt/'" }
     # User Preferences
     - { var: htmleditor,             value: "3"     }
     - { var: skip_deleted,           value: "true"  }
