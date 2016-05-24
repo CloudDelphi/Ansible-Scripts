@@ -54,12 +54,11 @@
   notify:
     - Restart IPSec
 
-- name: Generate a private key and a X.509 certificate for IPSec
-  command: genkeypair.sh x509
+- name: Generate a key pair for IPSec public key authentication
+  command: genkeypair.sh keypair
                          --pubkey=/etc/ipsec.d/certs/{{ inventory_hostname_short }}.pem
                          --privkey=/etc/ipsec.d/private/{{ inventory_hostname_short }}.key
-                         --ou=IPSec --cn={{ inventory_hostname_short }}
-                         -t rsa -b 4096 -h sha512
+                         -t rsa -b 4096
   register: r4
   changed_when: r4.rc == 0
   failed_when: r4.rc > 1
@@ -68,18 +67,18 @@
   tags:
     - genkey
 
-- name: Fetch IPSec X.509 certificate
+- name: Fetch the public part of IPSec host key
   # Ensure we don't fetch private data
   become: False
-  fetch_cmd: cmd="openssl x509"
-             stdin=/etc/ipsec.d/certs/{{ inventory_hostname_short }}.pem
-             dest=certs/ipsec/{{ inventory_hostname_short }}.pem
+  fetch: src=/etc/ipsec.d/certs/{{ inventory_hostname_short }}.pem
+         dest=certs/ipsec/{{ inventory_hostname_short }}.pem
+         fail_on_missing=yes flat=yes
   tags:
     - genkey
 
 # Don't copy our pubkey due to a possible race condition.  Only the
 # remote machine has authority regarding its key.
-- name: Copy IPSec X.509 certificates (except ours)
+- name: Copy the public part of IPSec peers' key
   copy: src=certs/ipsec/{{ hostvars[item].inventory_hostname_short }}.pem
         dest=/etc/ipsec.d/certs/{{ hostvars[item].inventory_hostname_short }}.pem
         owner=root group=root

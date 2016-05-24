@@ -18,7 +18,8 @@ conn %default
     leftauth       = pubkey
     left           = %defaultroute
     leftsubnet     = {{ ipsec[inventory_hostname_short] | ipv4 }}/32
-    leftcert       = {{ inventory_hostname_short }}.pem
+    leftid         = {{ inventory_hostname }}
+    leftsigkey     = {{ inventory_hostname_short }}.pem
     leftfirewall   = yes
     lefthostaccess = yes
     rightauth      = pubkey
@@ -34,7 +35,7 @@ conn {{ hostvars[host].inventory_hostname_short }}
 {% if 'DynDNS' in hostvars[host].group_names %}
     rightallowany = yes
 {% endif %}
-    rightcert     = {{ hostvars[host].inventory_hostname_short }}.pem
+    rightsigkey   = {{ hostvars[host].inventory_hostname_short }}.pem
     rightsubnet   = {{ ipsec[ hostvars[host].inventory_hostname_short ] | ipv4 }}/32
 {% if 'NATed' not in group_names and 'NATed' in hostvars[host].group_names %}
     mobike        = yes

@@ -47,6 +47,7 @@ usage() {
 		    x509:       generate a self-signed X.509 server certificate
 		    csr:        generate a Certificate Signing Request
 		    dkim:       generate a private key (to use for DKIM signing)
+		    keypair:    generate a key pair
 
 		Options:
 		    -t type:    key type (default: rsa)
@@ -88,7 +89,7 @@ dkiminfo() {
 [ $# -gt 0 ] || { usage; exit 2; }
 cmd="$1"; shift
 case "$cmd" in
-    x509|csr|dkim) ;;
+    x509|csr|dkim|keypair) ;;
     *) echo "Unrecognized command: $cmd" >&2; exit 2
 esac
 
@@ -201,4 +202,6 @@ elif [ "$cmd" = x509 -o "$cmd" = csr ]; then
         [ "$cmd" = x509 ] && x509=-x509 || x509=
         openssl req -config "$config" -new $x509 ${hash:+-$hash} -days 3650 -key "$privkey" >"$pubkey" || exit 2
     fi
+elif [ "$cmd" = keypair -a "$pubkey" ]; then
+    openssl pkey -pubout <"$privkey" >"$pubkey"
 fi
