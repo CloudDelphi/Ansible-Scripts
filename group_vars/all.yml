@@ -11,8 +11,8 @@ postfix_instance:
 
 
 # Virtual (non-routable) IPv4 subnet for IPSec.  It is always nullrouted
-# on in the absence of xfrm lookup (i.e., when there is no matching
-# IPSec Security Association) to avoid data leaks.
+# in the absence of xfrm lookup (i.e., when there is no matching IPSec
+# Security Association) to avoid data leaks.
 ipsec_subnet: 172.16.0.0/24
 ipsec:
   # Virtual (non-routable) addresses for IPSec.  They all need to be

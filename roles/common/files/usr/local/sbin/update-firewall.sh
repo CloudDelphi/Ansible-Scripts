@@ -264,10 +264,10 @@ run() {
     if [ "$f" = 4 -a "$ipsec" = y ]; then
         # Allow local access to our virtual IP
         /bin/ip -4 -o route show table 220 dev $if \
-        | sed -nr 's/.*\ssrc\s+([[:digit:].]{7,15})(\s.*)?/\1/p' \
-        | while read ipsec; do
-            iptables -A INPUT  -i lo -s "$ipsec" -d "$ipsec" -j ACCEPT
-            iptables -A OUTPUT -o lo -s "$ipsec" -d "$ipsec" -j ACCEPT
+        | sed -nr 's/.*\ssrc\s+([[:digit:].]{7,15})(\s.*)?$/\1/p' \
+        | while read ips; do
+            iptables -A INPUT  -i lo -s "$ips" -d "$ips" -j ACCEPT
+            iptables -A OUTPUT -o lo -s "$ips" -d "$ips" -j ACCEPT
         done
     fi
 
