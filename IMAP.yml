@@ -6,11 +6,3 @@
   tags:
     - imap
     - dovecot
-
-- name: Configure IMAP proxies
-  hosts: webmail:!IMAP
-  roles:
-    - { role: IMAP-proxy, imapsvr: "{{ hostvars[groups.IMAP[0]] }}" }
-  tags:
-    - imap
-    - dovecot

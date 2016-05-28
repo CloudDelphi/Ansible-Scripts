@@ -1,6 +1,0 @@
----
-- name: Restart stunnel@roundcube
-  service: name=stunnel4@roundcube state=restarted
-
-- name: Restart Dovecot
-  service: name=dovecot state=restarted
