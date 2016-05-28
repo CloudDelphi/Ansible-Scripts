@@ -2,4 +2,4 @@
 - name: Configure the webmail
   hosts: webmail
   roles:
-    - webmail
+    - { role: webmail, imapsvr: "{{ hostvars[groups.IMAP[0]] }}" }

@@ -49,12 +49,12 @@
     # IMAP
     #   WARNING: After hostname change update of mail_host column in users
     #   table is required to match old user data records with the new host.
-    - { var: default_host,           value: "'localhost'" }
-    - { var: default_port,           value: "143"         }
-    - { var: imap_auth_type,         value: "'PLAIN'"     }
-    - { var: imap_cache,             value: "null"        }
-    - { var: imap_timeout,           value: "180"         }
-    - { var: messages_cache,         value: "false"       }
+    - { var: default_host,           value: "'{{ ipsec[imapsvr.inventory_hostname_short] }}'" }
+    - { var: default_port,           value: "143"                                             }
+    - { var: imap_auth_type,         value: "'PLAIN'"                                         }
+    - { var: imap_cache,             value: "null"                                            }
+    - { var: imap_timeout,           value: "180"                                             }
+    - { var: messages_cache,         value: "false"                                           }
     # SMTP
     - { var: smtp_server,            value: "'localhost'" }
     - { var: smtp_port,              value: "2525"        }
