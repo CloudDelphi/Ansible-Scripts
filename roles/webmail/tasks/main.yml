@@ -3,6 +3,12 @@
   tags:
     - postfix
     - mail
+    - stunnel
+- include: ldap.yml
+  when: "'LDAP-provider' not in group_names"
+  tags:
+    - ldap
+    - stunnel
 - include: roundcube.yml
   tags:
     - roundcube

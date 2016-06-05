@@ -15,6 +15,7 @@
 
 - include: stunnel.yml
   tags: stunnel
+  when: "'webmail' in group_names and ('LDAP-provider' not in group_names or 'out' not in group_names)"
 - include: samhain.yml
   tags: samhain
 - include: auditd.yml

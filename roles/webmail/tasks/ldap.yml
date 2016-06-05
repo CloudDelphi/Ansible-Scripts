@@ -1,0 +1,32 @@
+- name: Create /etc/stunnel/certs
+  file: path=/etc/stunnel/certs
+        state=directory
+        owner=root group=root
+        mode=0755
+
+- name: Copy the ldap's X.509 certificate
+  copy: src=certs/ldap/ldap.fripost.org.pem
+        dest=/etc/stunnel/certs/ldap.pem
+        owner=root group=root
+        mode=0644
+  register: r1
+  notify:
+    - Restart stunnel@ldap
+
+- name: Configure stunnel
+  copy: src=etc/stunnel/ldap.conf
+        dest=/etc/stunnel/ldap.conf
+        owner=root group=root
+        mode=0644
+  register: r2
+  notify:
+    - Restart stunnel@ldap
+
+- name: Enable stunnel@ldap
+  service: name=stunnel4@ldap enabled=yes
+
+- name: Start stunnel@ldap
+  service: name=stunnel4@ldap state=started
+  when: not (r1.changed or r2.changed)
+
+- meta: flush_handlers
