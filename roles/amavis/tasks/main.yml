@@ -30,13 +30,6 @@
     - Restart ClamAV
     - Restart Amavis
 
-- name: Set AllowSupplementaryGroups=true
-  lineinfile: "dest=/etc/clamav/clamd.conf
-               regexp='^AllowSupplementaryGroups\\s'
-               line='AllowSupplementaryGroups true'"
-  notify:
-    - Restart ClamAV
-
 - name: Create directory /var/lib/dkim
   file: path=/var/lib/dkim
         state=directory
