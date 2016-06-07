@@ -15,6 +15,7 @@ NoNewPrivileges=yes
 PrivateDevices=yes
 ProtectHome=yes
 ProtectSystem=full
+PrivateTmp=yes
 ReadOnlyDirectories=/
 ReadWriteDirectories=-/var/lib/sympa
 ReadWriteDirectories=-/var/run/sympa
