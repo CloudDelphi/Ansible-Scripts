@@ -129,7 +129,7 @@ The following is an up-to date list of SHA-1 and SHA-256 fingerprints of
 all SPKI (Subject Public Key Info) of each X.509 certificate Fripost
 uses on its publicly available services.  Please consider any mismatch
 as a man-in-the-middle attack, and let us know immediately!  (See also
-the [signed version of this page](certs.asc).)
+the [signed version of this page](/certs.asc).)
 -- [the admin team](mailto:admin@fripost.org)
 
 
