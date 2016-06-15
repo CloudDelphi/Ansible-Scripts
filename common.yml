@@ -16,9 +16,11 @@
   hosts: IMAP:MX:MSA:webmail:lists:wiki:git
   gather_facts: False
   roles:
-    - letsencrypt
+    - lacme
   tags:
    - letsencrypt
+   - lacme
+   - ACME
 
 - name: Common SQL tasks
   hosts: MDA:webmail:lists:bacula-dir
