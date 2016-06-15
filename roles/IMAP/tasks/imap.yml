@@ -80,7 +80,7 @@
 - name: Fetch Dovecot's X.509 certificate
   # Ensure we don't fetch private data
   become: False
-  fetch_cmd: cmd="openssl x509"
+  fetch_cmd: cmd="openssl x509 -noout -pubkey"
              stdin=/etc/dovecot/ssl/imap.fripost.org.pem
              dest=certs/public/imap.fripost.org.pem
   tags:

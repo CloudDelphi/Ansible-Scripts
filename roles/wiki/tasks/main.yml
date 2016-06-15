@@ -102,7 +102,7 @@
 - name: Fetch Nginx's X.509 certificate
   # Ensure we don't fetch private data
   become: False
-  fetch_cmd: cmd="openssl x509"
+  fetch_cmd: cmd="openssl x509 -noout -pubkey"
              stdin=/etc/nginx/ssl/www.fripost.org.pem
              dest=certs/public/fripost.org.pem
   tags:

@@ -28,7 +28,7 @@
   # Ensure we don't fetch private data
   become: False
   # `/usr/sbin/postmulti -i msa -x /usr/sbin/postconf -xh smtpd_tls_cert_file`
-  fetch_cmd: cmd="openssl x509"
+  fetch_cmd: cmd="openssl x509 -noout -pubkey"
              stdin=/etc/postfix/ssl/smtp.fripost.org.pem
              dest=certs/public/smtp.fripost.org.pem
   tags:

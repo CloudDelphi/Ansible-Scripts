@@ -21,7 +21,7 @@ x509fpr() {
     local msg="$1" host cert h spki
     host="${msg%%,*}"; host="${host%% *}"; host="${host#\`}"
     cert="$DIR/${host%%:*}.pem"
-    spki=$(openssl x509 -noout -pubkey<"$cert" | openssl pkey -pubin -outform DER | openssl dgst -sha1  | sed -nr 's/^[^=]+=\s*//p')
+    spki=$(openssl pkey -pubin -outform DER <"$cert" | openssl dgst -sha1  | sed -nr 's/^[^=]+=\s*//p')
     [ "$typ" = mdwn ] && printf '\n    [%s](https://crt.sh/?spkisha1=%s&iCAID=16418)\n\n' "$msg" "$spki" \
                       || printf '    %s\n    X.509: https://crt.sh/?spkisha1=%s&iCAID=16418\n    SPKI:\n' \
                                 "$( echo "$msg" | tr -d '`' )" "$spki"
@@ -29,7 +29,7 @@ x509fpr() {
         [ "$typ" = mdwn ] || echo -n '  '
         echo -n "$h" | tr '[a-z]' '[A-Z]'
         for i in $(seq 1 $((7 - ${#h}))); do echo -n ' '; done
-        openssl x509 -noout -pubkey<"$cert" | openssl pkey -pubin -outform DER | openssl dgst -"$h" -c | sed -nr 's/^[^=]+=\s*//p'
+        openssl pkey -pubin -outform DER <"$cert" | openssl dgst -"$h" -c | sed -nr 's/^[^=]+=\s*//p'
     done | sed -r "s/(\S+)(.*)/$indent\1\U\2/"
 }
 
@@ -109,7 +109,7 @@ view all issued Let's Encrypt certificates at crt.sh:
 
     https://crt.sh/?Identity=%25fripost.org&iCAID=16418
 
-Our X.509 certificates are also available in PEM format at:
+The SPKI of our X.509 certificates are also available in PEM format at:
 
     $VCS_BROWSER/tree/certs/public ,
 
@@ -138,8 +138,8 @@ Authority](https://letsencrypt.org), and are submitted to [Certificate
 Transparency logs](https://www.certificate-transparency.org).
 You can view all issued Let's Encrypt certificates at
 [crt.sh](https://crt.sh/?Identity=%25fripost.org&iCAID=16418).
-Our X.509 certificates are also available in PEM format under our
-[Git repository]($VCS_BROWSER/tree/certs/public),
+The SPKI of our X.509 certificates are also available in PEM format
+under our [Git repository]($VCS_BROWSER/tree/certs/public),
 from which this fingerprint list was [generated]($VCS_BROWSER/tree/certs/gencerts.sh), at
 $(git --no-pager --git-dir="$DIR/../../.git" --work-tree="$DIR" log -1 --pretty=format:"[Commit ID %h from %aD]($VCS_BROWSER/tree/certs/public?id=%H)" -- "$DIR").
 
