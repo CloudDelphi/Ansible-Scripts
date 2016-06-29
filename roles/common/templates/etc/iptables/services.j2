@@ -7,7 +7,7 @@
 {% if groups.all | length > 1 %}
 inout4  udp     500      500                            # ISAKMP
 {% if groups.NATed | length > 0 %}
-inout4  udp     4500     4500                           # IPSec NAT Traversal
+inout4  udp     4500     4500                           # IPsec NAT Traversal
 {% endif %}
 {% endif %}
 

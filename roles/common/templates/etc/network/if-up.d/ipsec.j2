@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # A post-up/down hook to automatically create/delete a virtual subnet
-# for IPSec (inet4 only).
+# for IPsec (inet4 only).
 # Copyright © 2016 Guilhem Moulin <guilhem@fripost.org>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -35,9 +35,9 @@ vsubnet="{{ ipsec_subnet }}"
 
 case "$MODE" in
     start) ip address add "$vip/32" dev "$IFACE" scope global || true
-           # Nullroute the subnet used for IPSec to avoid data leaks
+           # Nullroute the subnet used for IPsec to avoid data leaks
            # in the absence of xfrm lookup (i.e., when there is no
-           # matching IPSec Security Association).
+           # matching IPsec Security Association).
            ip route replace prohibit "$vsubnet" proto static || true
            ip route replace table 220 to "$vsubnet" via "$ip" dev "$IFACE" proto static src "$vip" || true
     ;;

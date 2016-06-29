@@ -10,12 +10,12 @@ postfix_instance:
   lists:   { name: lists,           port: 2527 }
 
 
-# Virtual (non-routable) IPv4 subnet for IPSec.  It is always nullrouted
-# in the absence of xfrm lookup (i.e., when there is no matching IPSec
+# Virtual (non-routable) IPv4 subnet for IPsec.  It is always nullrouted
+# in the absence of xfrm lookup (i.e., when there is no matching IPsec
 # Security Association) to avoid data leaks.
 ipsec_subnet: 172.16.0.0/24
 ipsec:
-  # Virtual (non-routable) addresses for IPSec.  They all need to be
+  # Virtual (non-routable) addresses for IPsec.  They all need to be
   # distinct and belong to the above subnet 'ipsec_subnet'.
   antilop:  172.16.0.1
   benjamin: 172.16.0.2

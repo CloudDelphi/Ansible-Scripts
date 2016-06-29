@@ -23,7 +23,7 @@
 - name: Restart fail2ban
   service: name=fail2ban state=restarted
 
-- name: Restart IPSec
+- name: Restart IPsec
   service: name=ipsec state=restarted
 
 - name: Reload networking

@@ -48,7 +48,7 @@ else
 fi
 
 fail2ban_re='^(\[[0-9]+:[0-9]+\]\s+)?-A fail2ban-\S'
-IPSec_re=" -m policy --dir (in|out) --pol ipsec --reqid [0-9]+ --proto $secproto -j ACCEPT$"
+IPsec_re=" -m policy --dir (in|out) --pol ipsec --reqid [0-9]+ --proto $secproto -j ACCEPT$"
 declare -A rss=() tables=()
 
 usage() {
@@ -104,7 +104,7 @@ ipt-trim() {
     # automatically included by third-party servers (such as strongSwan
     # or fail2ban).  The output is ready to be made persistent.
     grep -Ev -e '^:fail2ban-\S' \
-             -e "$IPSec_re" \
+             -e "$IPsec_re" \
              -e '-j fail2ban-\S+$' \
              -e "$fail2ban_re"
 }
@@ -197,9 +197,8 @@ run() {
     fi >> "$new"
 
     if [ "$f" = 4 -a "$ipsec" = y ]; then
-        # Our IPSec tunnels are IPv4 only.
-        # (Host-to-host) IPSec tunnels come first.
-        grep -E -- "$IPSec_re" "$old" >> "$new" || true
+        # IPsec tunnels come first (IPv4 only).
+        grep -E -- "$IPsec_re" "$old" >> "$new" || true
 
         # Allow any IPsec $secproto protocol packets to be sent and received.
         iptables -A INPUT  -i $if -p $secproto -j ACCEPT
@@ -215,11 +214,11 @@ run() {
     local ip
     if [ "$f" = 4 -a "$ipsec" = y ]; then
         # Private-use networks (RFC 1918) and link local (RFC 3927)
-        local MyIPSec="$( /bin/ip -4 -o route show table 220 dev $if | sed 's/\s.*//' )"
+        local MyIPsec="$( /bin/ip -4 -o route show table 220 dev $if | sed 's/\s.*//' )"
         local MyNetwork="$( /bin/ip -4 -o address show dev $if scope global \
                           | sed -nr "s/^[0-9]+:\s+$if\s+inet\s(\S+).*/\1/p" \
                           | while read ip; do
-                              for ips in $MyIPSec; do
+                              for ips in $MyIPsec; do
                                 [ "$ips" = "$(/usr/bin/netmask -nc "$ip" "$ips" | sed 's/^ *//')" ] || echo "$ip"
                               done
                             done
