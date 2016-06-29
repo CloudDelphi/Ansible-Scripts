@@ -17,3 +17,4 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (charon|ipsec\[[[:digit:]]+\]): [[:digit:]]+\[IKE\] deleting IKE_SA [[:alnum:]._-]+\[[[:digit:]]+\] between [[:xdigit:].:]{3,39}\[[^]\"]+\]\.\.\.[[:xdigit:].:]{3,39}\[[^]]+\]$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (charon|ipsec\[[[:digit:]]+\]): [[:digit:]]+\[IKE\] IKE_SA deleted$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ vpn: [+-] .* [[:xdigit:].:]{3,39}/[[:digit:]]+ == [[:xdigit:].:]{3,39} -- [[:xdigit:].:]{3,39} == [[:xdigit:].:]{3,39}/[[:digit:]]+$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (charon|ipsec\[[[:digit:]]+\]): [[:digit:]]+\[MGR\] ignoring request with ID [[:digit:]]+, already processing$
