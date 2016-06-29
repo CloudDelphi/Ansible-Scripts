@@ -182,6 +182,7 @@ run() {
         # If the interface is not configured, we stop here and DROP all
         # packets by default.  Thanks to the pre-up hook this tight
         # policy will be activated whenever the interface goes up.
+        commit
         mv "$new" /etc/iptables/rules.v$f
         return 0
     fi
