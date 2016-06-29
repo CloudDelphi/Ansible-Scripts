@@ -47,8 +47,9 @@ class ActionModule(ActionBase):
         else:
             target = self._loader.path_dwim_relative(self._loader.get_basedir(), local+'s', target)
 
+        remote_user = task_vars.get('ansible_ssh_user') or self._play_context.remote_user
         new_module_args = self._task.args.copy()
-        new_module_args['target'] = self._connection._shell.join_path(self._make_tmp_path(), 'target.ldif')
+        new_module_args['target'] = self._connection._shell.join_path(self._make_tmp_path(remote_user), 'target.ldif')
         new_module_args['local'] = 'no'
 
         if local == 'template':

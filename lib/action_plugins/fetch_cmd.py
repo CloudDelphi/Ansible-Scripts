@@ -42,7 +42,8 @@ class ActionModule(ActionBase):
             stdin = self._connection._shell.join_path(stdin)
             stdin = self._remote_expand_user(stdin)
 
-        stdout = self._connection._shell.join_path(self._make_tmp_path(), 'stdout')
+        remote_user = task_vars.get('ansible_ssh_user') or self._play_context.remote_user
+        stdout = self._connection._shell.join_path(self._make_tmp_path(remote_user), 'stdout')
         result.update(self._execute_module(module_args=dict(cmd=cmd, stdin=stdin, dest=stdout), task_vars=task_vars))
 
         # calculate checksum for the local file
