@@ -98,6 +98,8 @@
     - conf.d/10-mail.conf
     - conf.d/10-ssl.conf
     - conf.d/15-mailboxes.conf
+    # LDA is also used by LMTP
+    - conf.d/15-lda.conf
     - conf.d/20-imap.conf
     - conf.d/20-lmtp.conf
     - conf.d/90-plugin.conf
