@@ -54,6 +54,7 @@
     - { var: imap_auth_type,         value: "'PLAIN'"                                         }
     - { var: imap_cache,             value: "null"                                            }
     - { var: imap_timeout,           value: "180"                                             }
+    - { var: imap_force_ns,          value: "true"                                            }
     - { var: messages_cache,         value: "false"                                           }
     # SMTP
     - { var: smtp_server,            value: "'localhost'" }
