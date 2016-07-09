@@ -6,12 +6,11 @@
     - clamav-freshclam
 
 - name: Configure FreshClam
-  lineinfile: "dest=/etc/clamav/freshclam.conf
-              line='DatabaseMirror {{ item }}'"
-  with_items:
-    - db.local.clamav.net
-    - database.clamav.net
-    - db.other.clamav.net
+  template: src=etc/clamav/freshclam.conf.j2
+            dest=/etc/clamav/freshclam.conf
+            owner=root group=root
+            mode=0644
+  tags: freshclam
   notify:
     - Restart freshclam
 

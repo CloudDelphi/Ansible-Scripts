@@ -1,20 +1,21 @@
 [mistral]
-mistral.fripost.org
+mistral.fripost.org geoip=se
 
 [elefant]
-elefant.fripost.org mxno=1
+elefant.fripost.org geoip=se mxno=1
 
 [giraff]
-giraff.fripost.org
+giraff.fripost.org geoip=se
 
 [antilop]
-antilop.fripost.org
+antilop.fripost.org geoip=se
 
 [civett]
-civett.friprogramvarusyndikatet.se mxno=2
+civett.friprogramvarusyndikatet.se geoip=se mxno=2
 
 [benjamin]
-benjamin.skangas.se
+benjamin.skangas.se geoip=se
+
 
 # ldap.fripost.org
 [LDAP-provider:children]
