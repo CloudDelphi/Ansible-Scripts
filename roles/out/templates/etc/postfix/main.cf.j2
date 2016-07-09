@@ -27,8 +27,11 @@ multi_instance_group  = {{ postfix_instance[inst].group | default('') }}
 multi_instance_name   = postfix-{{ postfix_instance[inst].name }}
 multi_instance_enable = yes
 
-mynetworks_style = host
-inet_interfaces  = all
+mynetworks      = 127.0.0.0/8, [::1]/128
+{%- if groups.all | length > 1 -%}
+                , {{ ipsec_subnet }}
+{% endif %}
+inet_interfaces = all
 
 # No local delivery
 mydestination        =

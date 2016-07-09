@@ -1,9 +1,3 @@
-- include: mail.yml
-  when: "'out' not in group_names"
-  tags:
-    - postfix
-    - mail
-    - stunnel
 - include: ldap.yml
   when: "'LDAP-provider' not in group_names"
   tags:

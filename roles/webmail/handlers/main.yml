@@ -1,7 +1,4 @@
 ---
-- name: Restart stunnel@smtp
-  service: name=stunnel4@smtp state=restarted
-
 - name: Restart stunnel@ldap
   service: name=stunnel4@ldap state=restarted
 

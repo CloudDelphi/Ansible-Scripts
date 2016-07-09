@@ -1,15 +1,4 @@
 ---
-postfix_instance:
-  # The keys are the group names associated with a Postfix role, and the
-  # values are the name and group (optional) of the instance dedicated
-  # to that role.
-  IMAP:    { name: mda,             port: 2526 }
-  MX:      { name: mx,  group: mta             }
-  out:     { name: out, group: mta, port: 2525 }
-  MSA:     { name: msa                         }
-  lists:   { name: lists,           port: 2527 }
-
-
 # Virtual (non-routable) IPv4 subnet for IPsec.  It is always nullrouted
 # in the absence of xfrm lookup (i.e., when there is no matching IPsec
 # Security Association) to avoid data leaks.
@@ -23,3 +12,30 @@ ipsec:
   elefant:  172.16.0.4
   giraff:   172.16.0.5
   mistral:  172.16.0.6
+
+
+postfix_instance:
+  # The keys are the group names associated with a Postfix role, and the
+  # values are the name and group (optional) of the instance dedicated
+  # to that role.
+  # For internal services, we also specify its (non-routable) IP address
+  # and port.
+  # XXX it's unfortunate that we can only specify a single address, and
+  #     therefore have to limit the number of outgoing SMTP proxy and
+  #     IMAP server to one. Since hosts(5) files cannot map and IP
+  #     address to multiple hostnames, a workaround would be to use
+  #     round-robin DNS, but we can't rely on DNS as long as our zone is
+  #     unsigned.
+  IMAP:    { name: mda
+           , addr: "{{ (groups.all | length > 1) | ternary( ipsec[ hostvars[groups.IMAP[0]].inventory_hostname_short ], '127.0.0.1') }}"
+           , port: 2526 }
+  MX:      { name: mx,  group: mta }
+  out:     { name: out, group: mta
+           , addr: "{{ (groups.all | length > 1) | ternary( ipsec[ hostvars[groups.out[0]].inventory_hostname_short ], '127.0.0.1') }}"
+           , port: 2525 }
+  MSA:     { name: msa }
+  lists:   { name: lists
+           , addr: "{{ (groups.all | length > 1) | ternary( ipsec[ hostvars[groups.lists[0]].inventory_hostname_short ], '127.0.0.1') }}"
+           , port: 2527 }
+
+imapsvr_addr: "{{ postfix_instance.IMAP.addr | ipaddr }}"
