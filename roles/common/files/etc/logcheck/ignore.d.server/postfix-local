@@ -23,6 +23,7 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix(-\w+)?/verify\[[[:digit:]]+\]: cache btree:/var/lib/postfix\1/verify_cache full cleanup: retained=[[:digit:]]+ dropped=[[:digit:]]+ entries$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix(-\w+)?/verify\[[[:digit:]]+\]: cache \S+A partial cleanup: retained=[[:digit:]]+ dropped=[[:digit:]]+ entries$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-msa/smtpd\[[[:digit:]]+\]: lost connection after (AUTH|DATA \([[:digit:]]+ bytes\)) from [._[:alnum:]-]+\[[[:xdigit:].:]{3,39}\]$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-msa/pickup\[[[:digit:]]+\]: [[:xdigit:]]+: uid=[[:digit:]]+ from=<[^>]*>$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-\w+/smtpd\[[[:digit:]]+\]: lost connection after (CONNECT|STARTTLS) from [._[:alnum:]-]+\[([[:xdigit:].:]{3,39}|unknown)\]$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-msa/cleanup\[[[:digit:]]+\]: [[:xdigit:]]+: replace: header\s
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-msa/smtpd\[[[:digit:]]+\]: [[:xdigit:]]+: client=[^[:space:]]+, sasl_method=[-[:alnum:]]+, sasl_username=[-_.@[:alnum:]]+(, sasl_sender=[-_.@[:alnum:]]+)?$
@@ -97,8 +98,8 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/tlsproxy\[[[:digit:]]+\]: (CONNECT from|DISCONNECT) \[[[:xdigit:].:]{3,39}\]:[[:digit:]]+$
 #
 # Amavis
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ amavis\[[[:digit:]]+\]: \([-[:digit:]]+\) Passed (CLEAN|SPAM|UNCHECKED(-[A-Z]+)?|BAD-HEADER-[28]) {Relayed(Tagged)?(Internal|Inbound|Outbound)}, (INCOMING|OUTGOING)( LOCAL)? \[(IPv6:)?[[:xdigit:].:]{3,39}\](:[[:digit:]]+)?( \[[[:xdigit:].:]{3,39}\])? <[^>]*> -> (<[^>]*>,)+( Queue-ID: [[:xdigit:]]+,)?( Message-ID: <[^>]+>,)?( Resent-Message-ID: <[^>]+>,)? mail_id: [_-+[:alnum:]]+, Hits: -?[[:digit:].]*, size: [[:digit:]]+, queued_as: [[:xdigit:]]+(, dkim_(new|sd)?=[-.:[:alnum:]]+)?, [[:digit:]]+ ms$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ amavis\[[[:digit:]]+\]: \([-[:digit:]]+\) Passed (CLEAN|SPAM|UNCHECKED(-[A-Z]+)?|BAD-HEADER-[28]) {Relayed(Tagged)?(Internal|Inbound|Outbound)}, (INCOMING|OUTGOING)( LOCAL)? \[(IPv6:)?[[:xdigit:].:]{3,39}\](:[[:digit:]]+)?( \[[[:xdigit:].:]{3,39}\])? <[^>]*> -> (<[^>]*>,)+( Queue-ID: [[:xdigit:]]+,)?( Message-ID: <[^>]+>,)?( Resent-Message-ID: <[^>]+>,)? mail_id: [_-+[:alnum:]]+, Hits: -?[[:digit:].]*, size: [[:digit:]]+, queued_as: [[:xdigit:]]+(, dkim_(new|sd)?=[-_.:[:alnum:]]+)?, [[:digit:]]+ ms$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ amavis\[[[:digit:]]+\]: \([-[:digit:]]+\) Passed (CLEAN|SPAM|UNCHECKED(-[A-Z]+)?|BAD-HEADER-[28]) {Relayed(Tagged)?(Internal|Inbound|Outbound)}, (INCOMING|OUTGOING)( LOCAL)? \[(IPv6:)?[[:xdigit:].:]{3,39}\](:[[:digit:]]+)?( \[[[:xdigit:].:]{3,39}\])? <[^>]*> -> (<[^>]*>,)*(<[^>]*)?\.\.\.$
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ amavis\[[[:digit:]]+\]: \([-[:digit:]]+\) \.\.\.([^>]*>)?(,<[^>]*>)*,( Queue-ID: [[:xdigit:]]+,)?( Message-ID: <[^>]+>,)?( Resent-Message-ID: <[^>]+>,)? mail_id: [_-+[:alnum:]]+, Hits: -?[[:digit:].]*, size: [[:digit:]]+, queued_as: [[:xdigit:]]+(, dkim_(new|sd)?=[-.:[:alnum:]]+)?, [[:digit:]]+ ms$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ amavis\[[[:digit:]]+\]: \([-[:digit:]]+\) \.\.\.([^>]*>)?(,<[^>]*>)*,( Queue-ID: [[:xdigit:]]+,)?( Message-ID: <[^>]+>,)?( Resent-Message-ID: <[^>]+>,)? mail_id: [_-+[:alnum:]]+, Hits: -?[[:digit:].]*, size: [[:digit:]]+, queued_as: [[:xdigit:]]+(, dkim_(new|sd)?=[-_.:[:alnum:]]+)?, [[:digit:]]+ ms$
 # SMTP client connection caching was introduced in 2.6.0; the SMTP session is held for the next task, and is terminated by Postfix if the next mail comes soon enough
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-out/smtpd\[[[:digit:]]+\]: timeout after END-OF-MESSAGE from [._[:alnum:]-]+\[(127.0.0.1|::1)\]$
