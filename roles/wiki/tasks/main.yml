@@ -104,7 +104,7 @@
   become: False
   fetch_cmd: cmd="openssl x509 -noout -pubkey"
              stdin=/etc/nginx/ssl/www.fripost.org.pem
-             dest=certs/public/fripost.org.pem
+             dest=certs/public/fripost.org.pub
   tags:
     - genkey
 

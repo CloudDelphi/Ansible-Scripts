@@ -20,7 +20,7 @@ usage() {
 x509fpr() {
     local msg="$1" host cert h spki
     host="${msg%%,*}"; host="${host%% *}"; host="${host#\`}"
-    cert="$DIR/${host%%:*}.pem"
+    cert="$DIR/${host%%:*}.pub"
     spki=$(openssl pkey -pubin -outform DER <"$cert" | openssl dgst -sha256  | sed -nr 's/^[^=]+=\s*//p')
     [ "$typ" = mdwn ] && printf '\n    [%s](https://crt.sh/?spkisha256=%s&iCAID=16418)\n\n' "$msg" "$spki" \
                       || printf '    %s\n    X.509: https://crt.sh/?spkisha256=%s&iCAID=16418\n    SPKI:\n' \

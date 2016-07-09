@@ -82,7 +82,7 @@
   become: False
   fetch_cmd: cmd="openssl x509 -noout -pubkey"
              stdin=/etc/dovecot/ssl/imap.fripost.org.pem
-             dest=certs/public/imap.fripost.org.pem
+             dest=certs/public/imap.fripost.org.pub
   tags:
     - genkey
 
