@@ -36,11 +36,7 @@ message_size_limit  = 67108864
 recipient_delimiter = +
 
 # Forward everything to our internal outgoing proxy
-{% if 'out' in group_names %}
-relayhost     = [127.0.0.1]:{{ postfix_instance.out.port }}
-{% else %}
-relayhost     = [outgoing.fripost.org]:{{ postfix_instance.out.port }}
-{% endif %}
+relayhost     = [{{ postfix_instance.out.addr | ipaddr }}]:{{ postfix_instance.out.port }}
 relay_domains =
 
 
@@ -57,21 +53,7 @@ header_checks  = pcre:$config_directory/anonymize_sender.pcre
 
 
 # TLS
-{% if 'out' in group_names %}
 smtp_tls_security_level         = none
-smtp_bind_address               = 127.0.0.1
-{% else %}
-smtp_tls_security_level         = encrypt
-smtp_tls_ciphers                = high
-smtp_tls_protocols              = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
-smtp_tls_exclude_ciphers        = EXPORT, LOW, MEDIUM, aNULL, eNULL, DES, RC4, MD5
-smtp_tls_cert_file              = /etc/postfix/ssl/{{ ansible_fqdn }}.pem
-smtp_tls_key_file               = /etc/postfix/ssl/{{ ansible_fqdn }}.key
-smtp_tls_session_cache_database = btree:$data_directory/smtp_tls_session_cache
-smtp_tls_policy_maps            = cdb:/etc/postfix/tls_policy
-smtp_tls_fingerprint_digest     = sha256
-{% endif %}
-
 smtpd_tls_security_level        = encrypt
 smtpd_tls_ciphers               = high
 smtpd_tls_protocols             = !SSLv2, !SSLv3

@@ -25,21 +25,6 @@
     - recipient_canonical.pcre
     - transport
 
-- name: Copy the Postfix relay clientcerts map
-  template: src=etc/postfix/relay_clientcerts.j2
-            dest=/etc/postfix-{{ postfix_instance[inst].name }}/relay_clientcerts
-            owner=root group=root
-            mode=0644
-  tags:
-    - tls_policy
-
-- name: Compile the Postfix relay clientcerts map
-  postmap: cmd=postmap src=/etc/postfix-{{ postfix_instance[inst].name }}/relay_clientcerts db=cdb
-           owner=root group=root
-           mode=0644
-  tags:
-    - tls_policy
-
 - name: Compile the Postfix transport maps
   # trivial-rewrite(8) is a long-running process, so it's safer to reload
   postmap: cmd=postmap src=/etc/postfix-{{ postfix_instance[inst].name }}/transport db=cdb

@@ -36,37 +36,6 @@
   notify:
     - Reload Postfix
 
-- name: Create directory /etc/postfix/ssl
-  file: path=/etc/postfix/ssl
-        state=directory
-        owner=root group=root
-        mode=0755
-  tags:
-    - genkey
-
-- name: Generate a private key and a X.509 certificate for Postfix
-  command: genkeypair.sh x509
-                         --pubkey=/etc/postfix/ssl/{{ ansible_fqdn }}.pem
-                         --privkey=/etc/postfix/ssl/{{ ansible_fqdn }}.key
-                         --ou=Postfix --cn={{ ansible_fqdn }}
-                         -t rsa -b 4096 -h sha512
-  register: r3
-  changed_when: r3.rc == 0
-  failed_when: r3.rc > 1
-  notify:
-    - Restart Postfix
-  tags:
-    - genkey
-
-- name: Fetch Postfix's X.509 certificate
-  # Ensure we don't fetch private data
-  become: False
-  fetch_cmd: cmd="openssl x509"
-             stdin=/etc/postfix/ssl/{{ ansible_fqdn }}.pem
-             dest=certs/postfix/{{ ansible_fqdn }}.pem
-  tags:
-    - genkey
-
 - name: Add a 'root' alias
   lineinfile: dest=/etc/aliases create=yes
               regexp="^root{{':'}} "
@@ -81,25 +50,8 @@
 - name: Delete /etc/aliases.db
   file: path=/etc/aliases.db state=absent
 
-- name: Copy the Postfix TLS policy map
-  template: src=etc/postfix/tls_policy.j2
-            dest=/etc/postfix/tls_policy
-            owner=root group=root
-            mode=0644
-  when: "'out' not in group_names or 'MX' in group_names"
-  tags:
-    - tls_policy
-
-- name: Compile the Postfix TLS policy map
-  postmap: cmd=postmap src=/etc/postfix/tls_policy db=cdb
-           owner=root group=root
-           mode=0644
-  when: "'out' not in group_names or 'MX' in group_names"
-  tags:
-    - tls_policy
-
 - name: Start Postfix
   service: name=postfix state=started
-  when: not (r1.changed or r2.changed or r3.changed)
+  when: not (r1.changed or r2.changed)
 
 - meta: flush_handlers

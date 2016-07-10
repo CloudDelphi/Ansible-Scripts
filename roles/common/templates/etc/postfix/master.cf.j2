@@ -23,8 +23,7 @@ cleanup_nochroot unix n -       n       -       0       cleanup
 {{ postfix_instance.MSA.port }} inet n       -       -       -       -       smtpd
   -o tls_high_cipherlist=EECDH+AESGCM:!MEDIUM:!LOW:!EXP:!aNULL:!eNULL
 {% elif inst in ['IMAP', 'out', 'lists'] %}
-{{ postfix_instance[inst].port }} inet n       -       -       -       -       smtpd
-  -o tls_high_cipherlist=HIGH:!aNULL:!eNULL:!3DES:!MD5:@STRENGTH
+[{{ postfix_instance[inst].addr }}]:{{ postfix_instance[inst].port }} inet n       -       -       -       -       smtpd
 {% endif %}
 pickup    fifo  n       -       -       60      1       pickup
 cleanup   unix  n       -       -       -       0       cleanup

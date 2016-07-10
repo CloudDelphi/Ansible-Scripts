@@ -17,14 +17,5 @@
 reserved.fripost.org    reserved-alias:
 discard.fripost.org     discard:
 
-{% if 'LDA' in group_names %}
-mda.fripost.org smtpl:[127.0.0.1]:{{ postfix_instance.IMAP.port }}
-{% else %}
-mda.fripost.org smtp:[mda.fripost.org]:{{ postfix_instance.IMAP.port }}
-{% endif %}
-
-{% if 'lists' in group_names %}
-sympa.fripost.org smtpl:[127.0.0.1]:{{ postfix_instance.lists.port }}
-{% else %}
-sympa.fripost.org smtp:[lists.fripost.org]:{{ postfix_instance.lists.port }}
-{% endif %}
+mda.fripost.org   smtp:[{{ postfix_instance.IMAP.addr  | ipaddr }}]:{{ postfix_instance.IMAP.port  }}
+sympa.fripost.org smtp:[{{ postfix_instance.lists.addr | ipaddr }}]:{{ postfix_instance.lists.port }}
