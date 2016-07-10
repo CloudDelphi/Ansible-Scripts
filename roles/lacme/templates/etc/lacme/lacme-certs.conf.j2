@@ -12,16 +12,16 @@ notify = /bin/systemctl restart dovecot
 
 {% if 'MSA' in group_names %}
 [smtp]
-certificate-key = /etc/postfix/ssl/smtp.fripost.org.key
-certificate-chain = /etc/postfix/ssl/smtp.fripost.org.pem
+certificate-key = /etc/postfix-{{ postfix_instance.MSA.name }}/ssl/smtp.fripost.org.key
+certificate-chain = /etc/postfix-{{ postfix_instance.MSA.name }}/ssl/smtp.fripost.org.pem
 subject = /O=Fripost/CN=smtp.fripost.org
 notify = /bin/systemctl reload postfix
 {% endif %}
 
 {% if 'MX' in group_names %}
 [mx]
-certificate-key = /etc/postfix/ssl/mx.fripost.org.key
-certificate-chain = /etc/postfix/ssl/mx.fripost.org.pem
+certificate-key = /etc/postfix-{{ postfix_instance.MX.name }}/ssl/mx.fripost.org.key
+certificate-chain = /etc/postfix-{{ postfix_instance.MX.name }}/ssl/mx.fripost.org.pem
 subject = /O=Fripost/CN=mx{{ mxno }}.fripost.org
 notify = /bin/systemctl reload postfix
 {% endif %}

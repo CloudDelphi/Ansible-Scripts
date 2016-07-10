@@ -22,6 +22,14 @@
         owner=root group=root
         mode=0644
 
+- name: Create directory /etc/postfix/ssl
+  file: path=/etc/postfix-{{ postfix_instance[inst].name }}/ssl
+        state=directory
+        owner=root group=root
+        mode=0755
+  tags:
+    - genkey
+
 - meta: flush_handlers
 
 - name: Start Postfix
@@ -32,7 +40,7 @@
   become: False
   # `/usr/sbin/postmulti -i msa -x /usr/sbin/postconf -xh smtpd_tls_cert_file`
   fetch_cmd: cmd="openssl x509 -noout -pubkey"
-             stdin=/etc/postfix/ssl/smtp.fripost.org.pem
+             stdin=/etc/postfix-{{ postfix_instance[inst].name }}/ssl/smtp.fripost.org.pem
              dest=certs/public/smtp.fripost.org.pub
   tags:
     - genkey
