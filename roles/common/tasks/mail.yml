@@ -14,33 +14,25 @@
   notify:
     - Restart Postfix
 
-- name: Link the dynamic maps & master.cf of each children to the master's
-  # main.cf is specialized to each dedicated role, though
-  file: src=../postfix/{{ item.1 }}
-        dest=/etc/postfix-{{ postfix_instance[item.0].name }}/{{ item.1 }}
+- name: Link the dynamic maps of each children to the master's
+  # main.cf and master.cf are specialized to each dedicated role, though
+  file: src=../postfix/dynamicmaps.cf
+        dest=/etc/postfix-{{ postfix_instance[item].name }}/dynamicmaps.cf
         owner=root group=root
         state=link force=yes
   register: r2
-  with_nested:
-    - "{{ postfix_instance.keys() | intersect(group_names) | list }}"
-    - [ 'dynamicmaps.cf', 'master.cf' ]
+  with_items: "{{ postfix_instance.keys() | intersect(group_names) | list }}"
   notify:
     - Restart Postfix
 
-- name: Configure Postfix (1)
-  copy: src=etc/postfix/master.cf
-        dest=/etc/postfix/master.cf
-        owner=root group=root
-        mode=0644
-  register: r3
-  notify:
-    - Restart Postfix
-
-- name: Configure Postfix (2)
-  template: src=etc/postfix/main.cf.j2
-            dest=/etc/postfix/main.cf
+- name: Configure Postfix
+  template: src=etc/postfix/{{ item }}.j2
+            dest=/etc/postfix/{{ item }}
             owner=root group=root
             mode=0644
+  with_items:
+    - main.cf
+    - master.cf
   notify:
     - Reload Postfix
 
@@ -58,9 +50,9 @@
                          --privkey=/etc/postfix/ssl/{{ ansible_fqdn }}.key
                          --ou=Postfix --cn={{ ansible_fqdn }}
                          -t rsa -b 4096 -h sha512
-  register: r4
-  changed_when: r4.rc == 0
-  failed_when: r4.rc > 1
+  register: r3
+  changed_when: r3.rc == 0
+  failed_when: r3.rc > 1
   notify:
     - Restart Postfix
   tags:
@@ -108,6 +100,6 @@
 
 - name: Start Postfix
   service: name=postfix state=started
-  when: not (r1.changed or r2.changed or r3.changed or r4.changed)
+  when: not (r1.changed or r2.changed or r3.changed)
 
 - meta: flush_handlers

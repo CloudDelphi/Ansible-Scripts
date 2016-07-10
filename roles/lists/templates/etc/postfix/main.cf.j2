@@ -17,17 +17,13 @@ myhostname          = lists.$mydomain
 mydomain            = fripost.org
 append_dot_mydomain = no
 
-# Turn off all TCP/IP listener ports except that necessary for Sympa
-master_service_disable = !2527.inet inet
+mynetworks_style = host
 
 queue_directory       = /var/spool/postfix-{{ postfix_instance[inst].name }}
 data_directory        = /var/lib/postfix-{{ postfix_instance[inst].name }}
 multi_instance_group  = {{ postfix_instance[inst].group | default('') }}
 multi_instance_name   = postfix-{{ postfix_instance[inst].name }}
 multi_instance_enable = yes
-
-# This server is a Mail Delivery Agent
-mynetworks_style = host
 
 
 # No local delivery

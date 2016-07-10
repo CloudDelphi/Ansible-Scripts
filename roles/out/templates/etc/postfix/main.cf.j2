@@ -17,20 +17,16 @@ myhostname          = outgoing{{ outgoingno | default('') }}.$mydomain
 mydomain            = fripost.org
 append_dot_mydomain = no
 
-# Turn off all TCP/IP listener ports except that necessary for the
-# outgoing SMTP proxy.
-master_service_disable = !{{ postfix_instance.out.port }}.inet !127.0.0.1:10025.inet inet
+mynetworks = 127.0.0.0/8, [::1]/128
+{%- if groups.all | length > 1 -%}
+           , {{ ipsec_subnet }}
+{% endif %}
 
 queue_directory       = /var/spool/postfix-{{ postfix_instance[inst].name }}
 data_directory        = /var/lib/postfix-{{ postfix_instance[inst].name }}
 multi_instance_group  = {{ postfix_instance[inst].group | default('') }}
 multi_instance_name   = postfix-{{ postfix_instance[inst].name }}
 multi_instance_enable = yes
-
-mynetworks      = 127.0.0.0/8, [::1]/128
-{%- if groups.all | length > 1 -%}
-                , {{ ipsec_subnet }}
-{% endif %}
 
 # No local delivery
 mydestination        =

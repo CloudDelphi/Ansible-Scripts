@@ -5,10 +5,13 @@
     - postfix-ldap
 
 - name: Configure Postfix
-  template: src=etc/postfix/main.cf.j2
-            dest=/etc/postfix-{{ postfix_instance[inst].name }}/main.cf
+  template: src=etc/postfix/{{ item }}.j2
+            dest=/etc/postfix-{{ postfix_instance[inst].name }}/{{ item }}
             owner=root group=root
             mode=0644
+  with_items:
+    - main.cf
+    - master.cf
   notify:
     - Reload Postfix
 
