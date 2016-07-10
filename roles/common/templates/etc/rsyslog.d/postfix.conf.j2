@@ -13,5 +13,5 @@ $AddUnixListenSocket /var/spool/postfix-{{ postfix_instance[g].name }}/dev/log
 # header of their choice.  As the SASL username is not logged in the mail
 # header, we keep a mapping Postfix's message ID -> SASL username in a separate
 # log file that is only rotated monthly.
-if $programname == 'postfix-msa' and $syslogfacility-text == 'mail' and $msg contains 'sasl_username=' then /var/log/mail.sasl
+if $programname == 'postfix-{{ postfix_instance.MSA.name }}' and $syslogfacility-text == 'mail' and $msg contains 'sasl_username=' then /var/log/mail.sasl
 {% endif %}

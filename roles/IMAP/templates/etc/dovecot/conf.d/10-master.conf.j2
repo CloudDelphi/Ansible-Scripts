@@ -56,7 +56,7 @@ service pop3-login {
 service lmtp {
   user = vmail
 
-  unix_listener /var/spool/postfix-mda/private/dovecot-lmtpd {
+  unix_listener /var/spool/postfix-{{ postfix_instance.IMAP.name }}/private/dovecot-lmtpd {
     group = postfix
     user = postfix
     mode = 0600
@@ -108,7 +108,7 @@ service auth {
   }
 
   # Postfix smtp-auth
-  unix_listener /var/spool/postfix-msa/private/dovecot-auth {
+  unix_listener /var/spool/postfix-{{ postfix_instance.MSA.name }}/private/dovecot-auth {
     group = postfix
     user = postfix
     mode = 0600
