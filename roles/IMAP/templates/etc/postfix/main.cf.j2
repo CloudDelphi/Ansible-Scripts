@@ -19,7 +19,9 @@ append_dot_mydomain = no
 
 mynetworks = 127.0.0.0/8, [::1]/128
 {%- if groups.all | length > 1 -%}
-           , {{ ipsec_subnet }}
+{%- for mx in groups.MX | sort -%}
+           , {{ ipsec[ hostvars[mx].inventory_hostname_short ] | ipaddr }}
+{%- endfor %}
 {% endif %}
 
 queue_directory       = /var/spool/postfix-{{ postfix_instance[inst].name }}
