@@ -44,7 +44,7 @@ x509fpr2() {
     str="$str$(printf '%-6s' "$h" | tr '[a-z]' '[A-Z]')"
     dgst="$(openssl pkey -pubin -outform DER <"$pub" | openssl dgst -"$h" -binary | base64)"
     hd=$(printf '%s' "$dgst" | base64 -d | xxd -c256 -p | tr '[a-f]' '[A-F]' | sed -e 's/../&:/g' -e 's/:$//')
-    if [ $((${#indent} + ${#str} + 1 + ${#hd})) -le 72 ]; then
+    if [ $((${#str} + 1 + ${#hd})) -le 72 ]; then
         printf '%s %s\n' "$indent$str" "$hd"
     else
         printf '%s %s\n' "$indent$str" "$dgst"
