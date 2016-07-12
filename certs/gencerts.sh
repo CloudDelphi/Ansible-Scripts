@@ -18,19 +18,37 @@ usage() {
 }
 
 x509fpr() {
-    local msg="$1" host cert h spki
+    local msg="$1" host pub h spki
     host="${msg%%,*}"; host="${host%% *}"; host="${host#\`}"
-    cert="$DIR/${host%%:*}.pub"
-    spki=$(openssl pkey -pubin -outform DER <"$cert" | openssl dgst -sha256 | sed -nr 's/^[^=]+=\s*//p')
+    pub="$DIR/${host%%:*}.pub"
+    spki=$(openssl pkey -pubin -outform DER <"$pub" | openssl dgst -sha256 | sed -nr 's/^[^=]+=\s*//p')
     [ "$typ" = mdwn ] && printf '\n    [%s](https://crt.sh/?spkisha256=%s&iCAID=16418&exclude=expired)\n\n' "$msg" "$spki" \
                       || printf '    %s\n    X.509: https://crt.sh/?spkisha256=%s&iCAID=16418&exclude=expired\n    SPKI:\n' \
-                                "$( echo "$msg" | tr -d '`' )" "$spki"
+                                "$(printf '%s' "$msg" | tr -d '`' )" "$spki"
     for h in sha1 sha256; do
-        [ "$typ" = mdwn ] || echo -n '  '
-        echo -n "$h" | tr '[a-z]' '[A-Z]'
-        for i in $(seq 1 $((7 - ${#h}))); do echo -n ' '; done
-        openssl pkey -pubin -outform DER <"$cert" | openssl dgst -"$h" -c | sed -nr 's/^[^=]+=\s*//p'
-    done | sed -r "s/(\S+)(.*)/$indent\1\U\2/"
+        x509fpr2 "$h" "$pub"
+    done
+
+    local backup=$(find "$DIR" -maxdepth 1 -type f -name "${host%%:*}.pub.back*")
+    if [ "$backup" -a "$typ" != mdwn ]; then
+        echo "    Backup SPKI:"
+        for pub in $backup; do
+            x509fpr2 "$h" "$pub"
+        done
+    fi
+}
+x509fpr2() {
+    local h="$1" pub="$2" str dgst
+
+    [ "$typ" = mdwn ] && str= || str='  '
+    str="$str$(printf '%-6s' "$h" | tr '[a-z]' '[A-Z]')"
+    dgst="$(openssl pkey -pubin -outform DER <"$pub" | openssl dgst -"$h" -binary | base64)"
+    hd=$(printf '%s' "$dgst" | base64 -d | xxd -c256 -p | tr '[a-f]' '[A-F]' | sed -e 's/../&:/g' -e 's/:$//')
+    if [ $((${#indent} + ${#str} + 1 + ${#hd})) -le 72 ]; then
+        printf '%s %s\n' "$indent$str" "$hd"
+    else
+        printf '%s %s\n' "$indent$str" "$dgst"
+    fi
 }
 
 sshfpr() {
@@ -42,9 +60,7 @@ sshfpr() {
         ssh-keygen -E "$h" -f "$DIR/../ssh_known_hosts" -lF "${host#*@}"
     done | sed -nr 's/^[^ #]+\s+//p' | sed -r 's/^(\S+)\s+(MD5|SHA256):/\1 \2 /' |
     while read t h fpr; do
-        echo -n "$indent$t"
-        for i in $(seq 1 $((7 - ${#h}))); do echo -n ' '; done
-        echo "$h:$fpr"
+        printf '%s %6s:%s\n' "$indent$t" "$h" "$fpr"
     done
 }
 
