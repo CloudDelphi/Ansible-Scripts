@@ -79,9 +79,9 @@ allfpr() {
 		$(x509fpr '`mx2.fripost.org:25` (2nd Mail eXchange, `STARTTLS`)')
 
 	 * Web servers
-		$(x509fpr '`fripost.org:443` (website), `wiki.fripost.org:443` (wiki)')
+		$(x509fpr '`fripost.org:443`, `www.fripost.org:443` (website), `wiki.fripost.org:443` (wiki)')
 	
-		$(x509fpr '`mail.fripost.org:443` (webmail)')
+		$(x509fpr '`mail.fripost.org:443`, `webmail.fripost.org:443` (webmail)')
 	
 		$(x509fpr '`lists.fripost.org:443` (list manager)')
 	
