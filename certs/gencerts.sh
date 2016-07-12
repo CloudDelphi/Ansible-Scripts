@@ -17,14 +17,21 @@ usage() {
     exit 1
 }
 
+header() {
+    local i hdr
+    [ "$typ" = mdwn ] && printf '\n### %s ###\n' "$*" \
+                      || printf '\n%s\n%s\n' "$*" "$(for i in $(seq 1 ${#*}); do printf '%c' =; done)"
+}
+
 x509fpr() {
     local msg="$1" host pub h spki
     host="${msg%%,*}"; host="${host%% *}"; host="${host#\`}"
     pub="$DIR/${host%%:*}.pub"
     spki=$(openssl pkey -pubin -outform DER <"$pub" | openssl dgst -sha256 | sed -nr 's/^[^=]+=\s*//p')
-    [ "$typ" = mdwn ] && printf '\n    [%s](https://crt.sh/?spkisha256=%s&iCAID=16418&exclude=expired)\n\n' "$msg" "$spki" \
-                      || printf '    %s\n    X.509: https://crt.sh/?spkisha256=%s&iCAID=16418&exclude=expired\n    SPKI:\n' \
+    [ "$typ" = mdwn ] && printf '\n[%s](https://crt.sh/?spkisha256=%s&iCAID=16418&exclude=expired)\n\n' "$msg" "$spki" \
+                      || printf '\n%s\n\n:   X.509: https://crt.sh/?spkisha256=%s&iCAID=16418&exclude=expired\n    SPKI:\n' \
                                 "$(printf '%s' "$msg" | tr -d '`' )" "$spki"
+    [ "$typ" = mdwn ] && indent=":${indent#?}"
     for h in sha1 sha256; do
         x509fpr2 "$h" "$pub"
     done
@@ -39,7 +46,6 @@ x509fpr() {
 }
 x509fpr2() {
     local h="$1" pub="$2" str dgst
-
     [ "$typ" = mdwn ] && str= || str='  '
     str="$str$(printf '%-6s' "$h" | tr '[a-z]' '[A-Z]')"
     dgst="$(openssl pkey -pubin -outform DER <"$pub" | openssl dgst -"$h" -binary | base64)"
@@ -49,13 +55,15 @@ x509fpr2() {
     else
         printf '%s %s\n' "$indent$str" "$dgst"
     fi
+    indent=" ${indent#?}"
 }
 
 sshfpr() {
     local msg="$1" host h fpr str
     host="${msg%%,*}"; host="${host%% *}"; host="${host#*@}"; host="${host#\`}"; host="${host%\`}"
-    [ "$typ" = mdwn ] && { echo; echo "    $msg"; echo; } || { echo "    $msg" | tr -d '`'; }
+    [ "$typ" = mdwn ] && printf '\n%s\n\n' "$msg" || { printf '\n%s\n\n' "$msg" | tr -d '`'; }
     [ "${host#*:}" != 22 ] || host="${host%%:*}"
+    indent=":${indent#?}"
     [ "$typ" = mdwn ] && str= || str='  '
     for h in MD5 SHA256; do
         ssh-keygen -E "$h" -f "$DIR/../ssh_known_hosts" -lF "${host#*@}"
@@ -63,35 +71,30 @@ sshfpr() {
     while read h fpr; do
         str2="$str$(printf '%-6s' "$h" | tr '[a-z]' '[A-Z]')"
         printf '%s %s\n' "$indent$str2" "$fpr"
+        indent=" ${indent#?}"
     done
 }
 
 allfpr() {
     local typ="$1"
     [ "$typ" = mdwn ] && indent='        ' || indent='    '
-	cat <<- EOF
-	 * IMAP server
-		$(x509fpr '`imap.fripost.org:993` (IMAP over SSL), `sieve.fripost.org:4190` (ManageSieve, `STARTTLS`)')
 
-	 * SMTP servers
-		$(x509fpr '`smtp.fripost.org:587` (Mail Submission Agent, `STARTTLS`)')
-	
-		$(x509fpr '`mx1.fripost.org:25` (1st Mail eXchange, `STARTTLS`)')
-	
-		$(x509fpr '`mx2.fripost.org:25` (2nd Mail eXchange, `STARTTLS`)')
+    header 'IMAP server'
+    x509fpr '`imap.fripost.org:993` (IMAP over SSL), `sieve.fripost.org:4190` (ManageSieve, `STARTTLS`)'
 
-	 * Web servers
-		$(x509fpr '`fripost.org:443`, `www.fripost.org:443` (website), `wiki.fripost.org:443` (wiki)')
-	
-		$(x509fpr '`mail.fripost.org:443`, `webmail.fripost.org:443` (webmail)')
-	
-		$(x509fpr '`lists.fripost.org:443` (list manager)')
-	
-		$(x509fpr '`git.fripost.org:443` (git server and its web interface)')
+    header 'SMTP servers'
+    x509fpr '`smtp.fripost.org:587` (Mail Submission Agent, `STARTTLS`)'
+    x509fpr '`mx1.fripost.org:25` (1st Mail eXchange, `STARTTLS`)'
+    x509fpr '`mx2.fripost.org:25` (2nd Mail eXchange, `STARTTLS`)'
 
-	 * SSH server
-		$(sshfpr '`gitolite@git.fripost.org:22`')
-	EOF
+    header 'Web servers'
+    x509fpr '`fripost.org:443`, `www.fripost.org:443` (website), `wiki.fripost.org:443` (wiki)'
+    x509fpr '`mail.fripost.org:443`, `webmail.fripost.org:443` (webmail)'
+    x509fpr '`lists.fripost.org:443` (list manager)'
+    x509fpr '`git.fripost.org:443` (git server and its web interface)'
+
+    header 'SSH server'
+    sshfpr '`gitolite@git.fripost.org:22`'
 }
 
 
@@ -134,7 +137,6 @@ The SPKI of our X.509 certificates are also available in PEM format at:
 Git repository from which this fingerprint list was generated, at commit ID
 $(git --no-pager --git-dir="$DIR/../../.git" --work-tree="$DIR" log -1 --pretty=format:'%h from %aD' -- "$DIR").
 
-
 EOF
 allfpr asc >>"$src2"
 
@@ -160,7 +162,6 @@ The SPKI of our X.509 certificates are also available in PEM format
 under our [Git repository]($VCS_BROWSER/tree/certs/public),
 from which this fingerprint list was [generated]($VCS_BROWSER/tree/certs/gencerts.sh), at
 $(git --no-pager --git-dir="$DIR/../../.git" --work-tree="$DIR" log -1 --pretty=format:"[Commit ID %h from %aD]($VCS_BROWSER/tree/certs/public?id=%H)" -- "$DIR").
-
 
 EOF
 allfpr mdwn >>"$mdwn2"
