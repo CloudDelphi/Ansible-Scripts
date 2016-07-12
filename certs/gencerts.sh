@@ -33,7 +33,7 @@ x509fpr() {
     if [ "$backup" -a "$typ" != mdwn ]; then
         echo "    Backup pubkey:"
         for pub in $backup; do
-            x509fpr2 "$h" "$pub"
+            x509fpr2 sha256 "$pub"
         done
     fi
 }
