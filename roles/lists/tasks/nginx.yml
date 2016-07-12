@@ -19,9 +19,20 @@
   notify:
     - Restart Nginx
 
+- name: Copy HPKP header snippet
+  # never modify the pined pubkeys as we don't want to lock out our users
+  template: src=etc/nginx/snippets/lists.fripost.org.hpkp-hdr.j2
+            dest=/etc/nginx/snippets/lists.fripost.org.hpkp-hdr
+            validate=/bin/false
+            owner=root group=root
+            mode=0644
+  register: r3
+  notify:
+    - Restart Nginx
+
 - name: Start nginx
   service: name=nginx state=started
-  when: not (r1.changed or r2.changed)
+  when: not (r1.changed or r2.changed or r3.changed)
 
 - meta: flush_handlers
 

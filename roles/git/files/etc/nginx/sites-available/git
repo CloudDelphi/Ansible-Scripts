@@ -27,9 +27,9 @@ server {
     include snippets/headers.conf;
 
     include snippets/ssl.conf;
-    ssl_certificate     /etc/nginx/ssl/git.fripost.org.pem;
-    ssl_certificate_key /etc/nginx/ssl/git.fripost.org.key;
-    add_header Public-Key-Pins 'pin-sha256="HOoiXgC7tolzZ31b65UzbAKhpCCA7I0iNdO7NEuL0lU="; pin-sha256="7F+6dSG3D3X3SSLXmb4GWWqUViztamLmmCBlYCi4a10="; max-age=15778800';
+    ssl_certificate     ssl/git.fripost.org.pem;
+    ssl_certificate_key ssl/git.fripost.org.key;
+    include             snippets/git.fripost.org.hpkp-hdr;
 
     location ^~ /static/ {
         alias /usr/share/cgit/;

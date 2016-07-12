@@ -29,9 +29,9 @@ server {
                "default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; upgrade-insecure-requests; block-all-mixed-content; reflected-xss block; referrer no-referrer-when-downgrade; frame-ancestors 'none'; form-action 'self'; base-uri lists.fripost.org";
 
     include snippets/ssl.conf;
-    ssl_certificate     /etc/nginx/ssl/lists.fripost.org.pem;
-    ssl_certificate_key /etc/nginx/ssl/lists.fripost.org.key;
-    add_header Public-Key-Pins 'pin-sha256="OLx1hOEqnCdS/7ZgzTzAl8Ig/Cwpz5MY9J9Fishg6/0="; pin-sha256="v/Ow0Ou2m08HO10wxci1IVrMC/pbihnoDNxvUwKBsMY="; max-age=15778800';
+    ssl_certificate     ssl/lists.fripost.org.pem;
+    ssl_certificate_key ssl/lists.fripost.org.key;
+    include             snippets/lists.fripost.org.hpkp-hdr;
 
     location = / {
         return 302 /sympa$args;

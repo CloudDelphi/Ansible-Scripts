@@ -31,9 +31,9 @@ server {
                "default-src 'none'; child-src 'self'; frame-src 'self'; connect-src 'self'; object-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src * data:; font-src 'self'; reflected-xss block; referrer no-referrer-when-downgrade; frame-ancestors 'self'; form-action 'self'; base-uri mail.fripost.org webmail.fripost.org";
 
     include snippets/ssl.conf;
-    ssl_certificate     /etc/nginx/ssl/mail.fripost.org.pem;
-    ssl_certificate_key /etc/nginx/ssl/mail.fripost.org.key;
-    add_header Public-Key-Pins 'pin-sha256="SHfniMEapxeYo5YT/2jP+n+WstNaYghDMhZUadLlPDk="; pin-sha256="/Tt92H3ZkfEW1/AOCoGVm1TxZl7u4c+tIBnuvAc7d5w="; max-age=15778800';
+    ssl_certificate     ssl/mail.fripost.org.pem;
+    ssl_certificate_key ssl/mail.fripost.org.key;
+    include             snippets/mail.fripost.org.hpkp-hdr;
 
     location = /favicon.ico {
         root          /usr/share/roundcube/skins/default/images;
