@@ -52,15 +52,17 @@ x509fpr2() {
 }
 
 sshfpr() {
-    local msg="$1" host t h fpr
+    local msg="$1" host h fpr str
     host="${msg%%,*}"; host="${host%% *}"; host="${host#*@}"; host="${host#\`}"; host="${host%\`}"
     [ "$typ" = mdwn ] && { echo; echo "    $msg"; echo; } || { echo "    $msg" | tr -d '`'; }
     [ "${host#*:}" != 22 ] || host="${host%%:*}"
+    [ "$typ" = mdwn ] && str= || str='  '
     for h in MD5 SHA256; do
         ssh-keygen -E "$h" -f "$DIR/../ssh_known_hosts" -lF "${host#*@}"
-    done | sed -nr 's/^[^ #]+\s+//p' | sed -r 's/^(\S+)\s+(MD5|SHA256):/\1 \2 /' |
-    while read t h fpr; do
-        printf '%s %6s:%s\n' "$indent$t" "$h" "$fpr"
+    done | sed -nr 's/^[^ #]+\s+//p' | sed -r 's/^\S+\s+([^:]+):/\1 /' |
+    while read h fpr; do
+        str2="$str$(printf '%-6s' "$h" | tr '[a-z]' '[A-Z]')"
+        printf '%s %s\n' "$indent$str2" "$fpr"
     done
 }
 
