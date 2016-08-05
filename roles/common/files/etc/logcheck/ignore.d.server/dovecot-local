@@ -23,4 +23,5 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ dovecot: managesieve\([-_.@[:alnum:]]+\): Disconnected: Logged out bytes=[[:digit:]]+/[[:digit:]]+?$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ dovecot: ssl-params: (Generating SSL parameters|SSL parameters regeneration completed)$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ dovecot: stats: Warning: UPDATE-CMD: Already expired$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ dovecot: stats: Warning: Couldn't find session GUID: [[:xdigit:]]{32}$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ dovecot: stats: Error: Mail server input error: UPDATE-SESSION [-_.@[:alnum:]]+ imap: stats shrank: (mcache|mlpath|mrbytes|mrcount) [[:digit:]]+ < [[:digit:]]+$
