@@ -30,6 +30,16 @@
     - Restart ClamAV
     - Restart Amavis
 
+- name: Add an 'amavis' alias
+  lineinfile: dest=/etc/aliases create=yes
+              regexp="^amavis{{':'}} "
+              line="amavis{{':'}} root"
+
+- name: Compile the static local Postfix database
+  postmap: cmd=postalias src=/etc/aliases db=cdb
+           owner=root group=root
+           mode=0644
+
 - name: Create directory /var/lib/dkim
   file: path=/var/lib/dkim
         state=directory
