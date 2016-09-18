@@ -11,6 +11,6 @@
 {%- endfor %}
 
 {%- if pins | length > 0 %}
-{% set directives = pins + ['max-age=3600'] %}
+{% set directives = pins + ['max-age=15768000'] %}
 add_header Public-Key-Pins '{{ directives | join('; ') }}';
 {% endif %}
