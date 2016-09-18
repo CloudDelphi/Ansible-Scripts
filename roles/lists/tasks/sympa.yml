@@ -68,6 +68,9 @@
   tags:
     - logrotate
 
+- name: Enable Sympa
+  service: name=sympa enabled=yes
+
 - name: Start Sympa
   service: name=sympa state=started
   when: not (r1.changed or r2.changed or r3.changed or r4.changed)
