@@ -38,7 +38,7 @@ x509fpr() {
 
     local backup=$(find "$DIR" -maxdepth 1 -type f -name "${host%%:*}.pub.back*")
     if [ "$backup" -a "$typ" != mdwn ]; then
-        echo "    Backup pubkey:"
+        echo "    Backup SPKI:"
         for pub in $backup; do
             x509fpr2 sha256 "$pub"
         done
