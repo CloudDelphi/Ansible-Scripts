@@ -227,9 +227,8 @@ run() {
         for ip in 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 169.254.0.0/16; do
             # Don't lock us out if we are behind a NAT ;-)
             for myip in $MyNetwork; do
-                [ "$ip" = "$(/usr/bin/netmask -nc "$ip" "$myip" | sed 's/^ *//')" ] \
-                || iptables -A INPUT -i $if -s "$ip" -j DROP
-            done
+                [ "$ip" = "$(/usr/bin/netmask -nc "$ip" "$myip" | sed 's/^ *//')" ] || echo "$ip"
+            done | uniq | while read ip; do iptables -A INPUT -i $if -s "$ip" -j DROP; done
         done
 
         # Other martian packets: "This" network, multicast, broadcast (RFCs
@@ -343,7 +342,7 @@ run() {
            -e 's/^\[[0-9]+:[0-9]+\]\s+//' \
            "$old" > "$oldz"
 
-    /usr/bin/uniq "$new" | /bin/ip netns exec $netns $ipt-restore || ipt-revert
+    /bin/ip netns exec $netns $ipt-restore <"$new" || ipt-revert
 
     for table in ${tables[$f]}; do
        /bin/ip netns exec $netns $ipt-save -t $table
@@ -359,7 +358,7 @@ run() {
 
     local update="Please run '${0##*/}'."
     if [ $check -eq 0 ]; then
-        /usr/bin/uniq "$new" | $ipt-restore || ipt-revert
+        $ipt-restore <"$new" || ipt-revert
     else
         if [ $rv1 -ne 0 ]; then
             log "WARN: The IPv$f firewall is not up to date! $update"
