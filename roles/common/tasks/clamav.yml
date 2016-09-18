@@ -8,8 +8,8 @@
 - name: Configure FreshClam
   template: src=etc/clamav/freshclam.conf.j2
             dest=/etc/clamav/freshclam.conf
-            owner=root group=root
-            mode=0644
+            owner=clamav group=adm
+            mode=0444
   tags: freshclam
   notify:
     - Restart freshclam
