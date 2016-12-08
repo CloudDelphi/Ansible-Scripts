@@ -9,7 +9,7 @@
     - libnet-ssleay-perl
 
 - name: Copy lacme
-  copy: src=deb/lacme_0.1-1_all.deb
+  copy: src=deb/lacme_0.2-1_all.deb
         dest=/tmp
   notify: Install lacme
 

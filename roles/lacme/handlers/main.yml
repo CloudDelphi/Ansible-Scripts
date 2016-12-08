@@ -1,2 +1,2 @@
 - name: Install lacme
-  apt: deb=/tmp/lacme_0.1-1_all.deb
+  apt: deb=/tmp/lacme_0.2-1_all.deb
