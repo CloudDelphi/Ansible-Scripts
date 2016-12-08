@@ -50,7 +50,7 @@
 #   $ /usr/bin/sudo -u ikiwiki git config --global user.email "admin@fripost.org"
 #   $ /usr/bin/sudo -u ikiwiki ikiwiki --setup /etc/ikiwiki/auto.setup
 #   ## Add ikiwiki's key to gitolite
-#   sudo ln -s /var/lib/ikiwiki/wiki.fripost.org /var/lib/gitolite/repositories/fripost-wiki.git/hooks/post-update
+#   ## Create post-update hook, cf. http://rtime.felk.cvut.cz/~sojka/blog/using-ikiwiki-with-gitolite/
 #   $ /usr/bin/sudo -u ikiwiki git clone ssh://gitolite@localhost/fripost-wiki.git
 
 - name: Configure ikiwiki
