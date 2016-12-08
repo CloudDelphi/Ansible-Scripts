@@ -4,6 +4,7 @@
     - php5-fpm
     - php5-ldap
     - php5-gd
+    - php5-xcache
     # spell-checking
     - php5-enchant
 
