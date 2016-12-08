@@ -15,6 +15,7 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: Bad protocol version identification '.*' from [:.[:xdigit:]]+ port [[:digit:]]+$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: Accepted publickey for [^[:space:]]+ from [^[:space:]]+ port [[:digit:]]+( (ssh|ssh2))?(: (DSA|RSA|ECDSA|ED25519) ([[:xdigit:]]{2}:){15}[[:xdigit:]]{2})?$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: WARNING: no suitable primes in /etc/ssh/primes$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ systemd\[1\]: Start(ing|ed) Cleanup of Temporary Directories\.(\.\.)?$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ slapd\[[[:digit:]]+\]: connection_input: conn=[[:digit:]]+ deferring operation: binding$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (slapd\[[[:digit:]]+\]|slap(acl|add|auth|cat|dn|index)|ldap(add|compare|delete|exop|modify|modrdn|passwd|search|url|whoami)): DIGEST-MD5 common mech free$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sudo:[[:space:]]+[_[:alnum:].-]+ : TTY=(unknown|(pts/|tty|vc/)[[:digit:]]+) ; PWD=[^;]+ ; USER=[._[:alnum:]-]+ (; ENV=([_a-zA-Z]+=\S* )+)?; COMMAND=(/(usr|etc|bin|sbin)/|sudoedit )
