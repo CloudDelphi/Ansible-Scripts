@@ -139,7 +139,7 @@ def processEntry(module, l, dn, entry):
 
     for x in indexedAttributes.intersection(entry.keys()):
         # remove useless extra spaces in ACLs etc
-        entry[x] = map( partial(multispaces.sub, ' '), entry[x] )
+        entry[x] = list(map( partial(multispaces.sub, ' '), entry[x] ))
 
     r = flexibleSearch( module, l, dn, entry )
     if r is None:
@@ -149,8 +149,8 @@ def processEntry(module, l, dn, entry):
         if 'olcAccess' in entry.keys():
             # replace "username=...,cn=peercred,cn=external,cn=auth"
             # by a DN with proper gidNumber and uidNumber
-            entry['olcAccess'] = map ( partial(sasl_ext_re.sub, acl_sasl_ext)
-                                     , entry['olcAccess'] )
+            entry['olcAccess'] = list(map ( partial(sasl_ext_re.sub, acl_sasl_ext)
+                                          , entry['olcAccess'] ))
         l.add_s( dn, addModlist(entry) )
     else:
         d,e = r
@@ -166,11 +166,11 @@ def processEntry(module, l, dn, entry):
                 if a == 'olcAccess':
                     # replace "username=...,cn=peercred,cn=external,cn=auth"
                     # by a DN with proper gidNumber and uidNumber
-                    entry[a] = map ( partial(sasl_ext_re.sub, acl_sasl_ext)
-                                   , entry[a] )
+                    entry[a] = list(map ( partial(sasl_ext_re.sub, acl_sasl_ext)
+                                        , entry[a] ))
                 # add explicit indices in the entry from the LDIF
-                entry[a] = map( (lambda x: '{%d}%s' % x)
-                              , zip(range(len(entry[a])),entry[a]) )
+                entry[a] = list(map( (lambda x: '{%d}%s' % x)
+                                   , zip(range(len(entry[a])),entry[a])))
                 if v != entry[a]:
                     diff.append(( ldap.MOD_REPLACE, a, entry[a] ))
             elif v != entry[a]:

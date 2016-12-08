@@ -15,7 +15,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ansible.plugins.action import ActionBase
-from ansible.utils.unicode import to_bytes, to_unicode
+from ansible.utils.unicode import to_bytes
+from ansible.module_utils._text import to_text
 
 class ActionModule(ActionBase):
     TRANSFERS_FILES = True
@@ -56,7 +57,7 @@ class ActionModule(ActionBase):
             # template the source data locally
             try:
                 with open(target, 'r') as f:
-                    template_data = to_unicode(f.read())
+                    template_data = to_text(f.read())
                 target = self._templar.template(template_data, preserve_trailing_newlines=True, escape_backslashes=False, convert_data=False)
             except Exception as e:
                 result['failed'] = True
