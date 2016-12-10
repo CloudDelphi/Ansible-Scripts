@@ -102,6 +102,7 @@ Job {
   Name = {{ hostvars[h].inventory_hostname_short }}-mailboxes
   Client = {{ hostvars[h].inventory_hostname_short }}-fd
   JobDefs = DefaultJob
+  Accurate = no
   FileSet = Mailboxes
   Pool = mailboxes-inc
   Full Backup Pool = mailboxes-full
@@ -353,10 +354,15 @@ FileSet {
   Name = Mailboxes
   Include {
     Options {
+      WildDir = /home/mail/attachments/queue
+      Exclude = yes
+    }
+    Options {
       signature = SHA1
       verify = pins1
     }
     File = /home/mail/virtual
+    File = /home/mail/attachments
     File = /home/mail/spamspool
   }
 }

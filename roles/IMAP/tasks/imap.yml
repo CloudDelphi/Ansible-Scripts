@@ -36,11 +36,21 @@
         owner=root group=root
         mode=0755
 
-- name: Create /home/mail/virtual
-  file: path=/home/mail/virtual
+- name: Create /home/mail/{virtual,attachments,spamspool}
+  file: path=/home/mail/{{ item }}
         state=directory
         owner=vmail group=vmail
         mode=0700
+  with_items:
+    - virtual
+    - attachments
+    - spamspool
+
+- name: Create a cronjob for SIS deduplication
+  copy: src=etc/cron.d/doveadm
+        dest=/etc/cron.d/doveadm
+        owner=root group=root
+        mode=0644
 
 - name: Create virtual mailbox directories
   file: path=/etc/dovecot/virtual/{{ item }}
@@ -63,12 +73,6 @@
     - flagged
     - recent
     - unseen
-
-- name: Create directory /home/mail/spamspool
-  file: path=/home/mail/spamspool
-        state=directory
-        owner=vmail group=vmail
-        mode=0700
 
 - name: Create directory /etc/dovecot/ssl
   file: path=/etc/dovecot/ssl
