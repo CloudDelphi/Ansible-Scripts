@@ -1,3 +1,3 @@
 MAILTO=root
 
-7 5 * * *  vmail  test -x /usr/bin/doveadm && nice -n 19 /usr/bin/doveadm sis deduplicate /home/mail/attachments /home/mail/attachments/queue
+59 * * * *  vmail  test -x /usr/bin/doveadm && nice -n 19 /usr/bin/doveadm sis deduplicate /home/mail/attachments /home/mail/attachments/queue
