@@ -17,8 +17,8 @@ server {
 
 
 server {
-    listen      443;
-    listen [::]:443;
+    listen      443 spdy;
+    listen [::]:443 spdy;
 
     server_name wiki.fripost.org;
 
