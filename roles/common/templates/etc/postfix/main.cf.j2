@@ -36,17 +36,12 @@ relay_domains =
 smtp_tls_security_level  = none
 smtpd_tls_security_level = none
 
-{% set multi_instance = False %}
-{%- for g in postfix_instance.keys() | sort -%}
-  {%- if g in group_names -%}
-    {%- if not multi_instance -%}
-      {%- set multi_instance = True -%}
+{% set instances = postfix_instance.keys() | intersect(group_names) | list %}
+{%- if instances | length > 0 -%}
 ## Other postfix instances
 multi_instance_wrapper     = $command_directory/postmulti -p --
 multi_instance_enable      = yes
-multi_instance_directories =
-    {%- endif %} /etc/postfix-{{ postfix_instance[g].name }}
-  {%- endif %}
-{% endfor %}
+multi_instance_directories ={% for i in instances | sort %} /etc/postfix-{{ postfix_instance[i].name }}{% endfor %}
+{% endif %}
 
 # vim: set filetype=pfmain :
