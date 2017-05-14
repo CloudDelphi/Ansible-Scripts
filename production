@@ -11,7 +11,7 @@ giraff.fripost.org geoip=se
 antilop.fripost.org geoip=se
 
 [civett]
-civett.friprogramvarusyndikatet.se geoip=se mxno=2
+civett.fripost.org geoip=se mxno=2
 
 [benjamin]
 benjamin.skangas.se geoip=se
