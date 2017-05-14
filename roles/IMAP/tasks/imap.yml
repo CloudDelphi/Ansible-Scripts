@@ -9,6 +9,13 @@
     - dovecot-managesieved
     - dovecot-sieve
 
+# 7 5   * * * root users=$(mktemp --tmpdir) && sudo -u dovecot /usr/local/bin/list-members.pl && sudo -u vmail nice -n 19 /usr/bin/doveadm purge -F"$users"
+- name: Copy list-users.pl
+  copy: src=usr/local/bin/list-users.pl
+        dest=/usr/local/bin/list-users.pl
+        owner=root group=root
+        mode=0755
+
 - name: Create a user 'vmail'
   user: name=vmail system=yes
         createhome=no
