@@ -96,6 +96,7 @@ smtpd_helo_restrictions =
 smtpd_sender_restrictions =
     reject_non_fqdn_sender
     reject_unknown_sender_domain
+    check_sender_access cdb:$config_directory/check_sender_access
 
 smtpd_relay_restrictions =
     reject_non_fqdn_recipient

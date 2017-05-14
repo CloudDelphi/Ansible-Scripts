@@ -22,6 +22,20 @@
         owner=root group=root
         mode=0644
 
+- name: Copy the check_sender_access map
+  copy: src=etc/postfix/check_sender_access
+        dest=/etc/postfix-{{ postfix_instance[inst].name }}/check_sender_access
+        owner=root group=root
+        mode=0644
+
+- name: Compile the check_sender_access map
+  # no need to reload upon change, as cleanup(8) is short-running
+  postmap: cmd=postmap src=/etc/postfix-{{ postfix_instance[inst].name }}/check_sender_access db=cdb
+           owner=root group=root
+           mode=0644
+  notify:
+    - Reload Postfix
+
 - name: Create directory /etc/postfix/ssl
   file: path=/etc/postfix-{{ postfix_instance[inst].name }}/ssl
         state=directory
