@@ -2,5 +2,8 @@
 - name: Restart stunnel@ldap
   service: name=stunnel4@ldap state=restarted
 
+- name: Restart php5
+  service: name=php5-fpm state=restarted
+
 - name: Restart Nginx
   service: name=nginx state=restarted

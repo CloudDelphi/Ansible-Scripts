@@ -4,9 +4,34 @@
     - php5-fpm
     - php5-ldap
     - php5-gd
-    - php5-xcache
+    - php5-apcu
     # spell-checking
     - php5-enchant
+
+- name: Configure PHP5 APCu
+  copy: src=etc/php5/mods-available/apcu.ini
+        dest=/etc/php5/mods-available/apcu.ini
+        owner=root group=root
+        mode=0644
+  notify:
+    - Restart php5
+
+- name: Configure PHP5 Zend opcache
+  lineinfile: dest=/etc/php5/fpm/php.ini
+              regexp='^;?{{ item.var }}\\s*='
+              line="{{ item.var }} = {{ item.value }}"
+              owner=root group=root
+              mode=0644
+  with_items:
+    - { var: opcache.enable,                  value: 1    }
+    - { var: opcache.enable_cli,              value: 1    }
+    - { var: opcache.memory_consumption,      value: 128  }
+    - { var: opcache.interned_strings_buffer, value: 8    }
+    - { var: opcache.max_accelerated_files,   value: 2048 }
+    - { var: opcache.revalidate_freq,         value: 60   }
+    - { var: opcache.fast_shutdown,           value: 1    }
+  notify:
+    - Restart php5
 
 - name: Install GNU Aspell and some dictionaries
   apt: pkg={{ item }}
