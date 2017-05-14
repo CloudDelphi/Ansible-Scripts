@@ -19,6 +19,7 @@ PrivateTmp=yes
 ReadOnlyDirectories=/
 ReadWriteDirectories=-/var/lib/sympa
 ReadWriteDirectories=-/var/run/sympa
+ReadWriteDirectories=-/var/spool/sympa
 
 [Install]
 WantedBy=multi-user.target
