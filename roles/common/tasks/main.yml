@@ -38,7 +38,7 @@
 - name: Copy genkeypair.sh and gendhparam.sh
   copy: src=usr/local/bin/{{ item }}
         dest=/usr/local/bin/{{ item }}
-        owner=root group=root
+        owner=root group=staff
         mode=0755
   tags: genkey
   with_items:

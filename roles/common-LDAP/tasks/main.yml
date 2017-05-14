@@ -132,7 +132,7 @@
 - name: Copy /usr/local/sbin/slapcat-all.sh
   copy: src=usr/local/sbin/slapcat-all.sh
         dest=/usr/local/sbin/slapcat-all.sh
-        owner=root group=root
+        owner=root group=staff
         mode=0755
 
 

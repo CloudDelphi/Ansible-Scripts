@@ -20,7 +20,7 @@
 - name: Copy /usr/local/sbin/update-firewall.sh
   copy: src=usr/local/sbin/update-firewall.sh
         dest=/usr/local/sbin/update-firewall.sh
-        owner=root group=root
+        owner=root group=staff
         mode=0755
 
 - name: Make the rulesets persistent

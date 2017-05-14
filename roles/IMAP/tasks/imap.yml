@@ -13,7 +13,7 @@
 - name: Copy list-users.pl
   copy: src=usr/local/bin/list-users.pl
         dest=/usr/local/bin/list-users.pl
-        owner=root group=root
+        owner=root group=staff
         mode=0755
 
 - name: Create a user 'vmail'

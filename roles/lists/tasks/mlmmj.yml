@@ -36,7 +36,7 @@
 - name: Copy mlmmj-newlist.sh and mhonarc-scan.sh
   copy: src=usr/local/bin/{{ item }}
         dest=/usr/local/bin/{{ item }}
-        owner=root group=root
+        owner=root group=staff
         mode=0755
   with_items:
     - mlmmj-newlist.sh

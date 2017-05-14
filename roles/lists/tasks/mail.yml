@@ -38,7 +38,7 @@
 - name: Copy the 'sympa-queue' wrapper
   copy: src=usr/local/bin/sympa-queue
         dest=/usr/local/bin/sympa-queue
-        owner=root group=root
+        owner=root group=staff
         mode=0755
 
 

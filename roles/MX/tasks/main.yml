@@ -73,7 +73,7 @@
 - name: Copy reserved-alias.pl
   copy: src=usr/local/bin/reserved-alias.pl
         dest=/usr/local/bin/reserved-alias.pl
-        owner=root group=root
+        owner=root group=staff
         mode=0755
 
 - name: Create directory /etc/postfix/ssl
