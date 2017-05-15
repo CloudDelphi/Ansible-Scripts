@@ -80,7 +80,7 @@ strict_rfc821_envelopes = yes
 smtpd_delay_reject      = yes
 disable_vrfy_command    = yes
 
-address_verify_sender            = $double_bounce_sender@$mydomain
+address_verify_sender            = $double_bounce_sender@noreply.$mydomain
 address_verify_sender_ttl        = 24h
 unverified_recipient_defer_code  = 250
 unverified_recipient_reject_code = 550
