@@ -2,6 +2,11 @@
   with_items:
     - mysql-server
     - sympa
+    - libnet-dns-perl
+    - libnet-dns-sec-perl
+    - libmail-dkim-perl
+    - libcrypt-smime-perl
+    - libcrypt-openssl-x509-perl
 
 - name: Make the 'sympa' MySQL user use auth_socket
   mysql_user2: name=sympa password= auth_plugin=auth_socket
