@@ -13,9 +13,10 @@ Pin: release a={{ ansible_lsb.codename }}-backports
 Pin-Priority: 200
 {% endif %}
 
-{% if 'non-free' in group_names -%}
+{% if inventory_hostname_short in non_free_packages.keys() -%}
 # Automatically upgrade non-free firmwares (when manually installed)
-Package: firmware-linux-nonfree
+Package: {{ non_free_packages[inventory_hostname_short] | join (' ') }}
+Pin: version *
 Pin-Priority: 200
 {% endif %}
 

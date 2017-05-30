@@ -1,4 +1,10 @@
 ---
+non_free_packages:
+  civett:
+    - firmware-linux-nonfree
+  elefant:
+    - firmware-linux-nonfree
+
 # Virtual (non-routable) IPv4 subnet for IPsec.  It is always nullrouted
 # in the absence of xfrm lookup (i.e., when there is no matching IPsec
 # Security Association) to avoid data leaks.
