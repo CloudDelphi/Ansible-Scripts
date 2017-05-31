@@ -9,8 +9,8 @@
               mode=0644
 
 - name: Copy stunnel4 service file
-  copy: src=lib/systemd/system/{{ item }}
-        dest=/lib/systemd/system/{{ item }}
+  copy: src=etc/systemd/system/{{ item }}
+        dest=/etc/systemd/system/{{ item }}
         owner=root group=root
         mode=0644
   notify:

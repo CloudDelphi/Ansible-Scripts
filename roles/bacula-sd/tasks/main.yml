@@ -18,8 +18,8 @@
     - Restart bacula-sd
 
 - name: Copy bacula-sd.service
-  copy: src=lib/systemd/system/bacula-sd.service
-        dest=/lib/systemd/system/bacula-sd.service
+  copy: src=etc/systemd/system/bacula-sd.service
+        dest=/etc/systemd/system/bacula-sd.service
         owner=root group=root
         mode=0644
   notify:

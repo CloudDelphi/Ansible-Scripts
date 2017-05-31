@@ -43,8 +43,8 @@
     - munin-cgi-html.log
 
 - name: Copy munin-cgi-graph.{service,socket}
-  copy: src=lib/systemd/system/{{ item }}
-        dest=/lib/systemd/system/{{ item }}
+  copy: src=etc/systemd/system/{{ item }}
+        dest=/etc/systemd/system/{{ item }}
         owner=root group=root
         mode=0644
   notify:
@@ -55,8 +55,8 @@
     - munin-cgi-graph.socket
 
 - name: Copy munin-cgi-html.{service,socket}
-  copy: src=lib/systemd/system/{{ item }}
-        dest=/lib/systemd/system/{{ item }}
+  copy: src=etc/systemd/system/{{ item }}
+        dest=/etc/systemd/system/{{ item }}
         owner=root group=root
         mode=0644
   notify:

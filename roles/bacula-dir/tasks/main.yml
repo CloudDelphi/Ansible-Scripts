@@ -40,8 +40,8 @@
     - Restart bacula-director
 
 - name: Copy bacula-director.service
-  copy: src=lib/systemd/system/bacula-director.service
-        dest=/lib/systemd/system/bacula-director.service
+  copy: src=etc/systemd/system/bacula-director.service
+        dest=/etc/systemd/system/bacula-director.service
         owner=root group=root
         mode=0644
   notify:

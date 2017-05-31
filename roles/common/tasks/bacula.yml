@@ -55,8 +55,8 @@
     - genkey
 
 - name: Copy bacula-fd.service
-  copy: src=lib/systemd/system/bacula-fd.service
-        dest=/lib/systemd/system/bacula-fd.service
+  copy: src=etc/systemd/system/bacula-fd.service
+        dest=/etc/systemd/system/bacula-fd.service
         owner=root group=root
         mode=0644
   notify:
