@@ -9,6 +9,6 @@ $config['additional_message_headers']['X-Originating-IP'] = null;
 // }
 
 // To remove (e.g. X-Sender) message header use null value
-// $config['additional_message_headers']['X-Sender'] = null;
+$config['additional_message_headers']['X-Sender'] = null;
 
 ?>
