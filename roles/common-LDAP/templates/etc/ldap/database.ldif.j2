@@ -258,7 +258,7 @@ olcAccess: to dn.exact="ou=virtual,dc=fripost,dc=org"
     {% if 'MDA' in group_names -%}
     by dn.exact="username=dovecot,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://"                                                    =sd
     {% endif -%}
-    {% if 'MX' in group_names -%}
+    {% if 'MX' in group_names or 'MSA' in group_names -%}
     by dn.exact="username=postfix,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =sd
     {% endif -%}
     by users                                                                                                                                    =0 break
@@ -474,6 +474,21 @@ olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
     {% if 'MX' in group_names -%}
     by dn.exact="username=postfix,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
     {% endif -%}
+    by users                                                                                                                                    =0 break
+{% endif %}
+#
+# * The MSA's postfix user can read entry ownership to dermine the SASL
+#   login name(s) owning a given sender address
+{% if 'MSA' in group_names %}
+olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
+        attrs=fripostOwner,fripostPostmaster
+        filter=(|(objectClass=FripostVirtualAliasDomain)(objectClass=FripostVirtualDomain))
+    by dn.exact="username=postfix,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
+    by users                                                                                                                                    =0 break
+olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
+        attrs=entry,objectClass,fvl,fripostOwner
+        filter=(|(objectClass=FripostVirtualAlias)(objectClass=FripostVirtualList)(objectClass=FripostVirtualUser))
+    by dn.exact="username=postfix,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
     by users                                                                                                                                    =0 break
 {% endif %}
 {% if 'LDAP-provider' in group_names %}

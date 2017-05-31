@@ -1,0 +1,8 @@
+[Socket]
+SocketUser=postfix
+SocketGroup=postfix
+SocketMode=0666
+ListenStream=/var/spool/postfix-msa/private/sender-login
+
+[Install]
+WantedBy=sockets.target

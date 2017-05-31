@@ -1,4 +1,7 @@
 ---
+- name: systemctl daemon-reload
+  command: /bin/systemctl daemon-reload
+
 - name: Reload Postfix
   service: name=postfix state=reloaded
 

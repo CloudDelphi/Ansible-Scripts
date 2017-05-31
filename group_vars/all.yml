@@ -40,7 +40,8 @@ postfix_instance:
            , addr: "{{ (groups.all | length > 1) | ternary( ipsec[ hostvars[groups.out[0]].inventory_hostname_short ], '127.0.0.1') }}"
            , port: 2525 }
   MSA:     { name: msa
-           , port: 587 }
+           , addr: "{{ (groups.all | length > 1) | ternary( ipsec[ hostvars[groups.MSA[0]].inventory_hostname_short ], '127.0.0.1') }}"
+           , port: 2587 }
   lists:   { name: lists
            , addr: "{{ (groups.all | length > 1) | ternary( ipsec[ hostvars[groups.lists[0]].inventory_hostname_short ], '127.0.0.1') }}"
            , port: 2527 }

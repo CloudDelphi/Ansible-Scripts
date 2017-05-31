@@ -4,6 +4,28 @@
     - postfix
     - postfix-pcre
 
+- name: Copy Postfix sender login socketmap
+  copy: src=usr/local/bin/postfix-sender-login.pl
+        dest=/usr/local/bin/postfix-sender-login.pl
+        owner=root group=staff
+        mode=0755
+
+- name: Copy Postfix sender login socketmap systemd unit files
+  copy: src=etc/systemd/system/{{ item }}
+        dest=/etc/systemd/system/{{ item }}
+        owner=root group=root
+        mode=0644
+  with_items:
+    - postfix-sender-login.service
+    - postfix-sender-login.socket
+  notify:
+    - systemctl daemon-reload
+
+- meta: flush_handlers
+
+- name: Enable Postfix sender login socketmap
+  service: name=postfix-sender-login.socket state=started enabled=yes
+
 - name: Configure Postfix
   template: src=etc/postfix/{{ item }}.j2
             dest=/etc/postfix-{{ postfix_instance[inst].name }}/{{ item }}

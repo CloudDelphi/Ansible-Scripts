@@ -1,0 +1,23 @@
+[Unit]
+Description=Postfix sender login socketmap
+After=mail-transport-agent.target
+Requires=postfix-sender-login.socket
+
+[Service]
+User=postfix
+Group=postfix
+StandardInput=null
+SyslogFacility=mail
+ExecStart=/usr/local/bin/postfix-sender-login.pl
+
+# Hardening
+NoNewPrivileges=yes
+PrivateDevices=yes
+ProtectHome=yes
+ProtectSystem=full
+ReadOnlyDirectories=/
+RestrictAddressFamilies=AF_UNIX
+
+[Install]
+WantedBy=multi-user.target
+Also=postfix-sender-login.socket
