@@ -24,8 +24,10 @@ submission inet n       -       -       -       -       smtpd
   -o tls_high_cipherlist=EECDH+AESGCM:!MEDIUM:!LOW:!EXP:!aNULL:!eNULL
 {% if groups.webmail | difference([inventory_hostname]) | length > 0 %}
 [{{ postfix_instance.MSA.addr }}]:{{ postfix_instance.MSA.port }} inet n       -       -       -       -       smtpd
+  -o broken_sasl_auth_clients=no
   -o smtpd_tls_security_level=none
   -o smtpd_sasl_security_options=noanonymous
+  -o smtpd_sasl_exceptions_networks=
 {% endif %}
 {% elif inst in ['IMAP', 'out', 'lists'] %}
 [{{ postfix_instance[inst].addr }}]:{{ postfix_instance[inst].port }} inet n       -       -       -       -       smtpd

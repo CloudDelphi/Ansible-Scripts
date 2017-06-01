@@ -17,7 +17,10 @@ myhostname          = smtp{{ msano | default('') }}.$mydomain
 mydomain            = fripost.org
 append_dot_mydomain = no
 
-mynetworks_style = host
+mynetworks = 127.0.0.0/8, [::1]/128
+{%- for h in groups.webmail | difference([inventory_hostname]) | sort -%}
+           , {{ ipsec[ hostvars[h].inventory_hostname_short ] | ipaddr }}
+{% endfor %}
 
 queue_directory       = /var/spool/postfix-{{ postfix_instance[inst].name }}
 data_directory        = /var/lib/postfix-{{ postfix_instance[inst].name }}
