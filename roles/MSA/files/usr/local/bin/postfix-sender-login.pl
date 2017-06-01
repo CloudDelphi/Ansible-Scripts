@@ -49,20 +49,25 @@ die "This service must be socket-activated.\n"
        and defined $ENV{LISTEN_FDS} and $ENV{LISTEN_FDS} == 1;
 open my $S, '+<&=', 3 or die "fdopen: $!";
 
+my @CHILDREN;
 for (my $i = 0; $i < $nProc-1; $i++) {
     my $pid = fork() // die "fork: $!";
-    unless ($pid) {
+    if ($pid) {
+        push @CHILDREN, $pid;
+    } else {
         server(); # child, never return
         exit;
     }
 }
 server();
+waitpid $_ => 0 foreach @CHILDREN;
+exit $?;
 
 
 #############################################################################
 
 sub server() {
-    while(1) {
+    for (my $n = 0; $n < 32; $n++) {
         accept(my $conn, $S) or do {
             next if $! == EINTR;
             die "accept: $!";
