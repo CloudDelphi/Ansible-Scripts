@@ -64,7 +64,6 @@ server();
 sub server() {
     while(1) {
         accept(my $conn, $S) or do {
-            # try again if accept(2) was interrupted by a signal
             next if $! == EINTR;
             die "accept: $!";
         };
@@ -77,6 +76,7 @@ sub server() {
 
         for (my $i = 0; $i < $len;) {
             my $n = syswrite($conn, $reply, $len-$i, $i) // do {
+                next if $! == EINTR;
                 warn "Can't write: $!";
                 last;
             };
@@ -92,7 +92,10 @@ sub process_request($) {
 
     # keep reading until the request length is determined
     do {
-        my $n = sysread($conn, $buf, $BUFSIZE, $offset) // return "TEMP can't read: $!";
+        my $n = sysread($conn, $buf, $BUFSIZE, $offset) // do {
+            next if $! == EINTR;
+            return "TEMP can't read: $!";
+        };
         return "TEMP EOF" if $n == 0;
         $offset += $n;
     } until ($buf =~ /\A(0|[1-9][0-9]*):/);
@@ -101,7 +104,10 @@ sub process_request($) {
     my $strlen = length("$1") + 1; # [len]":"
     my $len = $strlen + $1 + 1;    # [len]":"[string]","
     while ($offset < $len) {
-        my $n = sysread($conn, $buf, $BUFSIZE, $offset) // return "TEMP can't read: $!";
+        my $n = sysread($conn, $buf, $BUFSIZE, $offset) // do {
+            next if $! == EINTR;
+            return "TEMP can't read: $!";
+        };
         return "TEMP EOF" if $n == 0;
         $offset += $n;
     }
@@ -116,10 +122,10 @@ sub process_request($) {
     $key =~ /\A(.+)@([^\@]+)\z/ or return "NOTFOUND "; # invalid sender address
     my ($localpart, $domainpart) = ($1, $2);
 
-    my $ldap = Net::LDAPI::->new( $LDAPI )
-        // return "TEMP couldn't create Net::LDAPI object";
-    $ldap->bind( undef, sasl => Authen::SASL::->new(mechanism => 'EXTERNAL') )
-        or return "TEMP LDAP: couldn't bind";
+    my $ldap = Net::LDAPI::->new( $LDAPI ) //
+        return "TEMP couldn't create Net::LDAPI object";
+    $ldap->bind( undef, sasl => Authen::SASL::->new(mechanism => 'EXTERNAL') ) or
+        return "TEMP LDAP: couldn't bind";
 
     my $reply = lookup_sender($ldap, $localpart, $domainpart);
     $ldap->unbind();
