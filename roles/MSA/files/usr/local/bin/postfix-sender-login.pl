@@ -34,8 +34,14 @@ use Authen::SASL ();
 $ENV{PATH} = join ':', qw{/usr/bin /bin};
 delete @ENV{qw/IFS CDPATH ENV BASH_ENV/};
 
-# returned for forbidden envelope sender addresses
-my $POSTMASTER = 'postmaster@fripost.org';
+my $nProc      = 2;                        # number of pre-forked servers
+my $POSTMASTER = 'postmaster@fripost.org'; # returned for forbidden envelope sender addresses
+
+my $BASEDN  = 'ou=virtual,dc=fripost,dc=org';
+my $BUFSIZE = 65536; # try to read that many bytes at the time
+my $LDAPI   = 'ldapi://%2Fvar%2Fspool%2Fpostfix-msa%2Fprivate%2Fldapi/';
+sub server();
+
 
 # fdopen(3) the file descriptor FD
 die "This service must be socket-activated.\n"
@@ -43,35 +49,42 @@ die "This service must be socket-activated.\n"
        and defined $ENV{LISTEN_FDS} and $ENV{LISTEN_FDS} == 1;
 open my $S, '+<&=', 3 or die "fdopen: $!";
 
-my $BASEDN  = 'ou=virtual,dc=fripost,dc=org';
-my $BUFSIZE = 65536; # try to read that many bytes at the time
-my $LDAPI   = 'ldapi://%2Fvar%2Fspool%2Fpostfix-msa%2Fprivate%2Fldapi/';
-sub process_request($);
-
-while(1) {
-    accept(my $conn, $S) or do {
-        # try again if accept(2) was interrupted by a signal
-        next if $! == EINTR;
-        die "accept: $!";
-    };
-    my $reply = process_request($conn);
-
-    # encode the reply as a netstring and send it back
-    # https://cr.yp.to/proto/netstrings.txt 
-    $reply = length($reply).':'.$reply.',';
-    my $len = length($reply);
-
-    for (my $i = 0; $i < $len;) {
-        my $n = syswrite($conn, $reply, $len-$i, $i) // do {
-            warn "Can't write: $!";
-            last;
-        };
-        $i += $n;
+for (my $i = 0; $i < $nProc-1; $i++) {
+    my $pid = fork() // die "fork: $!";
+    unless ($pid) {
+        server(); # child, never return
+        exit;
     }
-    close $conn or warn "Can't close: $!";
 }
+server();
+
 
 #############################################################################
+
+sub server() {
+    while(1) {
+        accept(my $conn, $S) or do {
+            # try again if accept(2) was interrupted by a signal
+            next if $! == EINTR;
+            die "accept: $!";
+        };
+        my $reply = process_request($conn);
+
+        # encode the reply as a netstring and send it back
+        # https://cr.yp.to/proto/netstrings.txt
+        $reply = length($reply).':'.$reply.',';
+        my $len = length($reply);
+
+        for (my $i = 0; $i < $len;) {
+            my $n = syswrite($conn, $reply, $len-$i, $i) // do {
+                warn "Can't write: $!";
+                last;
+            };
+            $i += $n;
+        }
+        close $conn or warn "Can't close: $!";
+    }
+}
 
 sub process_request($) {
     my $conn = shift;
@@ -125,7 +138,7 @@ sub lookup_sender($$$) {
     my $entry = $mesg->pop_entry() // return "NOTFOUND "; # not a domain we know
     return "TEMP LDAP error: multiple entry founds" if defined $mesg->pop_entry(); # sanity check
 
-    # domain postmasters are allowed to use any sender address 
+    # domain postmasters are allowed to use any sender address
     my @logins = $entry->get_value('fripostPostmaster', asref => 0);
     my @owners = $entry->get_value('fripostOwner', asref => 0);
 
