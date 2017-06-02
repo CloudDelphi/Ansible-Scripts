@@ -37,3 +37,11 @@ userdb {
   # so we can skip the passdb lookup here.
   args = home=/home/mail/virtual/%d/%n allow_all_users=yes
 }
+
+# Used only for iteration as the static userdb above always succeeds
+userdb {
+  driver = dict
+  skip = found
+  result_internalfail = return-fail
+  args = /etc/dovecot/dovecot-dict-auth.conf.ext
+}

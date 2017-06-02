@@ -1,0 +1,12 @@
+# This file is commonly accessed via passdb {} or userdb {} section in
+# conf.d/auth-dict.conf.ext
+
+# Dictionary URI
+uri = proxy:/var/run/dovecot/auth-proxy:
+
+# Username iteration prefix. Keys under this are assumed to contain usernames.
+iterate_prefix = userdb/
+
+# Should iteration be disabled for this userdb? If this userdb acts only as a
+# cache there's no reason to try to iterate the (partial & duplicate) users.
+iterate_disable = no

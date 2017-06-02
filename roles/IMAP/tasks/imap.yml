@@ -9,13 +9,6 @@
     - dovecot-managesieved
     - dovecot-sieve
 
-# 7 5   * * * root users=$(mktemp --tmpdir) && sudo -u dovecot /usr/local/bin/list-members.pl && sudo -u vmail nice -n 19 /usr/bin/doveadm purge -F"$users"
-- name: Copy list-users.pl
-  copy: src=usr/local/bin/list-users.pl
-        dest=/usr/local/bin/list-users.pl
-        owner=root group=staff
-        mode=0755
-
 - name: Create a user 'vmail'
   user: name=vmail system=yes
         createhome=no
@@ -24,16 +17,27 @@
         password=!
         state=present
 
-## TODO: make a LDAP query listing all users using iterate_attrs and
-## iterate_filter.  (Alternatively, use a dict, see
-## https://www.opensource.apple.com/source/dovecot/dovecot-293/dovecot.Config/dovecot-dict-auth.conf.ext)
-## Required for dbox, see
-## http://wiki2.dovecot.org/MailboxFormat/dbox#Multi-dbox
-#- name: Create a nightly cron job to purge expunged messages
-#  cron: name="Purge expunged messages"
-#        minute=7 hour=5
-#        user=vmail cron_file=doveadm-purge
-#        job="/usr/bin/doveadm purge -A"
+- name: Copy dovecot auth proxy
+  copy: src=usr/local/bin/dovecot-auth-proxy.pl
+        dest=/usr/local/bin/dovecot-auth-proxy.pl
+        owner=root group=staff
+        mode=0755
+
+- name: Copy dovecot auth proxy systemd unit files
+  copy: src=etc/systemd/system/{{ item }}
+        dest=/etc/systemd/system/{{ item }}
+        owner=root group=root
+        mode=0644
+  with_items:
+    - dovecot-auth-proxy.service
+    - dovecot-auth-proxy.socket
+  notify:
+    - systemctl daemon-reload
+
+- meta: flush_handlers
+
+- name: Enable dovecot auth proxy
+  service: name=dovecot-auth-proxy.socket state=started enabled=yes
 
 # The ownership and permissions ensure that dovecot won't try to
 # deliver mails under an umounted mountpoint.
@@ -53,7 +57,7 @@
     - attachments
     - spamspool
 
-- name: Create a cronjob for SIS deduplication
+- name: Create a cronjob for purging and SIS deduplication
   copy: src=etc/cron.d/doveadm
         dest=/etc/cron.d/doveadm
         owner=root group=root

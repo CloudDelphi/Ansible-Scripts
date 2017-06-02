@@ -1,0 +1,23 @@
+[Unit]
+Description=Dovecot authentication proxy
+After=dovecot.target
+Requires=dovecot-auth-proxy.socket
+
+[Service]
+User=vmail
+Group=vmail
+StandardInput=null
+SyslogFacility=mail
+ExecStart=/usr/local/bin/dovecot-auth-proxy.pl
+
+# Hardening
+NoNewPrivileges=yes
+PrivateDevices=yes
+ProtectSystem=full
+ProtectHome=read-only
+ReadOnlyDirectories=/
+RestrictAddressFamilies=
+
+[Install]
+WantedBy=multi-user.target
+Also=postfix-sender-login.socket

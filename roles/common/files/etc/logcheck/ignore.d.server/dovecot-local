@@ -25,3 +25,4 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ dovecot: stats: Warning: UPDATE-CMD: Already expired$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ dovecot: stats: Warning: Couldn't find session GUID: [[:xdigit:]]{32}$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ dovecot: stats: Error: Mail server input error: UPDATE-SESSION [-_.@[:alnum:]]+ imap: stats shrank: (mcache|mlpath|mrbytes|mrcount) [[:digit:]]+ < [[:digit:]]+$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ systemd\[1\]: Start(ing|ed) Dovecot authentication proxy\.(\.\.)?$

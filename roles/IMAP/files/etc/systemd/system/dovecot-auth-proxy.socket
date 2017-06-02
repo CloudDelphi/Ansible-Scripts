@@ -1,0 +1,8 @@
+[Socket]
+SocketUser=dovecot
+SocketGroup=dovecot
+SocketMode=0600
+ListenStream=/run/dovecot/auth-proxy
+
+[Install]
+WantedBy=sockets.target
