@@ -1,7 +1,7 @@
 [Socket]
 SocketUser=postfix
 SocketGroup=postfix
-SocketMode=0666
+SocketMode=0600
 ListenStream=/var/spool/postfix-msa/private/sender-login
 
 [Install]
