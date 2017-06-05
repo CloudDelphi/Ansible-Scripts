@@ -1,8 +1,7 @@
 #!/usr/bin/perl
 
 #----------------------------------------------------------------------
-# socketmap lookup table returning the SASL login name(s) owning a given
-# sender address
+# Dovecot userdb lookup proxy table for user iteration
 # Copyright © 2017 Guilhem Moulin <guilhem@fripost.org>
 #
 # This program is free software: you can redistribute it and/or modify
