@@ -23,7 +23,6 @@ use warnings;
 use strict;
 
 use Errno 'EINTR';
-use Socket qw/PF_UNIX SOCK_STREAM SHUT_RDWR/;
 
 use Net::LDAPI ();
 use Net::LDAP::Util qw/ldap_explode_dn escape_dn_value escape_filter_value/;

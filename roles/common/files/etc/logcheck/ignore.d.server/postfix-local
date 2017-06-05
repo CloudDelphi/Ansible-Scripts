@@ -95,6 +95,7 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/dnsblog\[[[:digit:]]+\]: warning: dnsblog_query: lookup error for DNS query ([._[:alnum:]-]+): Host or domain name not found. Name service error for name=\1 type=A(AAA)?: Host not found, try again$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-out/smtp\[[[:digit:]]+\]: [[:xdigit:]]+: to=<[^>]+>, relay=none, delay=[.[:digit:]]+(, delays=([.[:digit:]]+/){3}[.[:digit:]]+)?(, dsn=5(\.[[:digit:]]+){2})?, status=(undeliverable|bounced) \(Host or domain name not found. Name service error for name=[^[:space:]]+ type=A(AAA)?: Host not found\)$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/tlsproxy\[[[:digit:]]+\]: (CONNECT from|DISCONNECT) \[[[:xdigit:].:]{3,39}\]:[[:digit:]]+$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ systemd\[1\]: Start(ing|ed) Postfix sender login socketmap\.(\.\.)?$
 #
 # Amavis
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ amavis\[[[:digit:]]+\]: \([-[:digit:]]+\) Passed (CLEAN|SPAM|UNCHECKED(-[A-Z]+)?|BAD-HEADER-[28]) {Relayed(Tagged)?(Internal|Inbound|Outbound)}, (INCOMING|OUTGOING)( LOCAL)? \[(IPv6:)?[[:xdigit:].:]{3,39}\](:[[:digit:]]+)?( \[[[:xdigit:].:]{3,39}\])? <[^>]*> -> (<[^>]*>,)+( Queue-ID: [[:xdigit:]]+,)?( Message-ID: <[^>]+>,)?( Resent-Message-ID: <[^>]+>,)? mail_id: [_-+[:alnum:]]+, Hits: -?[[:digit:].]*, size: [[:digit:]]+, queued_as: [[:xdigit:]]+(, dkim_(new|sd)?=[-_.,:[:alnum:]]+)?, [[:digit:]]+ ms$
