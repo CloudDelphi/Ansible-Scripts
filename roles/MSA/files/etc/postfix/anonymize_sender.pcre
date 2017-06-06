@@ -1,4 +1,4 @@
-/^Received:\s+from\s+(?:\S+\s+\(\S+\s+\[[[:xdigit:].:]{3,39}\]\))
+/^Received:\s+from\s+(?:\S+\s+\(\S+\s+\[(?:IPv6:)?[[:xdigit:].:]{3,39}\]\))
         (\s+\(using\s+(?:TLS|SSL)(?:v\S+)?\s+with\s+cipher\s+\S+\s+\(\S+\s+bits\)\)\s+).*
         (\bby\s+(?:\S+\.)?fripost\.org\s+\([^)]+\)
         \s+with\s+E?SMTPS?A\s+id\s+[[:xdigit:]]+;?\s.*)/x
