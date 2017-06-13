@@ -125,6 +125,7 @@ sub process_request($) {
 
     $key =~ /\A(.+)@([^\@]+)\z/ or return "NOTFOUND "; # invalid sender address
     my ($localpart, $domainpart) = ($1, $2);
+    $localpart =~ s/\+.*//; # strip extension, cf. postconf(5)'s $recipient_delimiter
 
     my $ldap = Net::LDAPI::->new( $LDAPI ) //
         return "TEMP couldn't create Net::LDAPI object";
