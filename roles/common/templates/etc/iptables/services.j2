@@ -40,10 +40,6 @@ in      tcp     587                                     # SMTP-AUTH
 {% if 'webmail' in group_names or 'lists' in group_names or 'wiki' in group_names %}
 in      tcp     80,443                                  # HTTP/HTTPS
 {% endif %}
-{% if 'webmail' in group_names and 'IMAP' not in group_names %}
-out     tcp     993                                     # IMAP
-out     tcp     4190                                    # MANAGESIEVE
-{% endif %}
 {% if 'LDAP-provider' in group_names %}
 out     tcp     11371                                   # HKP
 out     tcp     43                                      # WHOIS
