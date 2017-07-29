@@ -5,7 +5,7 @@
     - bacula-director-mysql
 
 - name: Create a 'bacula' SQL user
-  mysql_user2: name=bacula password= auth_plugin=auth_socket
+  mysql_user2: name=bacula password= auth_plugin=unix_socket
                state=present
   notify:
     - Restart bacula-director

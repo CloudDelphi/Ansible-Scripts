@@ -1,6 +1,6 @@
 - apt: pkg={{ item }} install_recommends=no
   with_items:
-    - mysql-server
+    - mariadb-server
     - sympa
     - libnet-dns-perl
     - libnet-dns-sec-perl
@@ -8,8 +8,8 @@
     - libcrypt-smime-perl
     - libcrypt-openssl-x509-perl
 
-- name: Make the 'sympa' MySQL user use auth_socket
-  mysql_user2: name=sympa password= auth_plugin=auth_socket
+- name: Make the 'sympa' MySQL user use unix_socket
+  mysql_user2: name=sympa password= auth_plugin=unix_socket
                state=present
 
 # XXX We want to change the retun-path for sendpasswd notices from

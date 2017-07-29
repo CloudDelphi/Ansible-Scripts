@@ -1,14 +1,8 @@
-# XXX If #742046 gets fixed, we should preseed mysql-server to use
-# auth_socket as auth_plugin once the fix enters stable.
-- name: Install MySQL
+- name: Install MariaDB
   apt: pkg={{ item }}
   with_items:
-    # XXX: In non-interactive mode apt-get doesn't put a password on
-    # MySQL's root user; we fix that on the next task, but an intruder
-    # could exploit the race condition and for instance create dummy
-    # users.
-    - mysql-common
-    - mysql-server
+    - mariadb-common
+    - mariadb-server
     - python-mysqldb
     # for the 'mysql_' munin plugin
     - libcache-cache-perl
@@ -28,7 +22,7 @@
 
 # XXX Dirty fix for #742046
 - name: Force root to use UNIX permissions
-  mysql_user2: name=root password= auth_plugin=auth_socket
+  mysql_user2: name=root password= auth_plugin=unix_socket soname=auth_socket.so
                state=present
 
 - name: Disallow anonymous and TCP/IP root login
