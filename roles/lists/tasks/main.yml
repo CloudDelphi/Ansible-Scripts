@@ -1,13 +1,13 @@
-- include: mail.yml
+- import_tasks: mail.yml
   tags:
     - postfix
     - mail
-- include: nginx.yml
+- import_tasks: nginx.yml
   tags:
     - nginx
     - www
     - web
-- include: sympa.yml
+- import_tasks: sympa.yml
   tags:
     - sympa
     - lists

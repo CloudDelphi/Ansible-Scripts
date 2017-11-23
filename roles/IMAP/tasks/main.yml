@@ -1,15 +1,15 @@
 ---
-- include: imap.yml
+- import_tasks: imap.yml
   tags:
     - imap
     - dovecot
-- include: mda.yml
+- import_tasks: mda.yml
   tags:
     - mda
     - mail
     - postfix
 ## TODO spam filter
-#- include: spam.yml
+#- import_tasks: spam.yml
 #  tags:
 #    - spam
 #    - amavis

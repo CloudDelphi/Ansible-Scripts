@@ -2,14 +2,14 @@
 # Example:
 #   ansible-playbook -i stage_vms all.yml -t rkhunter
 
-- include: common.yml
-- include: IMAP.yml
-- include: MX.yml
-- include: MSA.yml
-- include: out.yml
-- include: webmail.yml
-- include: lists.yml
-- include: git.yml
-- include: wiki.yml
-- include: bacula.yml
-- include: munin.yml
+- import_playbook: common.yml
+- import_playbook: IMAP.yml
+- import_playbook: MX.yml
+- import_playbook: MSA.yml
+- import_playbook: out.yml
+- import_playbook: webmail.yml
+- import_playbook: lists.yml
+- import_playbook: git.yml
+- import_playbook: wiki.yml
+- import_playbook: bacula.yml
+- import_playbook: munin.yml

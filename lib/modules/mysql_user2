@@ -412,16 +412,16 @@ def main():
     module = AnsibleModule(
         argument_spec = dict(
             login_user=dict(default=None),
-            login_password=dict(default=None),
+            login_password=dict(default=None, no_log=True),
             login_host=dict(default="localhost"),
-            login_port=dict(default="3306"),
+            login_port=dict(default=3306, type='int'),
             login_unix_socket=dict(default=None),
             user=dict(required=True, aliases=['name']),
-            password=dict(default=None),
+            password=dict(default=None, no_log=True, type='str'),
             host=dict(default="localhost"),
             state=dict(default="present", choices=["absent", "present"]),
             priv=dict(default=None),
-            append_privs=dict(type="bool", default="no"),
+            append_privs=dict(default=False, type="bool"),
             check_implicit_admin=dict(default=False),
             auth_plugin=dict(default=None),
             soname=dict(default=None)

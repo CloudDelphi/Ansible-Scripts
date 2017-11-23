@@ -1,37 +1,37 @@
 ---
-- include: sysctl.yml
+- import_tasks: sysctl.yml
   tags: sysctl
-- include: hosts.yml
-- include: apt.yml
+- import_tasks: hosts.yml
+- import_tasks: apt.yml
   tags: apt
 - name: Install intel-microcode
   apt: pkg=intel-microcode
   when: "ansible_processor[0] | search('^(Genuine)?Intel.*') and not ansible_virtualization_role == 'guest'"
   tags: intel
-- include: firewall.yml
+- import_tasks: firewall.yml
   tags:
     - firewall
     - iptables
 
-- include: stunnel.yml
+- import_tasks: stunnel.yml
   tags: stunnel
   when: "'webmail' in group_names and 'LDAP-provider' not in group_names"
-- include: samhain.yml
+- import_tasks: samhain.yml
   tags: samhain
-- include: auditd.yml
+- import_tasks: auditd.yml
   tags: auditd
-- include: rkhunter.yml
+- import_tasks: rkhunter.yml
   tags: rkhunter
-- include: clamav.yml
+- import_tasks: clamav.yml
   tags: clamav
-- include: fail2ban.yml
+- import_tasks: fail2ban.yml
   tags: fail2ban
-- include: smart.yml
+- import_tasks: smart.yml
   tags:
     - smartmontools
     - smart
   when: "not ansible_virtualization_role == 'guest'"
-- include: haveged.yml
+- import_tasks: haveged.yml
   tags:
     - haveged
     - entropy
@@ -48,24 +48,24 @@
   command: gendhparam.sh /etc/ssl/dhparams.pem 2048
            creates=/etc/ssl/dhparams.pem
   tags: genkey
-- include: ipsec.yml
+- import_tasks: ipsec.yml
   tags:
     - strongswan
     - ipsec
   when: "groups.all | length > 1"
-- include: logging.yml
+- import_tasks: logging.yml
   tags: logging
-- include: ntp.yml
+- import_tasks: ntp.yml
   tags: ntp
-- include: mail.yml
+- import_tasks: mail.yml
   tags:
     - mail
     - postfix
-- include: bacula.yml
+- import_tasks: bacula.yml
   tags:
     - bacula-fd
     - bacula
-- include: munin-node.yml
+- import_tasks: munin-node.yml
   tags:
     - munin-node
     - munin
