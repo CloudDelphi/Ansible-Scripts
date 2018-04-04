@@ -17,6 +17,7 @@
   with_items:
     - main.cf
     - master.cf
+    - access-list.cidr
   notify:
     - Reload Postfix
 
@@ -60,6 +61,14 @@
             dest=/etc/postfix-{{ postfix_instance[inst].name }}/virtual/transport
             owner=root group=root
             mode=0644
+
+- name: Copy recipient access(5) map
+  copy: src=etc/postfix/reject-unknown-client-hostname.cf
+            dest=/etc/postfix-{{ postfix_instance[inst].name }}/reject-unknown-client-hostname.cf
+            owner=root group=root
+            mode=0644
+  notify:
+    - Reload Postfix
 
 - name: Compile the Postfix transport maps
   # trivial-rewrite(8) is a long-running process, so it's safer to reload

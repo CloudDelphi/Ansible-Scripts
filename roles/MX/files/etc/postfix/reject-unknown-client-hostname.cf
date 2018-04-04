@@ -1,0 +1,10 @@
+server_host      = ldapi://%2Fvar%2Fspool%2Fpostfix-mx%2Fprivate%2Fldapi/
+version          = 3
+search_base      = fvd=%d,ou=virtual,dc=fripost,dc=org
+domain           = static:all
+scope            = one
+bind             = sasl
+sasl_mechs       = EXTERNAL
+query_filter     = (&(objectClass=FripostVirtualList)(!(objectClass=FripostPendingEntry))(fvl=%u)(fripostIsStatusActive=TRUE))
+result_attribute = fvl
+result_format    = reject_unknown_client_hostname

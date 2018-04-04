@@ -35,7 +35,7 @@ postfix_instance:
   IMAP:    { name: mda
            , addr: "{{ (groups.all | length > 1) | ternary( ipsec[ hostvars[groups.IMAP[0]].inventory_hostname_short ], '127.0.0.1') }}"
            , port: 2526 }
-  MX:      { name: mx,  group: mta, backup: mx3.fripost.org }
+  MX:      { name: mx,  group: mta }
   out:     { name: out, group: mta
            , addr: "{{ (groups.all | length > 1) | ternary( ipsec[ hostvars[groups.out[0]].inventory_hostname_short ], '127.0.0.1') }}"
            , port: 2525 }
