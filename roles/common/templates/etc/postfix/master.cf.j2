@@ -34,9 +34,9 @@ submission inet n       -       -       -       -       smtpd
 [{{ postfix_instance[inst].addr }}]:{{ postfix_instance[inst].port }} inet n       -       -       -       -       smtpd
   -o smtpd_authorized_xforward_hosts=127.0.0.0/8,[::1]/128{{ ipsec_subnet is defined | ternary(','+ipsec_subnet, '') }}
 {% endif %}
-pickup    fifo  n       -       -       60      1       pickup
+pickup    unix  n       -       -       60      1       pickup
 cleanup   unix  n       -       -       -       0       cleanup
-qmgr      fifo  n       -       n       300     1       qmgr
+qmgr      unix  n       -       n       300     1       qmgr
 tlsmgr    unix  -       -       -       1000?   1       tlsmgr
 rewrite   unix  -       -       -       -       -       trivial-rewrite
 bounce    unix  -       -       -       -       0       bounce
