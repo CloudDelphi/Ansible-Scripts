@@ -86,7 +86,7 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: NON-SMTP COMMAND from \[[[:xdigit:].:]{3,39}\]:[[:digit:]]+\s
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: COMMAND PIPELINING from \[[[:xdigit:].:]{3,39}\]:[[:digit:]]+ after\s
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: DNSBL rank [[:digit:]]+ for \[[[:xdigit:].:]{3,39}\]:[[:digit:]]+$
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: NOQUEUE: reject: RCPT from (\[[[:xdigit:].:]{3,39}\]):[[:digit:]]+: [45][[:digit:]][[:digit:]]( [45](\.[[:digit:]]){2})? (Service unavailable; client \1 blocked using [._[:alnum:]-]+|Protocol error);( .+;)? (from=<[^>]*>, to=<[^>]+>, )?proto=E?SMTP(, helo=<[^[:space:]]+>)?$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: NOQUEUE: reject: RCPT from (\[[[:xdigit:].:]{3,39}\]):[[:digit:]]+: [45][[:digit:]][[:digit:]]( [45](\.[[:digit:]]){2})? (Service unavailable; client \1 blocked using [._[:alnum:]-]+|Protocol error|Service currently unavailable);( .+;)? (from=<[^>]*>, to=<[^>]+>, )?proto=E?SMTP(, helo=<[^[:space:]]+>)?$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: NOQUEUE: reject: CONNECT from \[[[:xdigit:].:]{3,39}\]:[[:digit:]]+: too many connections$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: COMMAND (COUNT|TIME) LIMIT from \[[[:xdigit:].:]{3,39}\]:[[:digit:]]+( after [[:upper:]]+)?$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: cache [a-z]+:\S+ full cleanup: retained=[[:digit:]]+ dropped=[[:digit:]]+ entries$

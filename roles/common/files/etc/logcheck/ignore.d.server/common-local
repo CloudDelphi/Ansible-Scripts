@@ -31,7 +31,7 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ freshclam\[[[:digit:]]+\]: Trying again in [[:digit:]]+ secs\.\.\.$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ freshclam\[[[:digit:]]+\]: Giving up on [.[:alnum:]-]+\.\.\.$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ freshclam\[[[:digit:]]+\]: Downloading [._[:alnum:]-]+ \[[[:digit:]]+%\]$
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ freshclam\[[[:digit:]]+\]: DON'T PANIC! Read http://www\.clamav\.net/support/faq$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ freshclam\[[[:digit:]]+\]: DON'T PANIC! Read http://www\.clamav\.net/(support/faq|documents/upgrading-clamav)$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ kernel: \[ *[[:digit:]]+\.[[:digit:]]+ *\] Peer [.[:digit:]]+:[[:digit:]]+/[[:digit:]]+ unexpectedly shrunk window [[:digit:]]+:[[:digit:]]+ \(repaired\)$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ rsyslogd: \[origin software="rsyslogd" swVersion="[.[:digit:]]+" x-pid="[[:digit:]]+" x-info="http://www.rsyslog.com"\] rsyslogd was HUPed$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ rsyslogd-?([[:digit:]]+): action '[^']+' (resumed \(module '[.[:alnum:]-]+:[.[:alnum:]-]+'\)|suspended, next retry is \w{3} \w{3} [ :[:digit:]]{16}) \[try http://www\.rsyslog\.com/e/\1 \]$

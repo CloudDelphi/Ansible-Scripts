@@ -3,6 +3,7 @@
 #
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (charon|ipsec\[[[:digit:]]+\]): [[:digit:]]+\[JOB\] spawning [[:digit:]]+ worker threads$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (charon|ipsec\[[[:digit:]]+\]): [[:digit:]]+\[KNL\] creating acquire job for policy [[:xdigit:].:]{3,39}/[[:digit:]]+(\[\w+(/[[:alnum:]-]+)?\])? === [[:xdigit:].:]{3,39}/[[:digit:]]+(\[\w+(/[[:alnum:]-]+)?\])? with reqid \{[[:digit:]]+\}$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (charon|ipsec\[[[:digit:]]+\]): [[:digit:]]+\[KNL\] unable to receive from rt event socket$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (charon|ipsec\[[[:digit:]]+\]): [[:digit:]]+\[KNL\] creating rekey job for ESP CHILD_SA with SPI [[:xdigit:]]{8} and reqid \{[[:digit:]]+\}$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (charon|ipsec\[[[:digit:]]+\]): [[:digit:]]+\[KNL\] creating delete job for ESP CHILD_SA with SPI [[:xdigit:]]{8} and reqid \{[[:digit:]]+\}$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (charon|ipsec\[[[:digit:]]+\]): [[:digit:]]+\[KNL\] querying SAD entry with SPI [[:xdigit:]]{8} failed: No such process \([[:digit:]]+\)$
