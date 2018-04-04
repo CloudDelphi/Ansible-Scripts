@@ -107,14 +107,16 @@ postscreen_dnsbl_threshold  = 3
 postscreen_dnsbl_action     = enforce
 postscreen_dnsbl_sites      =
     zen.spamhaus.org*2
-    swl.spamhaus.org*-4
+    #swl.spamhaus.org*-4
     b.barracudacentral.org*2
     bl.spameatingmonkey.net*2
     bl.spamcop.net
     dnsbl.sorbs.net
-    list.dnswl.org=127.[0..255].[0..255].0*-2
-    list.dnswl.org=127.[0..255].[0..255].1*-3
-    list.dnswl.org=127.[0..255].[0..255].[2..255]*-4
+    psbl.surriel.com
+    bl.mailspike.net
+    list.dnswl.org=127.0.[0..255].0*-2
+    list.dnswl.org=127.0.[0..255].1*-3
+    list.dnswl.org=127.0.[0..255].[2..3]*-4
 
 postscreen_greet_action         = enforce
 postscreen_whitelist_interfaces =
