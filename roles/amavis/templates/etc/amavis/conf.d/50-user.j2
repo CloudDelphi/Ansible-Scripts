@@ -93,6 +93,7 @@ $default_ldap = {
 # http://www.ijs.si/software/amavisd/amavisd-new-docs.html#pbanks-ex
 
 $protocol = 'LMTP';
+$inet_socket_bind = ['127.0.0.1'];
 $inet_socket_port = [];
 
 {% if 'out' in group_names %}
