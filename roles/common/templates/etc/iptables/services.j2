@@ -27,7 +27,7 @@ out     tcp     636                                     # LDAPS
 {% if 'MX' in group_names %}
 in      tcp     25                                      # SMTP
 {% endif %}
-{% if 'out' in group_names %}
+{% if 'out' in group_names or 'MSA' in group_names %}
 out     tcp     25                                      # SMTP
 {% endif %}
 {% if 'IMAP' in group_names %}
