@@ -12,4 +12,7 @@
               owner=root group=root
               mode=0644
 
+#- name: Load dyngroup schema
+#  openldap: target=/etc/ldap/schema/dyngroup.ldif
+
 # TODO: authz constraint

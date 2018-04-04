@@ -104,6 +104,7 @@ olcDbIndex: fripostCanAddDomain,fripostCanAddAlias,fripostCanAddList,fripostOwne
 olcDbIndex: fripostOptionalMaildrop pres
 {% endif %}
 {% if 'LDAP-provider' in group_names %}
+olcDbIndex: member,cn eq
 {% endif %}
 {% if ('LDAP-provider' not in group_names and 'MX' in group_names) or
       ('LDAP-provider' in group_names and groups.MX | difference([inventory_hostname])) %}
@@ -213,7 +214,13 @@ olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,dc=fripost,dc=org)$"
     by dn.onelevel="ou=admins,dc=fripost,dc=org"                    tls_ssf=128               =w
     by group.exact="cn=admin,ou=groups,dc=fripost,dc=org"                                     =w
 #
-# TODO: are there other services which need to be able to simple bind?
+# * Services can authenticate
+{% if 'LDAP-provider' in group_names -%}
+olcAccess: to dn.onelevel="ou=services,dc=fripost,dc=org"
+        filter=(objectClass=simpleSecurityObject)
+        attrs=userPassword
+    by realanonymous                                                tls_ssf=128               =xd
+{% endif -%}
 #
 # * Catch-all: no one else may access the passwords (including for
 #   simple bind).
@@ -228,7 +235,7 @@ olcAccess: to dn.subtree="dc=fripost,dc=org"
 #   subtree, when using a TLS-protected connection.
 {% if 'LDAP-provider' in group_names -%}
 olcAccess: to dn.subtree="ou=virtual,dc=fripost,dc=org"
-        attrs=entryDN,entryCSN,entryUUID,structuralObjectClass,hasSubordinates,subschemaSubentry
+        attrs=entryCSN,structuralObjectClass,hasSubordinates,subschemaSubentry
     by dn.onelevel="ou=syncRepl,dc=fripost,dc=org" tls_ssf=128 =rsd
     by *                                                       =0
 #
@@ -252,6 +259,7 @@ olcAccess: to dn.children="ou=virtual,dc=fripost,dc=org"
 # * So may Dovecot on the MDA (needed for the iterate filter), when
 #   SASL-binding using the EXTERNAL mechanism and connecting to a local
 #   ldapi:// socket.
+# * So may Nextcloud on the LDAP provider
 olcAccess: to dn.exact="ou=virtual,dc=fripost,dc=org"
         attrs=entry,objectClass
         filter=(objectClass=FripostVirtual)
@@ -260,6 +268,9 @@ olcAccess: to dn.exact="ou=virtual,dc=fripost,dc=org"
     {% endif -%}
     {% if 'MX' in group_names or 'MSA' in group_names -%}
     by dn.exact="username=postfix,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =sd
+    {% endif -%}
+    {% if 'LDAP-provider' in group_names -%}
+    by dn.exact="cn=nextcloud,ou=services,dc=fripost,dc=org"       tls_ssf=128                                                                  =sd
     {% endif -%}
     by users                                                                                                                                    =0 break
 #
@@ -494,6 +505,26 @@ olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
 {% if 'LDAP-provider' in group_names %}
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#
+# Export Fripost members to Nextcloud
+olcAccess: to dn.exact="fvd=fripost.org,ou=virtual,dc=fripost,dc=org"
+        attrs=entry,objectClass,fvd
+        filter=(&(objectClass=FripostVirtualDomain)(!(objectClass=FripostPendingEntry)))
+    by dn.exact="cn=nextcloud,ou=services,dc=fripost,dc=org" tls_ssf=128 =rsd
+    by users                                                             =0 break
+olcAccess: to dn.regex="^fvl=[^,]+,fvd=fripost.org,ou=virtual,dc=fripost,dc=org$"
+        attrs=entry,entryDN,entryUUID,objectClass,fvl,fripostIsStatusActive
+        filter=(&(objectClass=FripostVirtualUser)(!(objectClass=FripostPendingEntry))(fripostIsStatusActive=TRUE))
+    by dn.exact="cn=nextcloud,ou=services,dc=fripost,dc=org" tls_ssf=128 =rsd
+    by users                                                             =0 break
+olcAccess: to dn.exact="ou=groups,dc=fripost,dc=org"
+        attrs=entry,objectClass
+    by dn.exact="cn=nextcloud,ou=services,dc=fripost,dc=org" tls_ssf=128 =rsd
+    by users                                                             =0 break
+olcAccess: to dn.exact="cn=medlemmar,ou=groups,dc=fripost,dc=org"
+    by dn.exact="cn=nextcloud,ou=services,dc=fripost,dc=org" tls_ssf=128 =rsd
+    by users                                                             =0 break
+#
 # TODO: allow users to edit their entry, etc
 #
 {% endif %}
