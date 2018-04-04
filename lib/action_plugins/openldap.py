@@ -15,7 +15,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ansible.plugins.action import ActionBase
-from ansible.utils.unicode import to_bytes
 from ansible.module_utils._text import to_text
 
 class ActionModule(ActionBase):

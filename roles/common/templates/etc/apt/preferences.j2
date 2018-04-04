@@ -20,7 +20,7 @@ Pin: version *
 Pin-Priority: 200
 {% endif %}
 
-{% if ansible_processor[0] | search('^(Genuine)?Intel.*') and not ansible_virtualization_role == 'guest' -%}
+{% if ansible_processor[1] is search('^(Genuine)?Intel.*') and not ansible_virtualization_role == 'guest' -%}
 # Automatically upgrade the microcode (when manually installed)
 Package: intel-microcode iucode-tool
 Pin: version *
