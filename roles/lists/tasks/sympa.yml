@@ -15,9 +15,14 @@
 # XXX We want to change the retun-path for sendpasswd notices from
 # 'sympa-request@$robot' to 'noreply@fripost.org'.
 #   * /usr/lib/cgi-bin/sympa/wwsympa.fcgi
-#       do_requestpasswd, do_subrequest: add $param->{'return_path'}='noreply@fripost.org';
-#   * List::send_global_file
-#       $data->{'return_path'} //= &Conf::get_robot_conf($robot, 'request');
+#       do_requestpasswd, do_subrequest
+#         add $param->{'return_path'}='noreply@fripost.org';
+#   * /usr/share/sympa/lib/List.pm
+#       send_global_file
+#         $data->{'return_path'} //= &Conf::get_robot_conf($robot, 'request');
+#   * /usr/share/sympa/default/scenari/send.newsletter
+#       last line
+#         true() smtp,dkim,smime,md5 -> reject,quiet
 # See #787946.
 - name: Configure Sympa
   copy: src=etc/sympa/{{ item }}
