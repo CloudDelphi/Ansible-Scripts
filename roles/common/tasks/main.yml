@@ -16,8 +16,6 @@
 - import_tasks: stunnel.yml
   tags: stunnel
   when: "'webmail' in group_names and 'LDAP-provider' not in group_names"
-- import_tasks: samhain.yml
-  tags: samhain
 - import_tasks: auditd.yml
   tags: auditd
 - import_tasks: rkhunter.yml
