@@ -2,7 +2,7 @@
   apt: pkg={{ item }}
   with_items:
     # That one is nicer than GNU mailutils' mailx(1)
-    - heirloom-mailx
+    - s-nail
     - postfix
     - postfix-cdb
 

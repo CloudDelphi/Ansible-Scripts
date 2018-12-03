@@ -3,27 +3,27 @@
 
 # Install updates as soon as they're available
 Package: *
-Pin: release a={{ ansible_lsb.codename }}-updates
+Pin: release o=Debian, n={{ ansible_lsb.codename }}-updates
 Pin-Priority: 990
 
 {% if 'backports' in group_names -%}
 # Automatically packages from backports (those manually installed)
 Package: *
-Pin: release a={{ ansible_lsb.codename }}-backports
+Pin: release o=Debian Backports, n={{ ansible_lsb.codename }}-backports
 Pin-Priority: 200
 {% endif %}
 
 {% if inventory_hostname_short in non_free_packages.keys() -%}
 # Automatically upgrade non-free firmwares (when manually installed)
 Package: {{ non_free_packages[inventory_hostname_short] | join (' ') }}
-Pin: version *
+Pin: release o=Debian
 Pin-Priority: 200
 {% endif %}
 
 {% if ansible_processor[1] is search('^(Genuine)?Intel.*') and not ansible_virtualization_role == 'guest' -%}
 # Automatically upgrade the microcode (when manually installed)
 Package: intel-microcode iucode-tool
-Pin: version *
+Pin: release o=Debian
 Pin-Priority: 200
 {% endif %}
 

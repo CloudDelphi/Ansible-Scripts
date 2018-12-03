@@ -5,36 +5,55 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: User [-_.[:alnum:]]+ not allowed because account is locked$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: fatal: Read from socket failed: (Connection reset by peer|Connection timed out) \[preauth\]$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: (error: )?Received disconnect from [:.[:xdigit:]]+: (3|11|14): .* \[preauth\]$
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: Protocol major versions differ for [:.[:xdigit:]]+: SSH-2\.0-OpenSSH_
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: Disconnecting: Change of username or service not allowed: \(\S+\) -> (\(\S+\) )?\[preauth\]$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: Disconnecting: Too many authentication failures for invalid user [-_.[:alnum:]]+ from [:.[:xdigit:]]+ port [[:digit:]]+ ssh2? \[preauth\]$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: (error: )?Received disconnect from [:.[:xdigit:]]+ port [0-9]+:(3|11|14): .* \[preauth\]$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: (Disconnected from|Connection (closed|reset) by) [[:xdigit:].:]{3,39} port [0-9]+ \[preauth\]$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: (Did not receive identification string|Invalid user .*) from [[:xdigit:].:]{3,39} port [0-9]+$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: Invalid user .* from [:.[:xdigit:]]+$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: input_userauth_request: invalid user .* \[preauth\]$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: userauth_pubkey: unsupported public key algorithm: [[:alnum:]-]+ \[preauth\]$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: fatal: Write failed: (Connection (timed out|reset by peer)|Broken pipe) \[preauth\]$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: fatal: (no hostkey alg|Unable to negotiate a key exchange method) \[preauth\]$
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: fatal: no matching cipher found: client [.@[:alnum:]-]+(,[.@[:alnum:]-]+)* server [.@[:alnum:]-]+(,[.@[:alnum:]-]+)* \[preauth\]$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: Unable to negotiate with [:.[:xdigit:]]+ port [[:digit:]]+: no matching (host key type|key exchange method|cipher) found\. Their offer: [@.[:alnum:],-]+ \[preauth\]$
+no matching cipher found: client [.@[:alnum:]-]+(,[.@[:alnum:]-]+)* server [.@[:alnum:]-]+(,[.@[:alnum:]-]+)* \[preauth\]$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: Bad protocol version identification '.*' from [:.[:xdigit:]]+ port [[:digit:]]+$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: Accepted publickey for [^[:space:]]+ from [^[:space:]]+ port [[:digit:]]+( (ssh|ssh2))?(: (DSA|RSA|ECDSA|ED25519) ([[:xdigit:]]{2}:){15}[[:xdigit:]]{2})?$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: WARNING: no suitable primes in /etc/ssh/primes$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sshd\[[[:digit:]]+\]: dispatch_protocol_error: type [0-9]+ seq [0-9]+ \[preauth\]$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ systemd\[1\]: Start(ing|ed) Cleanup of Temporary Directories\.(\.\.)?$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ slapd\[[[:digit:]]+\]: connection_input: conn=[[:digit:]]+ deferring operation: binding$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (slapd\[[[:digit:]]+\]|slap(acl|add|auth|cat|dn|index)|ldap(add|compare|delete|exop|modify|modrdn|passwd|search|url|whoami)): DIGEST-MD5 common mech free$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ systemd\[1\]: (Created|Removed) slice User Slice of [-[:alnum:]]+\.$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ systemd\[[0-9]+\]: (Listening on|Closed) .*\.$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ systemd\[1\]: Start(ing|ed) Cleanup of Temporary Directories\.(\.\.)?$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ systemd\[1\]: Start(ing|ed) Session [0-9]+ of user [-[:alnum:]]+\.$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ systemd\[[0-9]+\]: Startup finished in \S+\.$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ systemd: pam_unix\(systemd-user:session\): session (opened|closed) for user [-[:alnum:]]+( by \(uid=0\))?$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ runuser: pam_unix\(runuser:session\): session (opened|closed) for user [-[:alnum:]]+( by \(uid=0\))?$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ systemd\[1\]: Start(ing|ed) Session [0-9]+ of user [-[:alnum:]]+\.$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ systemd\[[0-9]+\]: Received SIGRTMIN\+24 from PID [0-9]+ \(kill\)\.$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ systemd-logind\[[0-9]+\]: New session c?[0-9]+ of user [-[:alnum:]]+\.$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ systemd-logind\[[0-9]+\]: Removed session c?[0-9]+\.$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ systemd\[1\]: apt-daily(-upgrade)?\.timer: Adding .* random time\.$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sudo:[[:space:]]+[_[:alnum:].-]+ : TTY=(unknown|(pts/|tty|vc/)[[:digit:]]+) ; PWD=[^;]+ ; USER=[._[:alnum:]-]+ (; ENV=([_a-zA-Z]+=\S* )+)?; COMMAND=(/(usr|etc|bin|sbin)/|sudoedit )
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ freshclam\[[[:digit:]]+\]: bytecode\.(cld|cvd) (is up to date|updated) \(version: [[:digit:]]+, sigs: [[:digit:]]+, f-level: [[:digit:]]+, builder: [._[:alnum:]-]+\)$
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ freshclam\[[[:digit:]]+\]: WARNING: Your ClamAV installation is OUTDATED!$
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ freshclam\[[[:digit:]]+\]: WARNING: Local version: [[:digit:]]+(\.[[:digit:]]+)* Recommended version: [[:digit:]]+(\.[[:digit:]]+)*$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ freshclam\[[[:digit:]]+\]: \w{3} \w{3} [ :[:digit:]]{16} -> (bytecode|main|daily)\.(cld|cvd) (is up to date|updated) \(version: [[:digit:]]+, sigs: [[:digit:]]+, f-level: [[:digit:]]+, builder: [._[:alnum:]-]+\)$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ freshclam\[[[:digit:]]+\]: \w{3} \w{3} [ :[:digit:]]{16} -> Received signal: wake up$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ freshclam\[[[:digit:]]+\]: \w{3} \w{3} [ :[:digit:]]{16} -> ClamAV update process started at \w{3} \w{3} [ :[:digit:]]{16}$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ freshclam\[[[:digit:]]+\]: (\w{3} \w{3} [ :[:digit:]]{16} -> \^|WARNING: )Your ClamAV installation is OUTDATED!$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ freshclam\[[[:digit:]]+\]: (\w{3} \w{3} [ :[:digit:]]{16} -> \^|WARNING: )Local version: [[:digit:]]+(\.[[:digit:]]+)* Recommended version: [[:digit:]]+(\.[[:digit:]]+)*$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ freshclam\[[[:digit:]]+\]: WARNING: getfile: [._[:alnum:]-]+ not found on remote server \(IP: [.[:digit:]]+\)$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ freshclam\[[[:digit:]]+\]: WARNING: Incremental update failed, trying to download daily\.cvd$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ freshclam\[[[:digit:]]+\]: (WARNING|ERROR): (getpatch: )?Can't download [._[:alnum:]-]+ from [.[:alnum:]-]+$
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ freshclam\[[[:digit:]]+\]: Trying host [.[:alnum:]-]+ \([.[:digit:]]+\)\.\.\.$
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ freshclam\[[[:digit:]]+\]: Trying again in [[:digit:]]+ secs\.\.\.$
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ freshclam\[[[:digit:]]+\]: Giving up on [.[:alnum:]-]+\.\.\.$
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ freshclam\[[[:digit:]]+\]: Downloading [._[:alnum:]-]+ \[[[:digit:]]+%\]$
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ freshclam\[[[:digit:]]+\]: DON'T PANIC! Read http://www\.clamav\.net/(support/faq|documents/upgrading-clamav)$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ freshclam\[[[:digit:]]+\]: \w{3} \w{3} [ :[:digit:]]{16} -> Downloading [._[:alnum:]-]+ \[[[:digit:]]+%\]$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ freshclam\[[[:digit:]]+\]: \w{3} \w{3} [ :[:digit:]]{16} -> DON'T PANIC! Read https?://www\.clamav\.net/(support/faq|documents/upgrading-clamav)$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ freshclam\[[0-9]+\]: \w{3} \w{3} [ :[:digit:]]{16} -> Database updated \([0-9]+ signatures\) from .* \(IP: [[:xdigit:].:]{3,39}\)$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ freshclam\[[0-9]+\]: \w{3} \w{3} [ :[:digit:]]{16} -> Clamd successfully notified about the update\.$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ clamd\[[[:digit:]]+\]: \w{3} \w{3} [ :[:digit:]]{16} -> Reading databases from /var/lib/clamav$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ clamd\[[[:digit:]]+\]: \w{3} \w{3} [ :[:digit:]]{16} -> SelfCheck: Database status OK\.$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ clamd\[[[:digit:]]+\]: \w{3} \w{3} [ :[:digit:]]{16} -> Database correctly reloaded \([0-9]+ signatures\)$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ kernel: \[ *[[:digit:]]+\.[[:digit:]]+ *\] Peer [.[:digit:]]+:[[:digit:]]+/[[:digit:]]+ unexpectedly shrunk window [[:digit:]]+:[[:digit:]]+ \(repaired\)$
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ rsyslogd: \[origin software="rsyslogd" swVersion="[.[:digit:]]+" x-pid="[[:digit:]]+" x-info="http://www.rsyslog.com"\] rsyslogd was HUPed$
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ rsyslogd-?([[:digit:]]+): action '[^']+' (resumed \(module '[.[:alnum:]-]+:[.[:alnum:]-]+'\)|suspended, next retry is \w{3} \w{3} [ :[:digit:]]{16}) \[try http://www\.rsyslog\.com/e/\1 \]$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ liblogging-stdlog:  \[origin software="rsyslogd" swVersion="[0-9.]+" x-pid="[0-9]+" x-info="http://www\.rsyslog\.com"\] rsyslogd was HUPed$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ ansible-([_a-z0-9]+|<stdin>): Invoked with
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (sympa\((command|distribute)\)|wwsympa|archived|bounced|bulk|task_manager)\[[[:digit:]]+\]: (info|notice)\s
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sympa\(command\)\[[[:digit:]]+\]: err tools::valid_email\(\) Invalid email address 'MAILER-DAEMON'$

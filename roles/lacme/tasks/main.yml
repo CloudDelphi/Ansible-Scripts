@@ -1,19 +1,9 @@
-- name: Install dependencies for lacme
-  apt: pkg={{ item }}
-  with_items:
-    - libjson-perl
-    - libjson-xs-perl
-    - libconfig-tiny-perl
-    - libwww-perl
+- name: Install lacme
+  apt: pkg={{ packages }} install_recommends=no
+  vars:
+    packages:
     - liblwp-protocol-https-perl
-    - libnet-ssleay-perl
-
-- name: Copy lacme
-  copy: src=deb/lacme_0.2-1_all.deb
-        dest=/tmp
-  notify: Install lacme
-
-- meta: flush_handlers
+    - lacme
 
 - name: Create a user 'lacme'
   user: name=lacme system=yes

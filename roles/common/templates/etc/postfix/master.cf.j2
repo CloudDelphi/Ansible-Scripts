@@ -11,7 +11,7 @@
 # ==========================================================================
 
 {% if inst is not defined %}
-[127.0.0.1]:16132 inet n -      -       -       -       smtpd
+[127.0.0.1]:16132 inet n -      y       -       -       smtpd
 {% elif inst == 'MX' %}
 smtpd     pass  -       -       n       -       -       smtpd
   -o cleanup_service_name=cleanup_nochroot
@@ -20,7 +20,7 @@ tlsproxy  unix  -       -       n       -       0       tlsproxy
 dnsblog   unix  -       -       n       -       0       dnsblog
 cleanup_nochroot unix n -       n       -       0       cleanup
 {% elif inst == 'MSA' %}
-submission inet n       -       -       -       -       smtpd
+submission inet n       -       y       -       -       smtpd
   -o tls_high_cipherlist=EECDH+AESGCM:!MEDIUM:!LOW:!EXP:!aNULL:!eNULL
 {% if groups.webmail | difference([inventory_hostname]) | length > 0 %}
 [{{ postfix_instance.MSA.addr }}]:{{ postfix_instance.MSA.port }} inet n       -       -       -       -       smtpd
@@ -34,30 +34,30 @@ submission inet n       -       -       -       -       smtpd
 [{{ postfix_instance[inst].addr }}]:{{ postfix_instance[inst].port }} inet n       -       -       -       -       smtpd
   -o smtpd_authorized_xforward_hosts=127.0.0.0/8,[::1]/128{{ ipsec_subnet is defined | ternary(','+ipsec_subnet, '') }}
 {% endif %}
-pickup    unix  n       -       -       60      1       pickup
-cleanup   unix  n       -       -       -       0       cleanup
+pickup    unix  n       -       y       60      1       pickup
+cleanup   unix  n       -       y       -       0       cleanup
 qmgr      unix  n       -       n       300     1       qmgr
-tlsmgr    unix  -       -       -       1000?   1       tlsmgr
-rewrite   unix  -       -       -       -       -       trivial-rewrite
-bounce    unix  -       -       -       -       0       bounce
-defer     unix  -       -       -       -       0       bounce
-trace     unix  -       -       -       -       0       bounce
-verify    unix  -       -       -       -       1       verify
-flush     unix  n       -       -       1000?   0       flush
+tlsmgr    unix  -       -       y       1000?   1       tlsmgr
+rewrite   unix  -       -       y       -       -       trivial-rewrite
+bounce    unix  -       -       y       -       0       bounce
+defer     unix  -       -       y       -       0       bounce
+trace     unix  -       -       y       -       0       bounce
+verify    unix  -       -       y       -       1       verify
+flush     unix  n       -       y       1000?   0       flush
 proxymap  unix  -       -       n       -       -       proxymap
 proxywrite unix -       -       n       -       1       proxymap
-smtp      unix  -       -       -       -       -       smtp
-relay     unix  -       -       -       -       -       smtp
+smtp      unix  -       -       y       -       -       smtp
 #       -o smtp_helo_timeout=5 -o smtp_connect_timeout=5
-showq     unix  n       -       -       -       -       showq
-error     unix  -       -       -       -       -       error
-retry     unix  -       -       -       -       -       error
-discard   unix  -       -       -       -       -       discard
+relay     unix  -       -       y       -       -       smtp
+showq     unix  n       -       y       -       -       showq
+error     unix  -       -       y       -       -       error
+retry     unix  -       -       y       -       -       error
+discard   unix  -       -       y       -       -       discard
 local     unix  -       n       n       -       -       local
 virtual   unix  -       n       n       -       -       virtual
-lmtp      unix  -       -       -       -       -       lmtp
-anvil     unix  -       -       -       -       1       anvil
-scache    unix  -       -       -       -       1       scache
+lmtp      unix  -       -       y       -       -       lmtp
+anvil     unix  -       -       y       -       1       anvil
+scache    unix  -       -       y       -       1       scache
 {% if inst is defined and inst == 'MX' %}
 reserved-alias unix  -  n       n       -       -       pipe
   flags=Rhu user=nobody argv=/usr/local/bin/reserved-alias.pl ${sender} ${original_recipient} @fripost.org
@@ -76,7 +76,7 @@ amavisfeed unix -       -       n       -       5       lmtp
   -o disable_dns_lookups=yes
 
 # Server part (smtpd) - amavis
-[127.0.0.1]:10025 inet n  -       n       -       -       smtpd
+[127.0.0.1]:10025 inet n  -       y       -       -       smtpd
   -o content_filter=
   -o smtpd_delay_reject=no
   -o smtpd_client_restrictions=permit_mynetworks,reject

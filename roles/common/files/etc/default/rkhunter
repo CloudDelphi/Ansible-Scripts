@@ -5,11 +5,11 @@
 #
 
 # Set this to yes to enable rkhunter daily runs
-# (default: true)
+# (default: false)
 CRON_DAILY_RUN="yes"
 
 # Set this to yes to enable rkhunter weekly database updates
-# (default: true)
+# (default: false)
 CRON_DB_UPDATE="yes"
 
 # Set this to yes to enable reports of weekly database updates
@@ -31,4 +31,4 @@ NICE="10"
 # Should daily check be run when running on battery
 # powermgmt-base is required to detect if running on battery or on AC power
 # (default: false)
-RUN_CHECK_ON_BATTERY="false" 
+RUN_CHECK_ON_BATTERY="false"

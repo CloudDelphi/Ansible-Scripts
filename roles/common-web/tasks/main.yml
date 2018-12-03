@@ -1,10 +1,10 @@
 - name: Install Nginx
-  apt: pkg=nginx
+  apt: pkg=nginx-light
 
 - name: Limit Nginx logging
   lineinfile: "dest=/etc/logrotate.d/nginx create=yes
                regexp='^\\s*rotate\\s'
-               line='\trotate 1'"
+               line='\trotate 7'"
   tags:
     - logrotate
 

@@ -47,7 +47,7 @@ else
     ipsec=n
 fi
 
-fail2ban_re='^(\[[0-9]+:[0-9]+\]\s+)?-A fail2ban-\S'
+fail2ban_re='^(\[[0-9]+:[0-9]+\]\s+)?-A f2b-\S'
 IPsec_re=" -m policy --dir (in|out) --pol ipsec --reqid [0-9]+ --proto $secproto -j ACCEPT$"
 declare -A rss=() tables=()
 
@@ -66,21 +66,21 @@ usage() {
 }
 
 log() {
-    /usr/bin/logger -st firewall -p user.info -- "$@"
+    logger -st firewall -p user.info -- "$@"
 }
 fatal() {
-    /usr/bin/logger -st firewall -p user.err  -- "$@"
+    logger -st firewall -p user.err  -- "$@"
     exit 1
 }
 
 iptables() {
     # Fake iptables/ip6tables(8); use the more efficient
     # iptables-restore(8) instead.
-    echo "$@" >> "$new";
+    echo "$@" >>"$new";
 }
 commit() {
     # End a table
-    echo COMMIT >> "$new"
+    echo COMMIT >>"$new"
 }
 inet46() {
     case "$1" in
@@ -96,25 +96,25 @@ ipt-chains() {
             ?*)   echo "*$1";;
         esac
         shift
-    done >> "$new"
+    done >>"$new"
 }
 
 ipt-trim() {
     # Remove dynamic chain/rules from the input stream, as they are
     # automatically included by third-party servers (such as strongSwan
     # or fail2ban).  The output is ready to be made persistent.
-    grep -Ev -e '^:fail2ban-\S' \
+    grep -Ev -e '^:f2b-\S' \
              -e "$IPsec_re" \
-             -e '-j fail2ban-\S+$' \
+             -e '-j f2b-\S+$' \
              -e "$fail2ban_re"
 }
 
 ipt-diff() {
     # Get the difference between two rulesets.
     if [ $verbose -eq 1 ]; then
-        /usr/bin/diff -u -I '^#' "$1" "$2"
+        diff -u -I '^#' --color=auto "$@"
     else
-        /usr/bin/diff -q -I '^#' "$1" "$2" >/dev/null
+        diff -q -I '^#' "$@" >/dev/null
     fi
 }
 
@@ -127,12 +127,12 @@ ipt-persist() {
 
     local f rs table
     for f in "${!tables[@]}"; do
-        ipts=/sbin/$(inet46 $f iptables ip6tables)-save
+        ipts=$(inet46 $f iptables ip6tables)-save
         rs=/etc/iptables/rules.v$f
 
         for table in ${tables[$f]}; do
-            /bin/ip netns exec $netns $ipts -t $table
-        done | ipt-trim > "$rs"
+            ip netns exec $netns $ipts -t $table
+        done | ipt-trim >"$rs"
         chmod 0600 "$rs"
     done
 }
@@ -143,7 +143,7 @@ ipt-revert() {
 
     local rs
     for f in "${!rss[@]}"; do
-        /sbin/$(inet46 $f iptables ip6tables)-restore -c < "${rss[$f]}"
+        $(inet46 $f iptables ip6tables)-restore -c <"${rss[$f]}"
         rm -f "${rss[$f]}"
     done
     exit 1
@@ -152,7 +152,7 @@ ipt-revert() {
 run() {
     # Build and apply the firewall for IPv4/6.
     local f="$1"
-    local ipt=/sbin/$(inet46 $f iptables ip6tables)
+    local ipt=$(inet46 $f iptables ip6tables)
     tables[$f]=filter
 
     # The default interface associated with this address.
@@ -164,14 +164,14 @@ run() {
           new=$(mktemp --tmpdir new-rules.v$f.XXXXXX)
     for table in ${tables[$f]}; do
         $ipt-save -ct $table
-    done > "$old"
+    done >"$old"
     rss[$f]="$old"
 
     local fail2ban=0
     # XXX: As of Wheezy, fail2ban is IPv4 only.  See
     #      https://github.com/fail2ban/fail2ban/issues/39 for the current
     #      state of the art.
-    if [ "$f" = 4 ] && which /usr/bin/fail2ban-server >/dev/null; then
+    if [ "$f" = 4 ] && which fail2ban-server >/dev/null; then
         fail2ban=1
     fi
 
@@ -191,14 +191,14 @@ run() {
     if [ $fail2ban -eq 1 ]; then
         echo ":fail2ban - [0:0]"
         # Don't remove existing rules & traps in the current rulest
-        grep    -- '^:fail2ban-\S'      "$old" || true
-        grep -E -- ' -j fail2ban-\S+$'  "$old" || true
-        grep -E -- "$fail2ban_re"       "$old" || true
-    fi >> "$new"
+        grep    -- '^:f2b-\S'     "$old" || true
+        grep -E -- ' -j f2b-\S+$' "$old" || true
+        grep -E -- "$fail2ban_re" "$old" || true
+    fi >>"$new"
 
-    if [ "$f" = 4 -a "$ipsec" = y ]; then
+    if [ "$f" = 4 -o "$f" = 6 ] && [ "$ipsec" = y ]; then
         # IPsec tunnels come first (IPv4 only).
-        grep -E -- "$IPsec_re" "$old" >> "$new" || true
+        grep -E -- "$IPsec_re" "$old" >>"$new" || true
 
         # Allow any IPsec $secproto protocol packets to be sent and received.
         iptables -A INPUT  -i $if -p $secproto -j ACCEPT
@@ -212,14 +212,14 @@ run() {
     #            http://baldric.net/loose-iptables-firewall-for-servers/
 
     local ip
-    if [ "$f" = 4 -a "$ipsec" = y ]; then
+    if [ "$f" = 4 ] && [ "$ipsec" = y ]; then
         # Private-use networks (RFC 1918) and link local (RFC 3927)
-        local MyIPsec="$( /bin/ip -4 -o route show table 220 dev $if | sed 's/\s.*//' )"
-        local MyNetwork="$( /bin/ip -4 -o address show dev $if scope global \
+        local MyIPsec="$( ip -4 -o route show table 220 dev $if | sed 's/\s.*//' )"
+        local MyNetwork="$( ip -4 -o address show dev $if scope global \
                           | sed -nr "s/^[0-9]+:\s+$if\s+inet\s(\S+).*/\1/p" \
                           | while read ip; do
                               for ips in $MyIPsec; do
-                                [ "$ips" = "$(/usr/bin/netmask -nc "$ip" "$ips" | sed 's/^ *//')" ] || echo "$ip"
+                                [ "$ips" = "$(netmask -nc "$ip" "$ips" | sed 's/^ *//')" ] || echo "$ip"
                               done
                             done
                           )"
@@ -227,7 +227,7 @@ run() {
         for ip in 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 169.254.0.0/16; do
             # Don't lock us out if we are behind a NAT ;-)
             for myip in $MyNetwork; do
-                [ "$ip" = "$(/usr/bin/netmask -nc "$ip" "$myip" | sed 's/^ *//')" ] || echo "$ip"
+                [ "$ip" = "$(netmask -nc "$ip" "$myip" | sed 's/^ *//')" ] || echo "$ip"
             done | uniq | while read ip; do iptables -A INPUT -i $if -s "$ip" -j DROP; done
         done
 
@@ -260,9 +260,9 @@ run() {
     local localhost=$(inet46 $f '127.0.0.1/8' '::1/128')
     iptables -A INPUT  -i lo -s "$localhost" -d "$localhost" -j ACCEPT
     iptables -A OUTPUT -o lo -s "$localhost" -d "$localhost" -j ACCEPT
-    if [ "$f" = 4 -a "$ipsec" = y ]; then
+    if [ "$f" = 4 ] && [ "$ipsec" = y ]; then
         # Allow local access to our virtual IP
-        /bin/ip -4 -o route show table 220 dev $if \
+        ip -4 -o route show table 220 dev $if \
         | sed -nr 's/.*\ssrc\s+([[:digit:].]{7,15})(\s.*)?$/\1/p' \
         | while read ips; do
             iptables -A INPUT  -i lo -s "$ips" -d "$ips" -j ACCEPT
@@ -340,25 +340,25 @@ run() {
     # to restore the counters when reverting.)
     sed -r -e '/^:/ s/\[[0-9]+:[0-9]+\]$/[0:0]/' \
            -e 's/^\[[0-9]+:[0-9]+\]\s+//' \
-           "$old" > "$oldz"
+           "$old" >"$oldz"
 
-    /bin/ip netns exec $netns $ipt-restore <"$new" || ipt-revert
+    ip netns exec $netns $ipt-restore <"$new" || ipt-revert
 
     for table in ${tables[$f]}; do
-       /bin/ip netns exec $netns $ipt-save -t $table
-    done > "$new"
+       ip netns exec $netns $ipt-save -t $table
+    done >"$new"
 
-    ipt-diff "$oldz" "$new" || rv1=$?
+    ipt-diff --label="a/$ipt-save" --label="b/$ipt-save" "$oldz" "$new" || rv1=$?
 
-    if ! [ -f "$persistent" -a -x /etc/network/if-pre-up.d/iptables ]; then
+    if ! [ -f "$persistent" ] && [ -x /etc/network/if-pre-up.d/iptables ]; then
         rv2=1
     else
-        ipt-trim < "$oldz" | ipt-diff - "$persistent" || rv2=$?
+        ipt-trim <"$new" | ipt-diff --label="a/rules.v$f" --label="b/$ipt-save" "$persistent" - || rv2=$?
     fi
 
     local update="Please run '${0##*/}'."
     if [ $check -eq 0 ]; then
-        $ipt-restore <"$new" || ipt-revert
+        uniq "$new" | $ipt-restore || ipt-revert
     else
         if [ $rv1 -ne 0 ]; then
             log "WARN: The IPv$f firewall is not up to date! $update"
@@ -394,7 +394,7 @@ done
 
 # If we are going to apply the ruleset, we should either have a TTY, or
 # use -f.
-if ! /usr/bin/tty -s && [ $force -eq 0 -a $check -eq 0 ]; then
+if ! tty -s && [ $force -eq 0 ] && [ $check -eq 0 ]; then
     echo "Error: Not a TTY. Try with -f (at your own risks!)" >&2
     exit 1
 fi
@@ -403,10 +403,10 @@ fi
 # we can easily get a normalized version we can compare latter.  See
 # http://bugzilla.netfilter.org/show_bug.cgi?id=790
 netns="ipt-firewall-test-$$"
-/bin/ip netns add $netns
+ip netns add $netns
 
-trap '/bin/ip netns del $netns 2>/dev/null || true; ipt-revert' SIGINT
-trap '/bin/ip netns del $netns; rm -f "${rss[@]}"'              EXIT
+trap 'ip netns del $netns 2>/dev/null || true; ipt-revert' SIGINT
+trap 'ip netns del $netns; rm -f "${rss[@]}"'              EXIT
 
 rv=0
 for f in ${addrfam:=4 6}; do
@@ -417,7 +417,7 @@ if [ $force -eq 1 ]; then
     # At the user's own risks...
     ipt-persist
 
-elif [ $check -eq 1 -o $rv -eq 0 ]; then
+elif [ $check -eq 1 ] || [ $rv -eq 0 ]; then
     # Nothing to do, we're all set.
     exit $rv
 
