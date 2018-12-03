@@ -5,8 +5,6 @@ PATH=/usr/bin:/bin
 
 if [ -n "${GNUPGBIN:-}" ]; then
     GPG="$GNUPGBIN"
-elif [ -x /usr/bin/gpg2 ]; then
-    GPG=/usr/bin/gpg2
 else
     GPG=gpg
 fi
@@ -168,7 +166,7 @@ allfpr mdwn >>"$mdwn2"
 echo >>"$src2"
 
 
-if diff -u --label "a/${asc%.asc}" --label "b/${asc%.asc}" -- "$src" "$src2" &&
+if diff -u --color=auto --label "a/${asc%.asc}" --label "b/${asc%.asc}" -- "$src" "$src2" &&
    diff -q -- "$mdwn" "$mdwn2" >/dev/null; then
     echo 'The fingerprint list is up to date.'
 else
