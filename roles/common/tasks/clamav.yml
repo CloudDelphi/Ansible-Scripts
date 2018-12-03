@@ -26,6 +26,6 @@
               line="clamav{{':'}} root"
 
 - name: Compile the static local Postfix database
-  postmap: cmd=postalias src=/etc/aliases db=cdb
+  postmap: cmd=postalias src=/etc/aliases db=lmdb
            owner=root group=root
            mode=0644

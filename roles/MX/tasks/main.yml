@@ -4,7 +4,7 @@
     - postfix
     - postfix-pcre
     - postfix-ldap
-    - postfix-cdb
+    - postfix-lmdb
     # The following is for reserved-alias.pl
     - libnet-ldap-perl
     - libauthen-sasl-perl
@@ -73,7 +73,7 @@
 - name: Compile the Postfix transport maps
   # trivial-rewrite(8) is a long-running process, so it's safer to reload
   postmap: instance={{ postfix_instance[inst].name }}
-           src=/etc/postfix-{{ postfix_instance[inst].name }}/virtual/transport db=cdb
+           src=/etc/postfix-{{ postfix_instance[inst].name }}/virtual/transport db=lmdb
            owner=root group=root
            mode=0644
   notify:

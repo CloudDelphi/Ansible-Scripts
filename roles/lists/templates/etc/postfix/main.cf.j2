@@ -47,7 +47,7 @@ default_transport = error:5.1.1 Transport unavailable
 
 
 relay_domains                     = sympa.$mydomain
-transport_maps                    = cdb:$config_directory/transport
+transport_maps                    = lmdb:$config_directory/transport
 sympa_destination_recipient_limit = 1
 
 # Don't rewrite remote headers

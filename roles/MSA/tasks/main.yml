@@ -52,7 +52,7 @@
 
 - name: Compile the check_sender_access map
   # no need to reload upon change, as cleanup(8) is short-running
-  postmap: cmd=postmap src=/etc/postfix-{{ postfix_instance[inst].name }}/check_sender_access db=cdb
+  postmap: cmd=postmap src=/etc/postfix-{{ postfix_instance[inst].name }}/check_sender_access db=lmdb
            owner=root group=root
            mode=0644
   notify:

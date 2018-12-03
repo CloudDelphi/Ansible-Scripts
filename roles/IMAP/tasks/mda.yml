@@ -27,7 +27,7 @@
 
 - name: Compile the Postfix transport maps
   # trivial-rewrite(8) is a long-running process, so it's safer to reload
-  postmap: cmd=postmap src=/etc/postfix-{{ postfix_instance[inst].name }}/transport db=cdb
+  postmap: cmd=postmap src=/etc/postfix-{{ postfix_instance[inst].name }}/transport db=lmdb
            owner=root group=root
            mode=0644
   notify:

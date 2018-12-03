@@ -94,7 +94,7 @@
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: COMMAND (COUNT|TIME) LIMIT from \[[[:xdigit:].:]{3,39}\]:[[:digit:]]+( after [[:upper:]]+)?$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: cache [a-z]+:\S+ full cleanup: retained=[[:digit:]]+ dropped=[[:digit:]]+ entries$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: warning: getpeername: Transport endpoint is not connected -- dropping this connection$
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: warning: psc_cache_update: btree:/var/lib/postfix-mx/postscreen_cache update average delay is [[:digit:]]+ ms$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: warning: psc_cache_update: lmdb:/var/lib/postfix-mx/postscreen_cache update average delay is [[:digit:]]+ ms$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/postscreen\[[[:digit:]]+\]: warning: dnsblog reply timeout [[:digit:]]+s for [._[:alnum:]-]+$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/dnsblog\[[[:digit:]]+\]: addr [[:xdigit:].:]{3,39} listed by domain [._[:alnum:]-]+ as [[:xdigit:].:]{3,39}$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ postfix-mx/dnsblog\[[[:digit:]]+\]: warning: dnsblog_query: lookup error for DNS query ([._[:alnum:]-]+): Host or domain name not found. Name service error for name=\1 type=A(AAA)?: Host not found, try again$

@@ -42,7 +42,7 @@ def file_suffix(instance, db):
         null.closed
 
     # See postmap(1) and postalias(1)
-    suffixes = { 'btree': 'db', 'cdb': 'cdb', 'hash': 'db' }
+    suffixes = { 'btree': 'db', 'cdb': 'cdb', 'hash': 'db', 'lmdb': 'lmdb' }
     return suffixes[db]
 
 
@@ -64,7 +64,7 @@ def main():
     module = AnsibleModule(
         argument_spec = dict(
             src = dict( required=True ),
-            db  = dict( choices=['btree','cdb','hash'] ),
+            db  = dict( choices=['btree','cdb','hash','lmdb'] ),
             cmd = dict( choices=['postmap','postalias'], default='postmap' ),
             instance = dict( required=False )
         ),

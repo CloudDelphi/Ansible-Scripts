@@ -45,7 +45,7 @@ relay_domains =
 # bottlenecks on trivial_rewrite(8) due to slow LDAP lookups in
 # tranport_maps.
 virtual_transport     = error:5.1.1 Virtual transport unavailable
-virtual_alias_domains = !cdb:$config_directory/virtual/transport
+virtual_alias_domains = !lmdb:$config_directory/virtual/transport
                         ldap:$config_directory/virtual/domains.cf
 virtual_alias_maps    = pcre:$config_directory/virtual/reserved_alias.pcre
                         # unless there is a matching user/alias/list...
@@ -55,7 +55,7 @@ virtual_alias_maps    = pcre:$config_directory/virtual/reserved_alias.pcre
                         # ...we resolve alias domains and catch alls
                         ldap:$config_directory/virtual/alias_domains.cf
                         ldap:$config_directory/virtual/catchall.cf
-transport_maps        = cdb:$config_directory/virtual/transport
+transport_maps        = lmdb:$config_directory/virtual/transport
 
 
 # Don't rewrite remote headers
@@ -102,6 +102,7 @@ postscreen_access_list =
     permit_mynetworks
     cidr:$config_directory/access-list.cidr
 postscreen_dnsbl_whitelist_threshold = -1
+postscreen_cache_map = lmdb:$data_directory/postscreen_cache
 
 postscreen_blacklist_action = drop
 postscreen_dnsbl_threshold  = 8

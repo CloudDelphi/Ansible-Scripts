@@ -4,7 +4,7 @@
     # That one is nicer than GNU mailutils' mailx(1)
     - s-nail
     - postfix
-    - postfix-cdb
+    - postfix-lmdb
 
 - name: Create Postfix instances
   postmulti: instance={{ postfix_instance[item].name }}
@@ -47,11 +47,11 @@
     - { src: root,          dst: 'root@fripost.org' }
 
 - name: Compile the static local Postfix database
-  postmap: cmd=postalias src=/etc/aliases db=cdb
+  postmap: cmd=postalias src=/etc/aliases db=lmdb
            owner=root group=root
            mode=0644
 
-# We're using CDB
+# We're using LMDB
 - name: Delete /etc/aliases.db
   file: path=/etc/aliases.db state=absent
 

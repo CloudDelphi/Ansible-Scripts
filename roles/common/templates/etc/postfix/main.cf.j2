@@ -26,8 +26,8 @@ alias_maps           =
 local_recipient_maps =
 
 # All aliases are virtual
-default_database_type = cdb
-virtual_alias_maps    = cdb:/etc/aliases
+default_database_type = lmdb
+virtual_alias_maps    = lmdb:/etc/aliases
 alias_database        = $virtual_alias_maps
 
 # Forward everything to our internal outgoing proxy

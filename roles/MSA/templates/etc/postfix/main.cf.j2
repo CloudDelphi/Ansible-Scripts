@@ -103,7 +103,7 @@ smtpd_sender_login_maps   = socketmap:unix:private/sender-login:sender_login
 smtpd_sender_restrictions =
     reject_non_fqdn_sender
     reject_unknown_sender_domain
-    check_sender_access cdb:$config_directory/check_sender_access
+    check_sender_access lmdb:$config_directory/check_sender_access
     reject_known_sender_login_mismatch
 
 smtpd_relay_restrictions =
