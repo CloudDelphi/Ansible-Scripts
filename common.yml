@@ -13,7 +13,7 @@
     - common
 
 - name: Let's Encrypt
-  hosts: IMAP:MX:MSA:webmail:lists:wiki:git
+  hosts: IMAP:MX:MSA:webmail:lists:wiki:git:nextcloud
   gather_facts: False
   roles:
     - lacme
@@ -23,7 +23,7 @@
    - ACME
 
 - name: Common SQL tasks
-  hosts: MDA:webmail:lists:bacula-dir
+  hosts: MDA:webmail:lists:bacula-dir:nextcloud
   gather_facts: False
   tags: mysql,sql
   roles:
@@ -44,7 +44,7 @@
     - LDAP-provider
 
 - name: Configure the Web servers
-  hosts: webmail:wiki:lists:git:munin-master
+  hosts: webmail:wiki:lists:git:munin-master:nextcloud
   gather_facts: False
   tags: nginx,www,web
   roles:

@@ -1,0 +1,108 @@
+- name: Install PHP
+  apt: pkg={{ packages }}
+  vars:
+    packages:
+    - php-cli
+    - php-fpm
+    - php-apcu
+    - php-gd
+    - php-imagick
+    - php-mbstring
+    - php-mcrypt
+    - php-xml
+    - php-curl
+    - php-intl
+    - php-ldap
+    - php-mysql
+    - php-zip
+    - php-json
+
+- name: Configure PHP 7.0 Zend opcache
+  lineinfile: dest=/etc/php/7.0/fpm/php.ini
+              regexp='^;?{{ item.var }}\\s*='
+              line="{{ item.var }} = {{ item.value }}"
+              owner=root group=root
+              mode=0644
+  with_items:
+    - { var: opcache.enable,                  value: 1     }
+    - { var: opcache.enable_cli,              value: 1     }
+    - { var: opcache.memory_consumption,      value: 128   }
+    - { var: opcache.interned_strings_buffer, value: 8     }
+    - { var: opcache.max_accelerated_files,   value: 10000 }
+    - { var: opcache.revalidate_freq,         value: 1     }
+    - { var: opcache.fast_shutdown,           value: 1     }
+  notify:
+    - Restart php7.0-fpm
+
+- name: Configure PHP 7.0 pool environment
+  lineinfile: dest=/etc/php/7.0/fpm/pool.d/www.conf
+              regexp='^;?env\[{{ item.var }}\]\\s*='
+              line="env[{{ item.var }}] = {{ item.value }}"
+              owner=root group=root
+              mode=0644
+  with_items:
+    - { var: HOSTNAME, value: "$HOSTNAME"     }
+    - { var: PATH,     value: "/usr/bin:/bin" }
+    - { var: TMP,      value: "/tmp"          }
+    - { var: TMPDIR,   value: "/tmp"          }
+    - { var: TEMP,     value: "/tmp"          }
+  notify:
+    - Restart php7.0-fpm
+
+- name: Start php7.0-fpm
+  service: name=php7.0-fpm state=started
+
+- name: Copy /etc/cron.d/nextcloud
+  copy: src=etc/cron.d/nextcloud
+        dest=/etc/cron.d/nextcloud
+        owner=root group=root
+        mode=0644
+
+- name: Copy /etc/nginx/sites-available/nextcloud
+  copy: src=etc/nginx/sites-available/nextcloud
+        dest=/etc/nginx/sites-available/nextcloud
+        owner=root group=root
+        mode=0644
+  register: r1
+  notify:
+    - Restart Nginx
+
+- name: Create /etc/nginx/sites-enabled/nextcloud
+  file: src=../sites-available/nextcloud
+        dest=/etc/nginx/sites-enabled/nextcloud
+        owner=root group=root
+        state=link force=yes
+  register: r2
+  notify:
+    - Restart Nginx
+
+- name: Copy HPKP header snippet
+  # never modify the pined pubkeys as we don't want to lock out our users
+  template: src=etc/nginx/snippets/cloud.fripost.org.hpkp-hdr.j2
+            dest=/etc/nginx/snippets/cloud.fripost.org.hpkp-hdr
+            validate=/bin/false
+            owner=root group=root
+            mode=0644
+  register: r3
+  notify:
+    - Restart Nginx
+
+- name: Start Nginx
+  service: name=nginx state=started
+  when: not (r1.changed or r2.changed or r3.changed)
+
+- meta: flush_handlers
+
+- name: Fetch Nginx's X.509 certificate
+  # Ensure we don't fetch private data
+  become: False
+  fetch_cmd: cmd="openssl x509 -noout -pubkey"
+             stdin=/etc/nginx/ssl/cloud.fripost.org.pem
+             dest=certs/public/cloud.fripost.org.pub
+  tags:
+    - genkey
+
+- import_tasks: ldap.yml
+  when: "'LDAP-provider' not in group_names"
+  tags:
+    - ldap

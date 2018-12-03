@@ -16,6 +16,7 @@ ipsec:
   elefant:  172.16.0.4
   giraff:   172.16.0.5
   mistral:  172.16.0.6
+  calima:   172.16.0.7
 
 
 postfix_instance:

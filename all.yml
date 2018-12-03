@@ -13,3 +13,4 @@
 - import_playbook: wiki.yml
 - import_playbook: bacula.yml
 - import_playbook: munin.yml
+- import_playbook: nextcloud.yml

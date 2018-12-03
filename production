@@ -16,6 +16,9 @@ civett.fripost.org geoip=se mxno=2
 [benjamin]
 benjamin.skangas.se geoip=se
 
+[calima]
+calima.fripost.org geoip=se
+
 
 # ldap.fripost.org
 [LDAP-provider:children]
@@ -64,6 +67,9 @@ civett
 
 [git:children]
 wiki
+
+[nextcloud:children]
+calima
 
 [munin-master:children]
 benjamin

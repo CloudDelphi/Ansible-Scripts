@@ -22,7 +22,7 @@ out     udp     123      123                            # NTP
 in      tcp     {{ ansible_port|default('22') }}        # SSH
 {% if 'LDAP-provider' in group_names %}
 in      tcp     636                                     # LDAPS
-{% elif 'MX' in group_names or  'lists' in group_names %}
+{% elif 'MX' in group_names or 'lists' in group_names or 'nextcloud' in group_names %}
 out     tcp     636                                     # LDAPS
 {% endif %}
 {% if 'MX' in group_names %}
@@ -38,7 +38,7 @@ in      tcp     4190                                    # MANAGESIEVE
 {% if 'MSA' in group_names %}
 in      tcp     587                                     # SMTP-AUTH
 {% endif %}
-{% if 'webmail' in group_names or 'lists' in group_names or 'wiki' in group_names %}
+{% if 'webmail' in group_names or 'lists' in group_names or 'wiki' in group_names or 'nextcloud' in group_names %}
 in      tcp     80,443                                  # HTTP/HTTPS
 {% endif %}
 {% if 'LDAP-provider' in group_names %}

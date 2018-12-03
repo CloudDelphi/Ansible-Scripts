@@ -90,6 +90,7 @@ allfpr() {
     x509fpr '`mail.fripost.org:443`, `webmail.fripost.org:443` (webmail)'
     x509fpr '`lists.fripost.org:443` (list manager)'
     x509fpr '`git.fripost.org:443` (git server and its web interface)'
+    x509fpr '`cloud.fripost.org:443` (lagring för delning)'
 
     header 'SSH server'
     sshfpr '`gitolite@git.fripost.org:22`'

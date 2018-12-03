@@ -60,4 +60,13 @@ subject = /O=Fripost/CN=git.fripost.org
 notify = /bin/systemctl reload nginx
 {% endif %}
 
+{% if 'nextcloud' in group_names %}
+[cloud]
+certificate-key = /etc/nginx/ssl/cloud.fripost.org.key
+certificate-chain = /etc/nginx/ssl/cloud.fripost.org.pem
+subject = /O=Fripost/CN=cloud.fripost.org
+subjectAltName = DNS:cloud.fripost.org,DNS:www.cloud.fripost.org
+notify = /bin/systemctl reload nginx
+{% endif %}
+
 ; vim:ft=dosini

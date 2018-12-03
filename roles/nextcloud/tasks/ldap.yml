@@ -1,0 +1,17 @@
+- name: Create /etc/ldap/ssl
+  file: path=/etc/ldap/ssl
+        state=directory
+        owner=root group=root
+        mode=0755
+
+- name: Copy the slapd X.509 certificate
+  copy: src=certs/ldap/ldap.fripost.org.pem
+        dest=/etc/ldap/ssl/ldap.fripost.org.pem
+        owner=root group=root
+        mode=0644
+
+- name: Copy ldap.conf(5)
+  copy: src=etc/ldap/ldap.conf
+        dest=/etc/ldap/ldap.conf
+        owner=root group=root
+        mode=0644
