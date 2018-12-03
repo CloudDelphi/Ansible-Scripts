@@ -1,0 +1,32 @@
+- name: Install unbound
+  apt: pkg={{ packages }}
+  vars:
+    packages:
+    - unbound
+    - dns-root-data
+
+- name: Copy unbound configuration
+  template: src=templates/etc/unbound/unbound.conf.j2
+            dest=/etc/unbound/unbound.conf
+            owner=root group=root
+            mode=0644
+  register: r
+  notify:
+    - Restart unbound
+
+- name: Start unbound
+  service: name=unbound state=started
+  when: not r.changed
+
+#- meta: flush_handlers
+
+- name: Use the local DNS server
+  lineinfile: dest=/etc/resolv.conf create=yes
+              regexp='^nameserver\s+127\.0\.0\.1\s*$'
+              line='nameserver 127.0.0.1'
+              insertbefore='^\s*#*?nameserver\s'
+              firstmatch=yes
+  tags:
+    - resolver
+  notify:
+    - Restart Postfix

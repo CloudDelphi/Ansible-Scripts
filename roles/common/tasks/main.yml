@@ -18,6 +18,11 @@
   when: "'webmail' in group_names and 'LDAP-provider' not in group_names"
 - import_tasks: auditd.yml
   tags: auditd
+- import_tasks: unbound.yml
+  tags:
+    - unbound
+    - dns
+  when: "ansible_processor[1] is search('^(Genuine)?Intel.*') and not ansible_virtualization_role == 'guest'"
 - import_tasks: rkhunter.yml
   tags: rkhunter
 - import_tasks: clamav.yml

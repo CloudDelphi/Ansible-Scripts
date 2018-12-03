@@ -1,0 +1,32 @@
+# Unbound configuration file for Debian.
+#
+# See the unbound.conf(5) man page.
+#
+# See /usr/share/doc/unbound/examples/unbound.conf for a commented
+# reference config file.
+
+remote-control:
+    control-enable: no
+
+server:
+    interface: 127.0.0.1
+    root-hints: "/usr/share/dns/root.hints"
+    hide-identity: yes
+    hide-version: yes
+    prefetch: yes
+    qname-minimisation: yes
+    rrset-roundrobin: yes
+    use-caps-for-id: yes
+
+    # RFC 1918
+    private-address: 10.0.0.0/8
+    private-address: 172.16.0.0/12
+    private-address: 192.168.0.0/16
+    private-address: 169.254.0.0/16
+    private-address: fd00::/8
+    private-address: fe80::/10
+
+#
+# The following line includes additional configuration files from the
+# /etc/unbound/unbound.conf.d directory.
+include: "/etc/unbound/unbound.conf.d/*.conf"

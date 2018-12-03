@@ -11,6 +11,9 @@
 - name: apt-get update
   apt: update_cache=yes
 
+- name: Restart unbound
+  service: name=unbound state=restarted
+
 - name: Update rkhunter's data file
   command: /usr/bin/rkhunter --propupd
 
