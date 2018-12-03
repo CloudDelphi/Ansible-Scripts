@@ -7,8 +7,8 @@ config setup
 conn %default
     keyexchange    = ikev2
     keyingtries    = %forever
-    ike            = aes128gcm16-prfsha256-ecp256,aes256gcm16-prfsha384-ecp384!
-    esp            = aes128gcm16-ecp256,aes256gcm16-ecp384!
+    ike            = aes256gcm16-prfsha384-ecp384!
+    esp            = aes256gcm16-ecp384!
 {% if 'NATed' not in group_names %}
     mobike         = no
 {% endif %}
