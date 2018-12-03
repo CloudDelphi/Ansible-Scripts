@@ -1,6 +1,7 @@
 - name: Install various APT tools
-  apt: pkg={{ item }}
-  with_items:
+  apt: pkg={{ packages }}
+  vars:
+    packages:
     - apt
     - apt-listchanges
     - apt-show-versions

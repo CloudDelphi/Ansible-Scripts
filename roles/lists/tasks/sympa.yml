@@ -1,5 +1,6 @@
-- apt: pkg={{ item }} install_recommends=no
-  with_items:
+- apt: pkg={{ packages }} install_recommends=no
+  vars:
+    packages:
     - mariadb-server
     - sympa
     - libnet-dns-perl

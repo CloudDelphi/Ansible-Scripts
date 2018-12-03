@@ -1,6 +1,7 @@
 - name: Install Dovecot
-  apt: pkg={{ item }}
-  with_items:
+  apt: pkg={{ packages }}
+  vars:
+    packages:
     - dovecot-core
     - dovecot-ldap
     - dovecot-imapd

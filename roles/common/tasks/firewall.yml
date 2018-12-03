@@ -1,6 +1,7 @@
 - name: Install some packages required for the firewall
-  apt: pkg={{ item }}
-  with_items:
+  apt: pkg={{ packages }}
+  vars:
+    packages:
     - iptables
     - netmask
     - bsdutils

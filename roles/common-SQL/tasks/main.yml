@@ -1,6 +1,7 @@
 - name: Install MariaDB
-  apt: pkg={{ item }}
-  with_items:
+  apt: pkg={{ packages }}
+  vars:
+    packages:
     - mariadb-common
     - mariadb-server
     - python-mysqldb

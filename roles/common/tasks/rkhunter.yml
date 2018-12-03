@@ -1,6 +1,7 @@
 - name: Install rkhunter
-  apt: pkg={{ item }}
-  with_items:
+  apt: pkg={{ packages }}
+  vars:
+    packages:
     - rkhunter
     - curl
     - iproute2

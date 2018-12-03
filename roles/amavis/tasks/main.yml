@@ -1,6 +1,7 @@
 - name: Install amavis and its decoders
-  apt: pkg={{ item }}
-  with_items:
+  apt: pkg={{ packages }}
+  vars:
+    packages:
     - amavisd-new
     - libnet-ldap-perl
     # Mail::DKIM

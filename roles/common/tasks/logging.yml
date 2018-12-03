@@ -1,6 +1,7 @@
 - name: Install logging server & utilities
-  apt: pkg={{ item }}
-  with_items:
+  apt: pkg={{ packages }}
+  vars:
+    packages:
     - rsyslog
     - syslog-summary
     - logcheck

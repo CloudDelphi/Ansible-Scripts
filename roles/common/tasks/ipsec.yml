@@ -1,6 +1,7 @@
 - name: Install strongSwan
-  apt: pkg={{ item }}
-  with_items:
+  apt: pkg={{ packages }}
+  vars:
+    packages:
     - strongswan-charon
       # for the GCM and openssl plugins
     - libstrongswan-standard-plugins

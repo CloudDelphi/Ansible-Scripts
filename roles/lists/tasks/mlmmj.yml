@@ -1,6 +1,7 @@
 - name: Install MLMMJ
-  apt: pkg={{ item }}
-  with_items:
+  apt: pkg={{ packages }}
+  vars:
+    packages:
     - mlmmj
 
 # Weird the debian package doesn't do it by itself...

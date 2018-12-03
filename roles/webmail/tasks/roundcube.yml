@@ -1,6 +1,7 @@
 - name: Install PHP
-  apt: pkg={{ item }}
-  with_items:
+  apt: pkg={{ packages }}
+  vars:
+    packages:
     - php5-fpm
     - php5-ldap
     - php5-gd
@@ -34,8 +35,9 @@
     - Restart php5
 
 - name: Install GNU Aspell and some dictionaries
-  apt: pkg={{ item }}
-  with_items:
+  apt: pkg={{ packages }}
+  vars:
+    packages:
     - aspell
     - aspell-da
     - aspell-de
@@ -46,8 +48,9 @@
     - aspell-sv
 
 - name: Install Roundcube
-  apt: pkg={{ item }} default_release={{ ansible_lsb.codename }}-backports
-  with_items:
+  apt: pkg={{ packages }} default_release={{ ansible_lsb.codename }}-backports
+  vars:
+    packages:
     - roundcube-core
     - roundcube-mysql
     - roundcube-plugins

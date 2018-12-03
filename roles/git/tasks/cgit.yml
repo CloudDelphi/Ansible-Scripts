@@ -1,6 +1,7 @@
 - name: Install cgit
-  apt: pkg={{ item }}
-  with_items:
+  apt: pkg={{ packages }}
+  vars:
+    packages:
     - cgit
     - highlight
     - uwsgi

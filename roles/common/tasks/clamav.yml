@@ -1,6 +1,7 @@
 - name: Install ClamAV
-  apt: pkg={{ item }}
-  with_items:
+  apt: pkg={{ packages }}
+  vars:
+    packages:
     - clamav
     - clamav-daemon
     - clamav-freshclam

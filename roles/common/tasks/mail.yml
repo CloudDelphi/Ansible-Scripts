@@ -1,6 +1,7 @@
 - name: Install Postfix
-  apt: pkg={{ item }}
-  with_items:
+  apt: pkg={{ packages }}
+  vars:
+    packages:
     # That one is nicer than GNU mailutils' mailx(1)
     - s-nail
     - postfix

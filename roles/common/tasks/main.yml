@@ -69,8 +69,9 @@
     - munin
 
 - name: Install common packages
-  apt: pkg={{ item }}
-  with_items:
+  apt: pkg={{ packages }}
+  vars:
+    packages:
     - ca-certificates
     - etckeeper
     - ethtool
