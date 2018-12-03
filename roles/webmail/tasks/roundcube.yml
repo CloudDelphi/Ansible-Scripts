@@ -2,23 +2,15 @@
   apt: pkg={{ packages }}
   vars:
     packages:
-    - php5-fpm
-    - php5-ldap
-    - php5-gd
-    - php5-apcu
+    - php-fpm
+    - php-ldap
+    - php-gd
+    - php
     # spell-checking
-    - php5-enchant
+    - php-enchant
 
-- name: Configure PHP5 APCu
-  copy: src=etc/php5/mods-available/apcu.ini
-        dest=/etc/php5/mods-available/apcu.ini
-        owner=root group=root
-        mode=0644
-  notify:
-    - Restart php5
-
-- name: Configure PHP5 Zend opcache
-  lineinfile: dest=/etc/php5/fpm/php.ini
+- name: Configure PHP 7.0 Zend opcache
+  lineinfile: dest=/etc/php/7.0/fpm/php.ini
               regexp='^;?{{ item.var }}\\s*='
               line="{{ item.var }} = {{ item.value }}"
               owner=root group=root
@@ -32,7 +24,7 @@
     - { var: opcache.revalidate_freq,         value: 60   }
     - { var: opcache.fast_shutdown,           value: 1    }
   notify:
-    - Restart php5
+    - Restart php7.0-fpm
 
 - name: Install GNU Aspell and some dictionaries
   apt: pkg={{ packages }}
@@ -48,7 +40,7 @@
     - aspell-sv
 
 - name: Install Roundcube
-  apt: pkg={{ packages }} default_release={{ ansible_lsb.codename }}-backports
+  apt: pkg={{ packages }}
   vars:
     packages:
     - roundcube-core
@@ -97,6 +89,7 @@
     - { var: skin_logo,              value: "'/images/fripost_logo.png'" }
     - { var: username_domain,        value: "'fripost.org'"              }
     - { var: product_name,           value: "'Fripost Webmail'"          }
+    - { var: password_charset,       value: "'UTF-8'"                    }
     # Plugins
     - { var: plugins,                value: "array('archive','additional_message_headers','managesieve','password')" }
     # Spell Checking
@@ -142,8 +135,8 @@
   with_items:
     - managesieve
 
-- name: Start php5-fpm
-  service: name=php5-fpm state=started
+- name: Start php7.0-fpm
+  service: name=php7.0-fpm state=started
 
 - name: Copy /etc/nginx/sites-available/roundcube
   copy: src=etc/nginx/sites-available/roundcube

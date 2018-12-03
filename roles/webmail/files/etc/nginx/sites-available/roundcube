@@ -18,8 +18,8 @@ server {
 
 
 server {
-    listen      443 spdy;
-    listen [::]:443 spdy;
+    listen      443 ssl http2;
+    listen [::]:443 ssl http2;
 
     server_name    mail.fripost.org;
     server_name webmail.fripost.org;
@@ -48,15 +48,11 @@ server {
         access_log    off;
     }
 
-    # Deny all attempts to access hidden files, or files under hidden
-    # directories.
-    location ~ /\. { return 404; }
-
     access_log  /var/log/nginx/roundcube.access.log;
     error_log   /var/log/nginx/roundcube.error.log info;
 
-    index index.php;
     client_max_body_size 64m;
+    location = / { index index.php; }
     location = /index.php {
         include snippets/fastcgi-php-ssl.conf;
 
@@ -67,15 +63,14 @@ server {
                                  session.gc_maxlifetime=21600
                                  session.gc_divisor=500
                                  session.gc_probability=1";
-        fastcgi_param PHP_ADMIN_VALUE "open_basedir=$document_root:/usr/share/roundcube:/etc/roundcube:/var/log/roundcube:/usr/share/php:/usr/share/javascript:/usr/share/tinymce:/usr/share/misc/magic
+        fastcgi_param PHP_ADMIN_VALUE "open_basedir=$document_root:/usr/share/roundcube:/etc/roundcube:/var/log/roundcube:/usr/share/php:/usr/share/javascript:/usr/share/tinymce:/usr/share/misc/magic:/dev
                                        upload_tmp_dir=$document_root/temp";
     }
 
-    # Security rules
-    location ~ ^/(README|INSTALL|LICENSE|CHANGELOG|UPGRADING)$ {
-        return 404;
-    }
-    location ~ ^/(bin|SQL)/ {
-        return 404;
-    }
+    location /plugins/           {}
+    location /program/js/        {}
+    location /program/resources/ {}
+    location /skins/             {}
+    location /     { internal; }
+    location ~ /\. { internal; }
 }

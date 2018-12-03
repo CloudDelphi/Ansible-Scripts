@@ -4,7 +4,7 @@
         owner=root group=root
         mode=0755
 
-- name: Copy the ldap's X.509 certificate
+- name: Copy the slapd X.509 certificate
   copy: src=certs/ldap/ldap.fripost.org.pem
         dest=/etc/stunnel/certs/ldap.pem
         owner=root group=root
