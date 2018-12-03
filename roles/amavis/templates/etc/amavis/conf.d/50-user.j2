@@ -32,12 +32,20 @@ undef $enable_dkim_signing;
 $enable_dkim_signing = 1;
 # Sign *all* outgoing mails with *our* key (yes, amavis complains, but this is
 # safe as we force our domain with the 'd' tag).
-dkim_key(qr/./, '20140703', '/var/lib/dkim/20140703.'.$mydomain.'.key');
+{% for x,k in dkim_keys[inventory_hostname_short] | default({}) | dictsort() -%}
+dkim_key({{ (x == "~") | ternary('qr/./', "'"+x+"'") }}, '{{ k.s }}', '/etc/amavis/dkim/{{ k.s }}.pem');
+{% endfor -%}
 @dkim_signature_options_bysender_maps = (
-    { '.' => { d => $mydomain
-             , a => 'rsa-sha256'
-             , ttl => 21*24*3600
-             , c => 'relaxed/simple' } } );
+{% for x,k in dkim_keys[inventory_hostname_short] | default({}) | dictsort() %}
+    { '{{ (x == "~") | ternary('.', x) }}' => {
+        d => '{{ k.d }}'
+      , a => 'rsa-sha256'
+      , ttl => 21*24*3600
+      , c => 'relaxed/simple' }
+    }{% if not loop.last %},
+{% endif %}
+{% endfor %}
+);
 # Conform to RFC 4871 and don't sign Received: headers.
 $signed_header_fields{received} = 0;
 {% endif %}

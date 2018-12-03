@@ -41,26 +41,37 @@
            owner=root group=root
            mode=0644
 
-- name: Create directory /var/lib/dkim
-  file: path=/var/lib/dkim
+- name: Create directory /etc/amavis/dkim
+  file: path=/etc/amavis/dkim
         state=directory
         owner=root group=root
         mode=0755
   when: "'out' in group_names"
   tags:
     - genkey
+    - dkim
 
 - name: Generate a private key for DKIM signing
-  command: genkeypair.sh dkim --privkey=/var/lib/dkim/20140703.fripost.org.key -t rsa -b 1024
+  command: genkeypair.sh dkim --privkey=/etc/amavis/dkim/{{ item }}.pem -t rsa -b 2048
+  with_items: "{{ (dkim_keys[inventory_hostname_short] | default({})).values() | map(attribute='s') | list }}"
   register: dkim
   changed_when: dkim.rc == 0
   failed_when: dkim.rc > 1
   when: "'out' in group_names"
   notify:
     - Restart Amavis
-    - Publish the public key to the DNS zone
   tags:
     - genkey
+    - dkim
+
+- name: Fetch DKIM keys
+  fetch_cmd: cmd="openssl pkey -pubout -outform PEM"
+             stdin=/etc/amavis/dkim/{{ item }}.pem
+             dest=certs/dkim/{{ item }}.pub
+  with_items: "{{ (dkim_keys[inventory_hostname_short] | default({})).values() | map(attribute='s') | list }}"
+  tags:
+    - genkey
+    - dkim
 
 - name: Configure Amavis
   template: src=etc/amavis/conf.d/50-user.j2

@@ -1,0 +1,11 @@
+To convert a PEM-encoded public key to a TXT record, run
+
+    $ SELECTOR="8f00fb94ec6c37aacb48bd43e073f9b7"
+    $ DOMAIN="fripost.org"
+    $ printf "%s._domainkey%s    IN TXT    (\n" "$SELECTOR" "${DOMAIN:+.$DOMAIN.}"; \
+      { printf "v=DKIM1; k=rsa; t=s; s=email; p=";
+        sed '/^--.*--$/d' <"./certs/dkim/$SELECTOR.pub" | tr -d '\n';
+      } | fold -w64 | sed 's/.*/    "&"/; $s/$/ )\n/'
+
+Remove the "t=s" tag if subdomaining or third-party signature (hosted
+domain) is required, cf. RFC 6376 sec. 3.6.1.

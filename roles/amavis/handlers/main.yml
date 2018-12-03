@@ -2,10 +2,6 @@
 - name: Restart ClamAV
   service: name=clamav-daemon state=restarted
 
-- name: Publish the public key to the DNS zone
-  # See the output of 'genkeypair.sh dkim --privkey=/path/to/key'
-  fail: "msg={{ dkim.stdout }}"
-
 - name: Restart Amavis
   service: name=amavis state=restarted
 
