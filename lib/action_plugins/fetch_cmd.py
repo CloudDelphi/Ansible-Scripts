@@ -50,7 +50,7 @@ class ActionModule(ActionBase):
         local_checksum = checksum(dest)
 
         # calculate checksum for the remote file, don't bother if using become as slurp will be used
-        remote_checksum = self._remote_checksum(stdout, all_vars=task_vars) 
+        remote_checksum = self._remote_checksum(stdout, all_vars=task_vars)
 
         if remote_checksum != local_checksum:
             makedirs_safe(os.path.dirname(dest))

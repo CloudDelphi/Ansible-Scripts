@@ -174,7 +174,7 @@ else
     "$GPG" $GPG_OPTS --output="$asc2" --clearsign -- "$src2"
     cp -f "$asc2" "$asc"
     cp -f "$mdwn2" "$mdwn"
-    echo ================================ 
+    echo ================================
     echo "The fingerprint lists ($asc and $mdwn) have been updated!"
     echo '/!\ You should now push the changes to the wiki. /!\'
 fi

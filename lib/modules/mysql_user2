@@ -355,7 +355,7 @@ def _safe_cnf_load(config, path):
             data['password'] = line.split('=', 1)[1].strip()
     f.close()
 
-    # write out a new cnf file with only user/pass   
+    # write out a new cnf file with only user/pass
     fh, newpath = tempfile.mkstemp(prefix=path + '.')
     f = open(newpath, 'wb')
     f.write('[client]\n')
