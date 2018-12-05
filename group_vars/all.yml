@@ -53,7 +53,7 @@ dkim_keys:
     "fripost.org":
       # domain of the entity signing the message (should be unique accross match keys)
       d: fripost.org
-      # selector (should be globally unique and random)
+      # selector (randomly generated with `xxd -p -l16 </dev/urandom`)
       s: 8f00fb94ec6c37aacb48bd43e073f9b7
     "~": # catch-all, for our virtual domains
       d: x.fripost.org

@@ -52,8 +52,8 @@
     - dkim
 
 - name: Generate a private key for DKIM signing
-  command: genkeypair.sh dkim --privkey=/etc/amavis/dkim/{{ item }}.pem -t rsa -b 2048
-  with_items: "{{ (dkim_keys[inventory_hostname_short] | default({})).values() | map(attribute='s') | list }}"
+  command: genkeypair.sh dkim --privkey="/etc/amavis/dkim/{{ item.s }}:{{ item.d }}.pem" -t rsa -b 2048
+  with_items: "{{ (dkim_keys[inventory_hostname_short] | default({})).values() | list }}"
   register: dkim
   changed_when: dkim.rc == 0
   failed_when: dkim.rc > 1
@@ -66,9 +66,9 @@
 
 - name: Fetch DKIM keys
   fetch_cmd: cmd="openssl pkey -pubout -outform PEM"
-             stdin=/etc/amavis/dkim/{{ item }}.pem
-             dest=certs/dkim/{{ item }}.pub
-  with_items: "{{ (dkim_keys[inventory_hostname_short] | default({})).values() | map(attribute='s') | list }}"
+             stdin="/etc/amavis/dkim/{{ item.s }}:{{ item.d }}.pem"
+             dest="certs/dkim/{{ item.s }}:{{ item.d }}.pub"
+  with_items: "{{ (dkim_keys[inventory_hostname_short] | default({})).values() | list }}"
   tags:
     - genkey
     - dkim

@@ -21,6 +21,7 @@
 
 set -ue
 PATH=/usr/bin:/bin
+export PATH
 
 # Default values
 type=rsa
@@ -72,18 +73,6 @@ usage() {
 		    1  The public or private key file exists, and -f is not set
 		    2  The key generation failed
 	EOF
-}
-
-dkiminfo() {
-    echo "Add the following TXT record to your DNS zone:"
-    echo "${cn:-$(date +%Y%m%d)}._domainkey\tIN\tTXT ( "
-    # See https://tools.ietf.org/html/rfc4871#section-3.6.1
-    # t=s:      the "i=" domain in signature headers MUST NOT be a subdomain of "d="
-    # s=email:  limit DKIM signing to email
-    openssl pkey -pubout <"$privkey" | sed '/^--.*--$/d' \
-    | { echo -n "v=DKIM1; k=$type; t=s; s=email; p="; tr -d '\n'; } \
-    | fold -w 250 \
-    | { sed 's/.*/\t"&"/'; echo ' )'; }
 }
 
 [ $# -gt 0 ] || { usage; exit 2; }
@@ -181,12 +170,11 @@ fi
 
 if [ -s "$privkey" -a $force -eq 0 ]; then
     echo "Error: private key exists: $privkey" >&2
-    [ "$cmd" = dkim ] && dkiminfo
     exit 1
 elif [ ! -s "$privkey" -o $force -ge 2 ]; then
     install --mode="${mode:-0600}" ${owner:+--owner="$owner"} ${group:+--group="$group"} /dev/null "$privkey" || exit 2
     openssl $genkey -rand /dev/urandom $genkeyargs >"$privkey" || exit 2
-    [ "$cmd" = dkim ] && { dkiminfo; exit; }
+    [ "$cmd" = dkim ] && exit
 fi
 
 if [ "$cmd" = x509 -a "$pubkey" = "$privkey" ]; then

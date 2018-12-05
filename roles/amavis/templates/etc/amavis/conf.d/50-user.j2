@@ -33,7 +33,7 @@ $enable_dkim_signing = 1;
 # Sign *all* outgoing mails with *our* key (yes, amavis complains, but this is
 # safe as we force our domain with the 'd' tag).
 {% for x,k in dkim_keys[inventory_hostname_short] | default({}) | dictsort() -%}
-dkim_key({{ (x == "~") | ternary('qr/./', "'"+x+"'") }}, '{{ k.s }}', '/etc/amavis/dkim/{{ k.s }}.pem');
+dkim_key({{ (x == "~") | ternary('qr/./', "'"+x+"'") }}, '{{ k.s }}', '/etc/amavis/dkim/{{ k.s }}:{{ k.d }}.pem');
 {% endfor -%}
 @dkim_signature_options_bysender_maps = (
 {% for x,k in dkim_keys[inventory_hostname_short] | default({}) | dictsort() %}
