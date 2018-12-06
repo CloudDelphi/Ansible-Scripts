@@ -67,10 +67,9 @@ server {
                                        upload_tmp_dir=$document_root/temp";
     }
 
-    location /plugins/           {}
-    location /program/js/        {}
-    location /program/resources/ {}
-    location /skins/             {}
-    location /     { internal; }
-    location ~ /\. { internal; }
+    location ~ "^/(?:plugins|program/js|program/resources|skins)/.*[^./]\.(?:css|eot|gif|html|ico|jpg|js|pdf|png|svg|tif|ttf|woff)$" {
+        try_files $uri =404;
+        expires 30d;
+    }
+    location / { internal; }
 }
