@@ -1,4 +1,4 @@
-server_host      = ldapi://%2Fvar%2Fspool%2Fpostfix-mx%2Fprivate%2Fldapi/
+server_host      = ldapi://%2Fprivate%2Fldapi/
 version          = 3
 search_base      = fvd=%d,ou=virtual,dc=fripost,dc=org
 domain           = static:all

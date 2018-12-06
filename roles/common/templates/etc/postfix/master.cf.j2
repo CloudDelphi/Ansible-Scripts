@@ -13,17 +13,15 @@
 {% if inst is not defined %}
 [127.0.0.1]:16132 inet n -      y       -       -       smtpd
 {% elif inst == 'MX' %}
-smtpd     pass  -       -       n       -       -       smtpd
-  -o cleanup_service_name=cleanup_nochroot
-smtp      inet  n       -       n       -       1       postscreen
-tlsproxy  unix  -       -       n       -       0       tlsproxy
-dnsblog   unix  -       -       n       -       0       dnsblog
-cleanup_nochroot unix n -       n       -       0       cleanup
+smtpd     pass  -       -       y       -       -       smtpd
+smtp      inet  n       -       y       -       1       postscreen
+tlsproxy  unix  -       -       y       -       0       tlsproxy
+dnsblog   unix  -       -       y       -       0       dnsblog
 {% elif inst == 'MSA' %}
 submission inet n       -       y       -       -       smtpd
   -o tls_high_cipherlist=EECDH+AESGCM:!MEDIUM:!LOW:!EXP:!aNULL:!eNULL
 {% if groups.webmail | difference([inventory_hostname]) | length > 0 %}
-[{{ postfix_instance.MSA.addr }}]:{{ postfix_instance.MSA.port }} inet n       -       -       -       -       smtpd
+[{{ postfix_instance.MSA.addr }}]:{{ postfix_instance.MSA.port }} inet n       -       y       -       -       smtpd
   -o broken_sasl_auth_clients=no
   -o smtpd_tls_security_level=none
   -o smtpd_sasl_security_options=noanonymous
@@ -31,7 +29,7 @@ submission inet n       -       y       -       -       smtpd
   -o smtpd_authorized_xforward_hosts=127.0.0.0/8,[::1]/128{{ ipsec_subnet is defined | ternary(','+ipsec_subnet, '') }}
 {% endif %}
 {% elif inst in ['IMAP', 'out', 'lists'] %}
-[{{ postfix_instance[inst].addr }}]:{{ postfix_instance[inst].port }} inet n       -       -       -       -       smtpd
+[{{ postfix_instance[inst].addr }}]:{{ postfix_instance[inst].port }} inet n       -       y       -       -       smtpd
   -o smtpd_authorized_xforward_hosts=127.0.0.0/8,[::1]/128{{ ipsec_subnet is defined | ternary(','+ipsec_subnet, '') }}
 {% endif %}
 pickup    unix  n       -       y       60      1       pickup
