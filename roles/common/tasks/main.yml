@@ -34,10 +34,6 @@
     - smartmontools
     - smart
   when: "not ansible_virtualization_role == 'guest'"
-- import_tasks: haveged.yml
-  tags:
-    - haveged
-    - entropy
 - name: Copy genkeypair.sh and gendhparam.sh
   copy: src=usr/local/bin/{{ item }}
         dest=/usr/local/bin/{{ item }}

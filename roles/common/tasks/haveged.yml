@@ -1,5 +1,0 @@
-- name: Install haveged
-  apt: pkg=haveged
-
-- name: Start haveged
-  service: name=haveged state=started
