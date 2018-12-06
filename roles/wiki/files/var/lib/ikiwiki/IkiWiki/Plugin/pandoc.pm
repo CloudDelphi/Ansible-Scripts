@@ -166,6 +166,13 @@ sub getsetup () {
         safe => 1,
         rebuild => 1,
     },
+    pandoc_html_extra_options => {
+        type => "internal",
+        default => [],
+        description => "List of extra pandoc options for html",
+        safe => 0,
+        rebuild => 0,
+    },
     pandoc_numsect => {
         type => "boolean",
         example => 0,
@@ -425,12 +432,15 @@ sub htmlize ($@) {
     waitpid $to_json_pid, 0;
 
     # Parse the title block out of the JSON and set the meta values
-    my @json_content = @{decode_json($json_content)};
-    my $meta = {};
-    if (ref $json_content[0] eq 'HASH') {
-        $meta = $json_content[0]->{'unMeta'};
+    my $meta = undef;
+    my $decoded_json = decode_json($json_content);
+    # The representation of the meta block changed in pandoc version 1.18
+    if (ref $decoded_json eq 'HASH' && $decoded_json->{'Meta'}) {
+        $meta = $decoded_json->{'Meta'} || {}; # post-1.18 version
+    } elsif (ref $decoded_json eq 'ARRAY') {
+        $meta = $decoded_json->[0]->{'unMeta'} || {}; # pre-1.18 version
     }
-    else {
+    unless ($meta) {
         warn "WARNING: Unexpected format for meta block. Incompatible version of Pandoc?\n";
     }
 
@@ -534,10 +544,24 @@ sub htmlize ($@) {
         }
     }
 
+    # html_extra_options my be set in Meta block in the page or in the .setup
+    # file.  If both are present, the Meta block has precedence, even if it is
+    # an empty list
+    my @html_args = @args;
+    if (ref $meta->{html_extra_options}{c} eq 'ARRAY') {
+      if (ref unwrap_c($meta->{html_extra_options}{c}) eq 'ARRAY') {
+        push @html_args, @{unwrap_c($meta->{html_extra_options}{c})};
+      } else {
+        push @html_args, unwrap_c($meta->{html_extra_options}{c});
+      }
+    } elsif (ref $config{'pandoc_html_extra_options'} eq 'ARRAY') {
+      push @html_args, @{$config{'pandoc_html_extra_options'}};
+    }
+
     my $to_html_pid = open2(*PANDOC_IN, *JSON_IN, $command,
                     '-f', 'json',
                     '-t', $htmlformat,
-                    @args);
+                    @html_args);
     error("Unable to open $command") unless $to_html_pid;
 
     $pagestate{$page}{pandoc_extra_formats} = {};
