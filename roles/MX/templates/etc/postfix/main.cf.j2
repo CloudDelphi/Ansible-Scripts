@@ -89,16 +89,6 @@ strict_rfc821_envelopes = yes
 smtpd_delay_reject      = yes
 disable_vrfy_command    = yes
 
-# UCE control
-invalid_hostname_reject_code        = 554
-multi_recipient_bounce_reject_code  = 554
-non_fqdn_reject_code                = 554
-relay_domains_reject_code           = 554
-unknown_local_recipient_reject_code = 554
-unknown_relay_recipient_reject_code = 554
-unknown_virtual_alias_reject_code   = 554
-unknown_virtual_mailbox_reject_code = 554
-
 postscreen_access_list =
     permit_mynetworks
     cidr:$config_directory/access-list.cidr
