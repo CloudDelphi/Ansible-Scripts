@@ -13,26 +13,13 @@
   mysql_user2: name=sympa password= auth_plugin=unix_socket
                state=present
 
-# XXX We want to change the retun-path for sendpasswd notices from
-# 'sympa-request@$robot' to 'noreply@fripost.org'.
-#   * /usr/lib/cgi-bin/sympa/wwsympa.fcgi
-#       do_requestpasswd, do_subrequest
-#         add $param->{'return_path'}='noreply@fripost.org';
-#   * /usr/share/sympa/lib/List.pm
-#       send_global_file
-#         $data->{'return_path'} //= &Conf::get_robot_conf($robot, 'request');
-#   * /usr/share/sympa/default/scenari/send.newsletter
-#       last line
-#         true() smtp,dkim,smime,md5 -> reject,quiet
-# See #787946.
 - name: Configure Sympa
   copy: src=etc/sympa/{{ item }}
         dest=/etc/sympa/{{ item }}
         owner=root group=sympa
         mode=0644
   with_items:
-    - sympa.conf
-    - wwsympa.conf
+    - sympa/sympa.conf
     - topics.conf
   register: r1
   notify:
@@ -41,7 +28,7 @@
 - name: Create Virtual hosts for Sympa (1)
   file: path=/etc/sympa/{{ item }}
         state=directory
-        owner=root group=root
+        owner=sympa group=sympa
         mode=0755
   with_items:
     - lists.fripost.org
@@ -63,8 +50,8 @@
 - name: Install robot.conf
   template: src=etc/sympa/robot.conf.j2
             dest=/etc/sympa/{{ item }}/robot.conf
-            owner=root group=root
-            mode=0644
+            owner=sympa group=sympa
+            mode=0640
   with_items:
     - lists.fripost.org
   register: r4

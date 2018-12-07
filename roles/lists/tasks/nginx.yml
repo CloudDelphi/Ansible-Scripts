@@ -1,5 +1,5 @@
 - name: Install Nginx
-  apt: pkg=nginx
+  apt: pkg=nginx-light
 
 - name: Copy /etc/nginx/sites-available/sympa
   copy: src=etc/nginx/sites-available/sympa

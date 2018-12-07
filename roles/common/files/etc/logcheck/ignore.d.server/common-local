@@ -55,9 +55,15 @@ no matching cipher found: client [.@[:alnum:]-]+(,[.@[:alnum:]-]+)* server [.@[:
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ kernel: \[ *[[:digit:]]+\.[[:digit:]]+ *\] Peer [.[:digit:]]+:[[:digit:]]+/[[:digit:]]+ unexpectedly shrunk window [[:digit:]]+:[[:digit:]]+ \(repaired\)$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ liblogging-stdlog:  \[origin software="rsyslogd" swVersion="[0-9.]+" x-pid="[0-9]+" x-info="http://www\.rsyslog\.com"\] rsyslogd was HUPed$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ ansible-([_a-z0-9]+|<stdin>): Invoked with
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (sympa\((command|distribute)\)|wwsympa|archived|bounced|bulk|task_manager)\[[[:digit:]]+\]: (info|notice)\s
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sympa\(command\)\[[[:digit:]]+\]: err tools::valid_email\(\) Invalid email address 'MAILER-DAEMON'$
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ wwsympa\[[[:digit:]]+\]: err .* main::check_action_parameters\(\) user not logged in$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sympa_msg\[[0-9]+\]: notice Sympa::Request::Message::
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sympa_msg\[[0-9]+\]: info Sympa::Request::Handler::
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sympa_msg\[[0-9]+\]: notice Sympa::Bulk::store\(\)
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ sympa_msg\[[0-9]+\]: (info|notice) Sympa::Spindle::Process(Incoming|Message|Template|Digest)::
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ task_manager\[[0-9]+\]: (info|notice) main::
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ wwsympa\[[0-9]+\]: info main::do_
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ wwsympa\[[[:digit:]]+\]: notice main:: \([.[:alnum:]-]+\) \[robot [.[:alnum:]-]+\] \[client [[:xdigit:].:]{3,39}\] Does NOT match HTTP_HOST; setting cookie_domain to [.[:alnum:]-]+$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ wwsympa\[[[:digit:]]+\]: notice Sympa::(Spindle::ProcessTemplate::_twist|Bulk::store)\(\)
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ bulk\[[[:digit:]]+\]: notice Sympa::(Spindle::ProcessOutgoing::_twist|Mailer::store)\(\)
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ rrdcached\[[[:digit:]]+\]: (flushing old values|rotating journals|started new journal /\S+$|removing old journal /\S+$)
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ rrdcached\[[[:digit:]]+\]: queue_thread_main: rrd_update_r \(([^)]+)\) failed with status -1. \(opening '\1': No such file or directory\)
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ auditd\[[[:digit:]]+\]: Audit daemon rotating log files$
