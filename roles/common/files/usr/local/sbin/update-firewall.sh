@@ -327,6 +327,7 @@ run() {
         iptables $iptNew $if -p $proto $optsNew -m state --state $stNew -j ACCEPT
         iptables $iptEst $if -p $proto $optsEst -m state --state $stEst -j ACCEPT
     done
+    iptables -A OUTPUT -o $if -j REJECT
 
     ########################################################################
     commit
