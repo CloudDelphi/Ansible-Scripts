@@ -16,8 +16,7 @@ Restart=on-failure
 NoNewPrivileges=yes
 PrivateDevices=yes
 ProtectHome=yes
-ProtectSystem=full
-ReadOnlyDirectories=/
+ProtectSystem=strict
 
 [Install]
 WantedBy=multi-user.target

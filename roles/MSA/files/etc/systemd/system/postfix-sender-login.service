@@ -14,8 +14,7 @@ ExecStart=/usr/local/bin/postfix-sender-login.pl
 NoNewPrivileges=yes
 PrivateDevices=yes
 ProtectHome=yes
-ProtectSystem=full
-ReadOnlyDirectories=/
+ProtectSystem=strict
 RestrictAddressFamilies=AF_UNIX
 
 [Install]

@@ -13,9 +13,8 @@ ExecStart=/usr/local/bin/dovecot-auth-proxy.pl
 # Hardening
 NoNewPrivileges=yes
 PrivateDevices=yes
-ProtectSystem=full
+ProtectSystem=strict
 ProtectHome=read-only
-ReadOnlyDirectories=/
 RestrictAddressFamilies=
 
 [Install]

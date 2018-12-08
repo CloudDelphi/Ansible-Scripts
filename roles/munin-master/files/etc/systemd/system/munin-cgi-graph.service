@@ -14,8 +14,7 @@ ExecStart=/usr/lib/munin/cgi/munin-cgi-graph
 NoNewPrivileges=yes
 PrivateDevices=yes
 ProtectHome=yes
-ProtectSystem=full
-ReadOnlyDirectories=/
+ProtectSystem=strict
 ReadWriteDirectories=-/var/log/munin
 ReadWriteDirectories=-/var/lib/munin/cgi-tmp/munin-cgi-graph
 

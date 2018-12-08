@@ -12,9 +12,8 @@ ExecStart=/usr/sbin/bacula-fd -c /etc/bacula/bacula-fd.conf
 NoNewPrivileges=yes
 PrivateDevices=yes
 ProtectHome=read-only
-ProtectSystem=full
+ProtectSystem=strict
 PrivateTmp=yes
-ReadOnlyDirectories=/
 ReadWriteDirectories=-/var/lib
 ReadWriteDirectories=-/var/run/bacula
 
