@@ -74,15 +74,15 @@ sub server() {
             next;
         }
         # <major-version> <minor-version> <value type>
-        unless ($1 == 2 and $2 == 0 and $3 == 0) {
+        unless ($1 == 2 and $2 == 1 and $3 == 0) {
             warn "Unsupported protocol version $1.$2 (or value type $3)\n";
             close $conn or warn "Can't close: $!";
             next;
         }
 
         my $cmd = $conn->getline() // '';
-        if ($cmd =~ /\AI(\d+)\t(.*)\n\z/) {
-            iterate($conn, $1, $2);
+        if ($cmd =~ /\AI(\d+)\t(\d+)\t(.*)\n\z/) {
+            iterate($conn, $1, $2, $3);
         }
         else {
             fail($conn => "Unknown command line: $cmd");
@@ -98,8 +98,8 @@ sub fail($;$) {
 }
 
 # list all users, even the inactive ones
-sub iterate($$$) {
-    my ($fh, $flags, $prefix) = @_;
+sub iterate($$$$) {
+    my ($fh, $flags, $max_rows, $prefix) = @_;
     unless ($flags == 0) {
         fail($fh => "Unsupported iterate flags $flags");
         return;
@@ -109,17 +109,19 @@ sub iterate($$$) {
         fail($fh => "opendir: $!");
         return;
     };
+    my $count = 0;
     while (defined (my $d = readdir $dh)) {
         next if $d eq '.' or $d eq '..';
         opendir my $dh, $d or do {
             fail($fh => "opendir: $!");
             return;
         };
-        while (defined (my $l = readdir $dh)) {
+        while (defined (my $l = readdir $dh) and ($max_rows <= 0 or $count < $max_rows)) {
             next if $l eq '.' or $l eq '..';
             my $user = $l.'@'.$d;
             next unless $user =~ /\A[a-zA-Z0-9\.\-_@]+\z/; # skip invalid user names
             $fh->printf("O%s%s\t\n", $prefix, $user);
+            $count++;
         }
         closedir $dh or warn "closedir: $!";
     }

@@ -36,7 +36,7 @@ olcTLSCertificateKeyFile: /etc/ldap/ssl/ldap.fripost.org.key
 olcTLSVerifyClient: try
 olcTLSCACertificateFile: /etc/ldap/ssl/clients.pem
 olcAuthzRegexp: "^(cn=[^,]+,ou=syncRepl),ou=LDAP,ou=SSLcerts,o=Fripost$"
-                "$1,dc=fripost,dc=org"
+                "dn.exact:$1,dc=fripost,dc=org"
 olcSaslSecProps: minssf=128,noanonymous,noplain,nodict
 olcTLSCipherSuite: PFS:%LATEST_RECORD_VERSION:!CIPHER-ALL:+AES-128-GCM:+AES-256-GCM:!VERS-SSL3.0:!VERS-TLS1.0:!VERS-TLS1.1
 {% endif %}

@@ -8,6 +8,7 @@
         mode=0644
   register: r1
   with_items:
+    - dovecot.conf
     - roundcube.conf
   notify:
     - Restart fail2ban

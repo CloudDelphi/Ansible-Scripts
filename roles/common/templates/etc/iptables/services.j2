@@ -33,6 +33,7 @@ out     tcp     25                                      # SMTP
 {% if 'IMAP' in group_names %}
 in      tcp     993                                     # IMAPS
 in      tcp     4190                                    # MANAGESIEVE
+out     tcp     2703                                    # Razor2
 {% endif %}
 {% if 'MSA' in group_names %}
 in      tcp     587                                     # SMTP-AUTH

@@ -7,7 +7,7 @@ certificate-key = /etc/dovecot/ssl/imap.fripost.org.key
 certificate-chain = /etc/dovecot/ssl/imap.fripost.org.pem
 subject = /O=Fripost/CN=imap.fripost.org
 subjectAltName = DNS:imap.fripost.org,DNS:sieve.fripost.org
-notify = /usr/bin/doveadm reload
+notify = /bin/systemctl reload dovecot
 {% endif %}
 
 {% if 'MSA' in group_names %}

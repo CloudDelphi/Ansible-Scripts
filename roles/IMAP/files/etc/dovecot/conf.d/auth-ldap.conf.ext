@@ -18,9 +18,6 @@ passdb {
 
 #userdb {
 #  driver = ldap
-#  # This should be a different file from the passdb's, in order to perform
-#  # asynchronous requests.
-#
 #  args = /etc/dovecot/dovecot-ldap-userdb.conf.ext
 #
 #  # Default fields can be used to specify defaults that LDAP may override

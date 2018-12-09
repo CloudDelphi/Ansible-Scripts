@@ -63,7 +63,10 @@ class ActionModule(ActionBase):
                 result['msg'] = type(e).__name__ + ": " + str(e)
                 return result
 
-        # transfer the file and run the module remotely
-        self._transfer_data(new_module_args['target'], target)
+            # transfer the file and run the module remotely
+            self._transfer_data(new_module_args['target'], target)
+        elif local == 'file':
+            self._transfer_file(target, new_module_args['target'])
+
         result.update(self._execute_module(module_args=new_module_args, task_vars=task_vars))
         return result

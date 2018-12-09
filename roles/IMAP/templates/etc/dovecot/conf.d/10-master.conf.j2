@@ -57,7 +57,6 @@ service lmtp {
   user = vmail
 
   unix_listener /var/spool/postfix-{{ postfix_instance.IMAP.name }}/private/dovecot-lmtpd {
-    group = postfix
     user = postfix
     mode = 0600
   }
@@ -80,6 +79,18 @@ service imap {
 
   # Max. number of IMAP processes (connections)
   #process_limit = 1024
+
+  unix_listener imap-master {
+    user = $default_internal_user
+    mode = 0600
+  }
+}
+
+service imap-hibernate {
+  unix_listener imap-hibernate {
+    user = vmail
+    mode = 0600
+  }
 }
 
 service pop3 {
@@ -102,14 +113,12 @@ service auth {
   # something else than 0666 and Dovecot lets the kernel enforce the
   # permissions (e.g. 0777 allows everyone full permissions).
   unix_listener auth-userdb {
-    mode = 0600
     user = vmail
-    group = root
+    mode = 0600
   }
 
   # Postfix smtp-auth
   unix_listener /var/spool/postfix-{{ postfix_instance.MSA.name }}/private/dovecot-auth {
-    group = postfix
     user = postfix
     mode = 0600
   }
