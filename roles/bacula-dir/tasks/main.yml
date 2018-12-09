@@ -3,6 +3,7 @@
   vars:
     packages:
     - bacula-console
+    - bacula-director
     - bacula-director-mysql
 
 - name: Create a 'bacula' SQL user

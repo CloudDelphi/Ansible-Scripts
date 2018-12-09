@@ -125,7 +125,7 @@ Job {
 }
 {% endfor %}
 
-{% for fd in groups['MDA'] | union(groups['webmail']) | union(groups['lists']) | union(groups['bacula-dir']) | sort %}
+{% for fd in groups['MDA'] | union(groups['webmail']) | union(groups['lists']) | union(groups['bacula-dir']) | union(groups['nextcloud']) | sort %}
 Job {
   Name = {{ hostvars[fd].inventory_hostname_short }}-mysql
   Client = {{ hostvars[fd].inventory_hostname_short }}-fd
