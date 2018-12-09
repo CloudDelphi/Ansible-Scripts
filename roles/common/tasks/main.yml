@@ -82,3 +82,15 @@
     - rsync
     - screen
     - telnet-ssl
+
+- name: Disable resume device
+  # Cf. initramfs-tools(7) and initramfs.conf(5).
+  copy: src=etc/initramfs-tools/conf.d/resume
+        dest=/etc/initramfs-tools/conf.d/resume
+        owner=root group=root
+        mode=0644
+  tags:
+    - initramfs
+    - resume
+  notify:
+    - Update initramfs

@@ -52,3 +52,6 @@
 
 - name: Restart freshclam
   service: name=clamav-freshclam state=restarted
+
+- name: Update initramfs
+  command: /usr/sbin/update-initramfs -u
