@@ -15,6 +15,11 @@ ProtectSystem=strict
 PrivateTmp=yes
 ReadWriteDirectories=-/var/lib
 ReadWriteDirectories=-/var/run/bacula
+PrivateDevices=yes
+ProtectControlGroups=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
 
 [Install]
 WantedBy=multi-user.target

@@ -20,6 +20,12 @@ ReadWriteDirectories=/etc/sympa
 ReadWriteDirectories=/var/lib/sympa
 ReadWriteDirectories=-/var/run/sympa
 ReadWriteDirectories=/var/spool/sympa
+PrivateDevices=yes
+PrivateNetwork=yes
+ProtectControlGroups=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+RestrictAddressFamilies=
 
 [Install]
 WantedBy=multi-user.target

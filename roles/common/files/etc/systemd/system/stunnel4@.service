@@ -17,6 +17,11 @@ NoNewPrivileges=yes
 PrivateDevices=yes
 ProtectHome=yes
 ProtectSystem=strict
+PrivateDevices=yes
+ProtectControlGroups=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+RestrictAddressFamilies=AF_INET AF_INET6
 
 [Install]
 WantedBy=multi-user.target

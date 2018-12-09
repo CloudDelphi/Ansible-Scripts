@@ -17,6 +17,12 @@ ProtectHome=yes
 ProtectSystem=strict
 ReadWriteDirectories=-/var/log/munin
 ReadWriteDirectories=-/var/lib/munin/cgi-tmp/munin-cgi-graph
+PrivateDevices=yes
+PrivateNetwork=yes
+ProtectControlGroups=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+RestrictAddressFamilies=
 
 [Install]
 WantedBy=multi-user.target

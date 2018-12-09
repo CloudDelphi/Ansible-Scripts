@@ -16,6 +16,12 @@ PrivateDevices=yes
 ProtectHome=yes
 ProtectSystem=strict
 ReadWriteDirectories=-/var/log/munin
+PrivateDevices=yes
+PrivateNetwork=yes
+ProtectControlGroups=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+RestrictAddressFamilies=
 
 [Install]
 WantedBy=multi-user.target
