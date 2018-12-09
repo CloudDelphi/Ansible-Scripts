@@ -3,12 +3,11 @@ Description=Bacula Director service
 After=network.target
 
 [Service]
-Type=forking
-PIDFile=/var/run/bacula/bacula-dir.9101.pid
+Type=simple
 StandardOutput=syslog
 User=bacula
 Group=bacula
-ExecStart=/usr/sbin/bacula-dir -c /etc/bacula/bacula-dir.conf
+ExecStart=/usr/sbin/bacula-dir -f -c /etc/bacula/bacula-dir.conf
 
 # Hardening
 NoNewPrivileges=yes

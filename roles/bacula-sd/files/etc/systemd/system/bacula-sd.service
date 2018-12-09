@@ -3,12 +3,11 @@ Description=Bacula Storage Daemon service
 After=network.target
 
 [Service]
-Type=forking
-PIDFile=/var/run/bacula/bacula-sd.9103.pid
+Type=simple
 StandardOutput=syslog
 User=bacula
 Group=tape
-ExecStart=/usr/sbin/bacula-sd -c /etc/bacula/bacula-sd.conf
+ExecStart=/usr/sbin/bacula-sd -f -c /etc/bacula/bacula-sd.conf
 
 # Hardening
 NoNewPrivileges=yes
