@@ -8,14 +8,14 @@
     # for the 'mysql_' munin plugin
     - libcache-cache-perl
 
-- name: Copy MySQL's configuration
+- name: Copy MySQL/MariaDB configuration
   copy: src=etc/mysql/my.cnf
         dest=/etc/mysql/my.cnf
         owner=root group=root
         mode=0644
   register: r
   notify:
-    - Restart MySQL
+    - Restart MariaDB
 
 # We need to restart now and load the relevant authplugin before we
 # connect to the database.
@@ -38,8 +38,8 @@
     - { name: root, host: '127.0.0.1'}
     - { name: root, host: '::1'}
 
-- name: Start MySQL
-  service: name=mysql state=started
+- name: Start MariaDB
+  service: name=mariadb state=started
 
 
 - name: Install 'mysql_' Munin wildcard plugin

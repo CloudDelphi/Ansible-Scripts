@@ -1,6 +1,6 @@
 ---
-- name: Restart MySQL
-  service: name=mysql state=restarted
+- name: Restart MariaDB
+  service: name=mariadb state=restarted
 
 - name: Restart munin-node
   service: name=munin-node state=restarted
