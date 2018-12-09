@@ -48,6 +48,13 @@
         owner=root group=root
         mode=0755
 
+- name: Mount /home/mail
+  mount: src=/dev/mapper/luksMail
+         path=/home/mail
+         fstype=ext4
+         opts=noauto
+         state=mounted
+
 - name: Create /home/mail/{virtual,attachments,spamspool}
   file: path=/home/mail/{{ item }}
         state=directory
