@@ -46,6 +46,15 @@ proxymap  unix  -       -       n       -       -       proxymap
 proxywrite unix -       -       n       -       1       proxymap
 smtp      unix  -       -       y       -       -       smtp
 #       -o smtp_helo_timeout=5 -o smtp_connect_timeout=5
+{% if inst is defined and inst == 'MSA' %}
+smtp_verify unix -      -       y       -       -       smtp
+  -o smtp_helo_name=noreply.$mydomain
+  -o smtp_tls_security_level=may
+  -o smtp_tls_ciphers=medium
+  -o smtp_tls_protocols=!SSLv2,!SSLv3
+  -o smtp_tls_note_starttls_offer=yes
+  -o smtp_tls_session_cache_database=lmdb:$data_directory/smtp_tls_session_cache
+{% endif %}
 relay     unix  -       -       y       -       -       smtp
 showq     unix  n       -       y       -       -       showq
 error     unix  -       -       y       -       -       error

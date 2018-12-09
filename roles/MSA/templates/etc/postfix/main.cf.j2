@@ -92,6 +92,7 @@ address_verify_negative_refresh_time = 5m
 unverified_recipient_defer_code      = 250
 unverified_recipient_reject_code     = 550
 address_verify_map                   = lmdb:$data_directory/verify_cache
+address_verify_default_transport     = smtp_verify
 
 smtpd_client_restrictions =
     permit_sasl_authenticated
