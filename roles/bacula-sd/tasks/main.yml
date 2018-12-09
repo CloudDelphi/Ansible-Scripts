@@ -26,6 +26,21 @@
     - systemctl daemon-reload
     - Restart bacula-sd
 
+# Avoid bacula creating archives under /mnt/backup/bacula when it's
+# not mounted
+- name: Create directory /mnt/backup
+  file: path=/mnt/backup
+        state=directory
+        owner=root group=root
+        mode=0755
+
+- name: Mount /mnt/backup
+  mount: src=/dev/mapper/fripost-backup
+         path=/mnt/backup
+         fstype=ext4
+         opts=noauto
+         state=mounted
+
 - meta: flush_handlers
 
 - name: Enable bacula-sd
@@ -34,9 +49,6 @@
 - name: Start bacula-sd
   service: name=bacula-sd state=started
 
-# To avoid bacula creating archives under /mnt/backup/bacula when it's
-# not a mountpoint, use `chmod 0700 /mnt/backup; chown root:root /mnt/backup`
-# before mounting the disk.
 - name: Create /mnt/backup/bacula
   file: path=/mnt/backup/bacula
         state=directory
