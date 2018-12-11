@@ -24,6 +24,12 @@
         owner=root group=staff
         mode=0755
 
+# Required for IDLE as all imap processes have the same UID (vmail).
+- name: Set per user maximum number of inotify instances to 512
+  sysctl: name=fs.inotify.max_user_instances value=512 sysctl_set=yes
+  tags:
+   - sysctl
+
 - name: Copy dovecot auth proxy systemd unit files
   copy: src=etc/systemd/system/{{ item }}
         dest=/etc/systemd/system/{{ item }}
