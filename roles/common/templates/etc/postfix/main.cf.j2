@@ -39,7 +39,7 @@ smtpd_tls_security_level = none
 
 {% set instances = postfix_instance.keys() | intersect(group_names) | list %}
 {%- if instances | length > 0 -%}
-## Other postfix instances
+# Other postfix instances
 multi_instance_wrapper     = $command_directory/postmulti -p --
 multi_instance_enable      = yes
 multi_instance_directories ={% for i in instances | sort %} /etc/postfix-{{ postfix_instance[i].name }}{% endfor %}

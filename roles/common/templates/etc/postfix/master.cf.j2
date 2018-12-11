@@ -65,6 +65,10 @@ virtual   unix  -       n       n       -       -       virtual
 lmtp      unix  -       -       y       -       -       lmtp
 anvil     unix  -       -       y       -       1       anvil
 scache    unix  -       -       y       -       1       scache
+{% if inst is defined and inst == 'MSA' %}
+policyd-spf unix -      n       n       -       0       spawn
+    user=policyd-spf argv=/usr/bin/policyd-spf
+{% endif %}
 {% if inst is defined and inst == 'MX' %}
 reserved-alias unix  -  n       n       -       -       pipe
   flags=Rhu user=nobody argv=/usr/local/bin/reserved-alias.pl ${sender} ${original_recipient} @fripost.org

@@ -4,6 +4,7 @@
     packages:
     - postfix
     - postfix-pcre
+    - postfix-policyd-spf-python
 
 - name: Copy Postfix sender login socketmap
   copy: src=usr/local/bin/postfix-sender-login.pl
@@ -56,6 +57,15 @@
   postmap: cmd=postmap src=/etc/postfix-{{ postfix_instance[inst].name }}/check_sender_access db=lmdb
            owner=root group=root
            mode=0644
+  notify:
+    - Reload Postfix
+
+- name: Configure policyd-spf
+  template: src=etc/postfix-policyd-spf-python/policyd-spf.conf.j2
+            dest=/etc/postfix-policyd-spf-python/policyd-spf.conf
+            owner=root group=root
+            mode=0644
+  # Reload Postifx to terminate spawn(8) daemon children
   notify:
     - Reload Postfix
 

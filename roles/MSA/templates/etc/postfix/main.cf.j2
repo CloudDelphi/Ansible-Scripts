@@ -50,6 +50,7 @@ local_header_rewrite_clients     =
 smtp_destination_recipient_limit = 1000
 # Tolerate occasional high latency
 smtp_data_done_timeout           = 1200s
+policyd-spf_time_limit           = $ipc_timeout
 
 # Anonymize the (authenticated) sender; pass the mail to the antivirus
 header_checks  = pcre:$config_directory/anonymize_sender.pcre
@@ -107,6 +108,7 @@ smtpd_sender_restrictions =
     reject_non_fqdn_sender
     reject_unknown_sender_domain
     check_sender_access lmdb:$config_directory/check_sender_access
+    check_policy_service unix:private/policyd-spf
     reject_known_sender_login_mismatch
 
 smtpd_relay_restrictions =
