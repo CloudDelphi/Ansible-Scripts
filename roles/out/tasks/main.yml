@@ -12,6 +12,18 @@
   notify:
     - Reload Postfix
 
+- name: Copy the canonical maps
+  template: src=etc/postfix/canonical.j2
+            dest=/etc/postfix-{{ postfix_instance[inst].name }}/canonical
+            owner=root group=root
+            mode=0644
+
+- name: Compile the canonical maps
+  # no need to reload upon change, as cleanup(8) is short-running
+  postmap: cmd=postmap src=/etc/postfix-{{ postfix_instance[inst].name }}/canonical db=lmdb
+           owner=root group=root
+           mode=0644
+
 - meta: flush_handlers
 
 - name: Start Postfix
