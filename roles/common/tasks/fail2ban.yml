@@ -1,29 +1,37 @@
 - name: Install fail2ban
   apt: pkg=fail2ban
 
-- name: Add addititional filters
-  copy: src=etc/fail2ban/filter.d/{{ item }}
-        dest=/etc/fail2ban/filter.d/{{ item }}
-        owner=root group=root
-        mode=0644
-  register: r1
-  with_items:
-    - dovecot.conf
-    - roundcube.conf
-  notify:
-    - Restart fail2ban
-
 - name: Configure fail2ban
   template: src=etc/fail2ban/jail.local.j2
             dest=/etc/fail2ban/jail.local
             owner=root group=root
             mode=0644
+  register: r1
+  notify:
+    - Restart fail2ban
+
+- name: Add roundcube filter
+  copy: src=etc/fail2ban/filter.d/roundcube.conf
+        dest=/etc/fail2ban/filter.d/roundcube.conf
+        owner=root group=root
+        mode=0644
   register: r2
+  when: "'webmail' in group_names"
+  notify:
+    - Restart fail2ban
+
+- name: Add dovecot filter
+  copy: src=etc/fail2ban/filter.d/dovecot.conf
+        dest=/etc/fail2ban/filter.d/dovecot.conf
+        owner=root group=root
+        mode=0644
+  register: r3
+  when: "'IMAP' in group_names"
   notify:
     - Restart fail2ban
 
 - name: Start fail2ban
   service: name=fail2ban state=started
-  when: not (r1.changed or r2.changed)
+  when: not (r1.changed or r2.changed or r3.changed)
 
 - meta: flush_handlers
