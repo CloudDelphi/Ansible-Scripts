@@ -254,7 +254,7 @@ run() {
     # DROP bogus TCP packets.
     iptables -A INPUT -p tcp -m tcp --tcp-flags FIN,SYN FIN,SYN -j DROP
     iptables -A INPUT -p tcp -m tcp --tcp-flags SYN,RST SYN,RST -j DROP
-    iptables -A INPUT -p tcp \! --syn -m state --state NEW      -j DROP
+    iptables -A INPUT -p tcp \! --syn -m state --state NEW      -j REJECT --reject-with tcp-reset
 
     # Allow all input/output to/from the loopback interface.
     local localhost=$(inet46 $f '127.0.0.1/8' '::1/128')
@@ -299,8 +299,8 @@ run() {
     while read dir proto dport sport; do
         # We add two entries per config line: we need to accept the new
         # connection, and latter the reply.
-        local stNew=NEW,ESTABLISHED
-        local stEst=ESTABLISHED
+        local stNew=NEW,ESTABLISHED,RELATED
+        local stEst=ESTABLISHED,RELATED
 
         # In-Out means full-duplex
         [[ "$dir" =~ ^inout ]] && stEst="$stNew"
@@ -327,7 +327,15 @@ run() {
         iptables $iptNew $if -p $proto $optsNew -m state --state $stNew -j ACCEPT
         iptables $iptEst $if -p $proto $optsEst -m state --state $stEst -j ACCEPT
     done
-    iptables -A OUTPUT -o $if -j REJECT
+
+    iptables -A OUTPUT -o $if -p tcp -j REJECT --reject-with tcp-reset
+    iptables -A OUTPUT -o $if -p udp -j REJECT --reject-with port-unreach
+    if [ "$f" = "4" ]; then
+        iptables -A OUTPUT -o $if -p icmp -j REJECT --reject-with icmp-host-unreachable
+        iptables -A OUTPUT -o $if         -j REJECT --reject-with icmp-host-prohibited
+    else
+        iptables -A OUTPUT -o $if -j REJECT
+    fi
 
     ########################################################################
     commit
