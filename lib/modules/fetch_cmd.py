@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Fetch the output of a remote command
 # Copyright (c) 2016 Guilhem Moulin <guilhem@fripost.org>
@@ -48,7 +48,7 @@ def main():
             if stdin is not None:
                 stdin.close()
 
-    except KeyError, e:
+    except KeyError as e:
         module.fail_json(msg=str(e))
 
     module.exit_json(changed=changed)

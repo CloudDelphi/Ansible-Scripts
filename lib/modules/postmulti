@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Create and manage postfix instances.
 # Copyright (c) 2013 Guilhem Moulin <guilhem@fripost.org>
@@ -94,7 +94,7 @@ def main():
 
         module.exit_json(changed=changed)
 
-    except subprocess.CalledProcessError, e:
+    except subprocess.CalledProcessError as e:
         module.fail_json(rv=e.returncode, msg=e.output.rstrip())
 
 

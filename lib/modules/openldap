@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Manage OpenLDAP databases
 # Copyright (c) 2013 Guilhem Moulin <guilhem@fripost.org>
@@ -303,7 +303,7 @@ def main():
 
             try:
                 r = l.search_s( name, ldap.SCOPE_BASE, filterStr, attrsonly=1 )
-            except ldap.LDAPError, ldap.NO_SUCH_OBJECT:
+            except (ldap.LDAPError, ldap.NO_SUCH_OBJECT):
                 r = None
 
             if r:
@@ -352,9 +352,9 @@ def main():
             changed = parser.changed
             l.unbind_s()
 
-    except subprocess.CalledProcessError, e:
+    except subprocess.CalledProcessError as e:
         module.fail_json(rv=e.returncode, msg=e.output.rstrip())
-    except ldap.LDAPError, e:
+    except ldap.LDAPError as e:
         e = e.args[0]
         if 'info' in e.keys():
             msg = e['info']
@@ -363,7 +363,7 @@ def main():
         else:
             msg = str(e)
         module.fail_json(msg=msg)
-    except KeyError, e:
+    except KeyError as e:
         module.fail_json(msg=str(e))
 
     module.exit_json(changed=changed)

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Create or update postfix's alias and lookup tables
 # Copyright (c) 2013 Guilhem Moulin <guilhem@fripost.org>
@@ -97,7 +97,7 @@ def main():
             changed = True
             if not module.check_mode:
                 msg = compile( cmd, instance, db, src)
-    except subprocess.CalledProcessError, e:
+    except subprocess.CalledProcessError as e:
         module.fail_json(rv=e.returncode, msg=e.output.rstrip())
 
     changed = module.set_file_attributes_if_different(file_args, changed)
