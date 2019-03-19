@@ -36,6 +36,7 @@ in      tcp     4190                                    # MANAGESIEVE
 out     tcp     2703                                    # Razor2
 {% endif %}
 {% if 'MSA' in group_names %}
+in      tcp     465                                     # SMTP-AUTH
 in      tcp     587                                     # SMTP-AUTH
 {% endif %}
 {% if 'webmail' in group_names or 'lists' in group_names or 'wiki' in group_names or 'nextcloud' in group_names %}

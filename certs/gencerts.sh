@@ -78,10 +78,10 @@ allfpr() {
     [ "$typ" = mdwn ] && indent='        ' || indent='    '
 
     header 'IMAP server'
-    x509fpr '`imap.fripost.org:993` (IMAP over SSL), `sieve.fripost.org:4190` (ManageSieve, `STARTTLS`)'
+    x509fpr '`imap.fripost.org:993` (IMAP over TLS), `sieve.fripost.org:4190` (ManageSieve, `STARTTLS`)'
 
     header 'SMTP servers'
-    x509fpr '`smtp.fripost.org:587` (Mail Submission Agent, `STARTTLS`)'
+    x509fpr '`smtp.fripost.org:465` (Email Submission over TLS), `smtp.fripost.org:587` (Email Submission, `STARTTLS`)'
     x509fpr '`mx1.fripost.org:25` (1st Mail eXchange, `STARTTLS`)'
     x509fpr '`mx2.fripost.org:25` (2nd Mail eXchange, `STARTTLS`)'
 
