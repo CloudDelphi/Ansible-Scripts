@@ -91,7 +91,8 @@ options:
     description:
       - Check if mysql allows login as root/nopassword before trying supplied credentials.
     required: false
-    default: false
+    type: bool
+    default: no
     version_added: "1.3"
 notes:
    - Requires the MySQLdb Python package on the remote host. For Ubuntu, this
@@ -422,7 +423,7 @@ def main():
             state=dict(default="present", choices=["absent", "present"]),
             priv=dict(default=None),
             append_privs=dict(default=False, type="bool"),
-            check_implicit_admin=dict(default=False),
+            check_implicit_admin=dict(default=False, type="bool"),
             auth_plugin=dict(default=None),
             soname=dict(default=None)
         )
