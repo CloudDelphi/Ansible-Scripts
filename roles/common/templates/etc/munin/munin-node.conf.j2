@@ -41,7 +41,7 @@ host_name {{ inventory_hostname_short }}
 # network notation unless the perl module Net::CIDR is installed.  You
 # may repeat the allow line as many times as you'd like
 
-{% for host in groups['munin-master'] %}
+{% for host in groups['munin_master'] %}
 allow ^{{ ipsec[ hostvars[host].inventory_hostname_short ] | ipv4 | replace(".","\.") }}$
 {% endfor %}
 

@@ -22,7 +22,7 @@ JobDefs {
   Name = DefaultJob
   Type = Backup
   Level = Incremental
-  Storage = {{ hostvars[ groups['bacula-sd'][0] ].inventory_hostname_short }}-sd
+  Storage = {{ hostvars[ groups['bacula_sd'][0] ].inventory_hostname_short }}-sd
   Messages = Standard
   Accurate = yes
   #Rerun Failed Levels = yes
@@ -38,7 +38,7 @@ JobDefs {
   Name = DefaultMySQLJob
   Type = Backup
   Level = Full
-  Storage = {{ hostvars[ groups['bacula-sd'][0] ].inventory_hostname_short }}-sd
+  Storage = {{ hostvars[ groups['bacula_sd'][0] ].inventory_hostname_short }}-sd
   Messages = Standard
   FileSet = SQL
   Schedule = WeeklyCycleAfterBackup
@@ -64,7 +64,7 @@ JobDefs {
   Name = DefaultSlapdJob
   Type = Backup
   Level = Full
-  Storage = {{ hostvars[ groups['bacula-sd'][0] ].inventory_hostname_short }}-sd
+  Storage = {{ hostvars[ groups['bacula_sd'][0] ].inventory_hostname_short }}-sd
   Messages = Standard
   FileSet = LDAP
   Schedule = WeeklyCycleAfterBackup
@@ -125,7 +125,7 @@ Job {
 }
 {% endfor %}
 
-{% for fd in groups['MDA'] | union(groups['webmail']) | union(groups['lists']) | union(groups['bacula-dir']) | union(groups['nextcloud']) | sort %}
+{% for fd in groups['MDA'] | union(groups['webmail']) | union(groups['lists']) | union(groups['bacula_dir']) | union(groups['nextcloud']) | sort %}
 Job {
   Name = {{ hostvars[fd].inventory_hostname_short }}-mysql
   Client = {{ hostvars[fd].inventory_hostname_short }}-fd
@@ -150,7 +150,7 @@ Job {
   Type = Restore
   Client= {{ inventory_hostname_short }}-fd
   FileSet = FileSetRoot
-  Storage = {{ hostvars[ groups['bacula-sd'][0] ].inventory_hostname_short }}-sd
+  Storage = {{ hostvars[ groups['bacula_sd'][0] ].inventory_hostname_short }}-sd
   Pool = Default
   Messages = Standard
   # NOTE: Files are put on the client (FD) that is being restored.
@@ -385,7 +385,7 @@ Client {
 
 
 # Definition of file storage device
-{% for sd in groups['bacula-sd'] | sort %}
+{% for sd in groups['bacula_sd'] | sort %}
 Storage {
   Name = {{ hostvars[sd].inventory_hostname_short }}-sd
   Address = {{ ipsec[ hostvars[sd].inventory_hostname_short ] }}

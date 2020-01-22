@@ -6,7 +6,7 @@
 #
 # List Directors who are permitted to contact this File daemon
 #
-{% for dir in groups['bacula-dir'] | sort %}
+{% for dir in groups['bacula_dir'] | sort %}
 Director {
   Name = {{ hostvars[dir].inventory_hostname_short }}-dir
   @|"sed -n '/^{{ hostvars[dir].inventory_hostname_short }}-dir\\s/ {s//Password = /p; q}' /etc/bacula/passwords-fd"

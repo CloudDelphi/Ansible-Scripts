@@ -1,6 +1,6 @@
 ---
 - name: Configure the Munin master
-  hosts: munin-master
+  hosts: munin_master
   tags:
     - munin
     - munin-master

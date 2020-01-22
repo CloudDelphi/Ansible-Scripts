@@ -23,28 +23,28 @@
    - ACME
 
 - name: Common SQL tasks
-  hosts: MDA:webmail:lists:bacula-dir:nextcloud
+  hosts: MDA:webmail:lists:bacula_dir:nextcloud
   gather_facts: False
   tags: mysql,sql
   roles:
     - common-SQL
 
 - name: Common LDAP tasks
-  hosts: MDA:MSA:LDAP-provider:MX
+  hosts: MDA:MSA:LDAP_provider:MX
   gather_facts: True
   tags: slapd,ldap
   roles:
     - common-LDAP
 
 - name: Configure the LDAP provider
-  hosts: LDAP-provider
+  hosts: LDAP_provider
   gather_facts: False
   tags: slapd,ldap
   roles:
     - LDAP-provider
 
 - name: Configure the Web servers
-  hosts: webmail:wiki:lists:git:munin-master:nextcloud
+  hosts: webmail:wiki:lists:git:munin_master:nextcloud
   gather_facts: False
   tags: nginx,www,web
   roles:

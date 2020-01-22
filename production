@@ -21,10 +21,10 @@ calima.fripost.org geoip=se
 
 
 # ldap.fripost.org
-[LDAP-provider:children]
+[LDAP_provider:children]
 mistral
 
-[NTP-master:children]
+[NTP_master:children]
 mistral
 
 # imap.fripost.org
@@ -48,10 +48,10 @@ IMAP
 [out:children]
 giraff
 
-[bacula-dir:children]
+[bacula_dir:children]
 benjamin
 
-[bacula-sd:children]
+[bacula_sd:children]
 benjamin
 
 # webmail.fripost.org
@@ -71,7 +71,7 @@ wiki
 [nextcloud:children]
 calima
 
-[munin-master:children]
+[munin_master:children]
 benjamin
 
 

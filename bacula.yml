@@ -1,6 +1,6 @@
 ---
 - name: Configure the Bacula Director
-  hosts: bacula-dir
+  hosts: bacula_dir
   tags:
     - bacula
     - bacula-dir
@@ -8,7 +8,7 @@
       - bacula-dir
 
 - name: Configure the Bacula Storage Daemon
-  hosts: bacula-sd
+  hosts: bacula_sd
   tags:
     - bacula
     - bacula-sd
