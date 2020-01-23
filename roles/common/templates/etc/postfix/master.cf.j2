@@ -30,10 +30,12 @@ submissions inet n      -       y       -       -       smtpd
   -o smtpd_sasl_security_options=noanonymous
   -o smtpd_sasl_exceptions_networks=
   -o smtpd_authorized_xforward_hosts=127.0.0.0/8,[::1]/128{{ ipsec_subnet is defined | ternary(','+ipsec_subnet, '') }}
+  -o smtpd_peername_lookup=no
 {% endif %}
 {% elif inst in ['IMAP', 'out', 'lists'] %}
 [{{ postfix_instance[inst].addr }}]:{{ postfix_instance[inst].port }} inet n       -       y       -       -       smtpd
   -o smtpd_authorized_xforward_hosts=127.0.0.0/8,[::1]/128{{ ipsec_subnet is defined | ternary(','+ipsec_subnet, '') }}
+  -o smtpd_peername_lookup=no
 {% endif %}
 pickup    unix  n       -       y       60      1       pickup
 cleanup   unix  n       -       y       -       0       cleanup
