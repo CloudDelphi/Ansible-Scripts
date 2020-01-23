@@ -7,87 +7,38 @@
 # jail.{conf,local} configuration files.
 destemail = admin@fripost.org
 
-# Specify chain where jumps would need to be added in iptables-* actions
-chain = fail2ban
+# "ignoreip" can be a list of IP addresses, CIDR masks or DNS hosts. Fail2ban
+# will not ban a host which matches an address in this list. Several addresses
+# can be defined using space (and/or comma) separator.
+ignoreip = 127.0.0.0/8, ::1, {{ ipsec_subnet }}
 
-# Choose default action.
-action = %(action_)s
-
-# Don't ban ourselves.
-ignoreip = 127.0.0.0/8 {{ ipsec_subnet }}
+banaction = nftables-allports
+logpath = /var/log/fail2ban/fail2ban.log
 
 #
 # JAILS
 #
 
-[ssh]
-
-enabled  = true
-port     = {{ ansible_port|default('22') }}
-filter   = sshd
-logpath  = /var/log/auth.log
-maxretry = 5
-
-[ssh-ddos]
-
-enabled  = true
-port     = {{ ansible_port|default('22') }}
-filter   = sshd-ddos
-logpath  = /var/log/auth.log
-maxretry = 2
-
-
-# Generic filter for pam. Has to be used with action which bans all ports
-# such as iptables-allports, shorewall
-[pam-generic]
-
-enabled   = true
-# pam-generic filter can be customized to monitor specific subset of 'tty's
-filter    = pam-generic
-# port actually must be irrelevant but lets leave it all for some possible uses
-port      = anyport
-banaction = iptables-allports
-logpath   = /var/log/auth.log
-maxretry  = 6
-
-{% if 'MX' in group_names %}
-[postfix]
-
-enabled  = true
-port     = smtp
-filter   = postfix
-logpath  = /var/log/mail.log
-maxretry = 10
-{% endif %}
-
-
-{% if 'IMAP' in group_names %}
-[dovecot]
-
+[sshd]
 enabled = true
-port    = imap2,imaps,pop3,pop3s,sieve
-filter  = dovecot
-logpath = /var/log/mail.log
-{% endif %}
 
+[postfix]
+enabled = {{ 'MX' in group_names }}
 
-{% if 'MSA' in group_names %}
-[sasl]
+[dovecot]
+enabled = {{ 'IMAP' in group_names }}
 
-enabled  = true
-port     = submission,submissions
-filter   = postfix-sasl
-logpath  = /var/log/mail.warn
-{% endif %}
+[postfix-sasl]
+enabled  = {{ 'MSA' in group_names }}
 
+[roundcube-auth]
+enabled = {{ 'webmail' in group_names }}
+# XXX Bullseye: logpath = /var/log/roundcube/errors.log
 
-{% if 'webmail' in group_names %}
-[roundcube]
-
-enabled  = true
-port     = http,https
-filter   = roundcube
-logpath  = /var/log/roundcube/errors
-{% endif %}
+[nextcloud]
+enabled = {{ 'nextcloud' in group_names }}
+port    = http,https
+filter  = nextcloud
+logpath = /var/log/nextcloud/nextcloud.log
 
 # vim: set filetype=dosini :

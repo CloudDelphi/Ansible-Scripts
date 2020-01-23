@@ -1,37 +1,79 @@
 - name: Install fail2ban
   apt: pkg=fail2ban
 
-- name: Configure fail2ban
-  template: src=etc/fail2ban/jail.local.j2
-            dest=/etc/fail2ban/jail.local
-            owner=root group=root
-            mode=0644
+# Log into a dedicate directory so we can use ReadWriteDirectories in
+# the .service file
+- name: Create directory /var/log/fail2ban
+  file: path=/var/log/fail2ban
+        state=directory
+        owner=root group=adm
+        mode=0750
+
+- name: Fix fail2ban logrotate snippet
+  lineinfile: dest=/etc/logrotate.d/fail2ban
+              state=present
+              line="/var/log/fail2ban/*.log"
+              insertbefore="^[^#]*\\s{$"
+  tags:
+    - logrotate
+
+- name: Configure fail2ban (fail2ban.local)
+  copy: src=etc/fail2ban/fail2ban.local
+        dest=/etc/fail2ban/fail2ban.local
+        owner=root group=root
+        mode=0644
   register: r1
   notify:
     - Restart fail2ban
 
-- name: Add roundcube filter
-  copy: src=etc/fail2ban/filter.d/roundcube.conf
-        dest=/etc/fail2ban/filter.d/roundcube.conf
-        owner=root group=root
-        mode=0644
+- name: Configure fail2ban (jail.local)
+  template: src=etc/fail2ban/jail.local.j2
+            dest=/etc/fail2ban/jail.local
+            owner=root group=root
+            mode=0644
   register: r2
-  when: "'webmail' in group_names"
   notify:
     - Restart fail2ban
 
-- name: Add dovecot filter
-  copy: src=etc/fail2ban/filter.d/dovecot.conf
-        dest=/etc/fail2ban/filter.d/dovecot.conf
+- name: Configure fail2ban (action.d/nftables-allports.local)
+  copy: src=etc/fail2ban/action.d/nftables-allports.local
+        dest=/etc/fail2ban/action.d/nftables-allports.local
         owner=root group=root
         mode=0644
   register: r3
-  when: "'IMAP' in group_names"
   notify:
+    - Restart fail2ban
+
+- name: Copy filters
+  copy: src=etc/fail2ban/filter.d/
+        dest=/etc/fail2ban/filter.d/
+        owner=root group=root
+        mode=0644
+  register: r4
+  notify:
+    - Restart fail2ban
+
+- name: Create directory /etc/systemd/system/fail2ban.service.d/override.conf
+  file: path=/etc/systemd/system/fail2ban.service.d
+        state=directory
+        owner=root group=root
+        mode=0750
+
+- name: Harden fail2ban.service
+  copy: src=etc/systemd/system/fail2ban.service.d/override.conf
+        dest=/etc/systemd/system/fail2ban.service.d/override.conf
+        owner=root group=root
+        mode=0644
+  register: r5
+  notify:
+    - systemctl daemon-reload
     - Restart fail2ban
 
 - name: Start fail2ban
   service: name=fail2ban state=started
-  when: not (r1.changed or r2.changed or r3.changed)
+  when: not (r1.changed or r2.changed or r3.changed or r4.changed or r5.changed)
 
 - meta: flush_handlers
+
+- name: Delete /var/lib/fail2ban/fail2ban.sqlite3
+  file: path=/var/lib/fail2ban/fail2ban.sqlite3 state=absent

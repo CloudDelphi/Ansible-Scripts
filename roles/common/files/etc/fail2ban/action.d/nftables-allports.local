@@ -1,0 +1,16 @@
+[Definition]
+# No need to create sets and rules, these are defined globally in nftables.conf
+actionstart =
+actionstop =
+actioncheck =
+
+# unbanning is taken care of by setting a timeout on the nft set already
+actionunban =
+
+[Init]
+# With banaction = *-allports there is no need for separate rule names
+set_name = fail2ban
+blocktype = drop
+
+[Init?family=inet6]
+set_name = fail2ban6
