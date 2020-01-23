@@ -1,0 +1,61 @@
+#!/bin/bash
+
+set -ue
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+
+NFTABLES="/etc/nftables.conf"
+
+script="$(mktemp --tmpdir=/dev/shm)"
+oldrules="$(mktemp --tmpdir=/dev/shm)"
+newrules="$(mktemp --tmpdir=/dev/shm)"
+netns=
+cleanup(){
+    rm -f -- "$script" "$oldrules" "$newrules"
+    [ -z "$netns" ] || ip netns del "$netns"
+}
+trap cleanup EXIT INT TERM
+
+echo "flush ruleset" >"$script" # should be included already, but...
+cat <"$NFTABLES" >>"$script"
+
+ip netns add "nft-dryrun"
+netns="nft-dryrun"
+
+# clear sets in the old rules before diff'ing with the new ones
+nft list ruleset -sn >"$oldrules"
+ip netns exec "$netns" nft -f - <"$oldrules"
+ip netns exec "$netns" nft flush set inet filter fail2ban
+ip netns exec "$netns" nft flush set inet filter fail2ban6
+ip netns exec "$netns" nft list ruleset -sn >"$oldrules"
+
+declare -a INTERFACES=()
+for iface in /sys/class/net/*; do
+    idx="$(< "$iface/ifindex")"
+    INTERFACES[idx]="${iface#/sys/class/net/}"
+done
+
+# create dummy interfaces so we can use iif/oif in the nft rules
+# (we preserve indices to preserve canonical set representation)
+for idx in "${!INTERFACES[@]}"; do
+    [ "${INTERFACES[idx]}" != "lo" ] || continue
+    ip netns exec "$netns" ip link add "${INTERFACES[idx]}" index "$idx" type dummy
+done
+
+ip netns exec "$netns" nft -f - <"$script"
+ip netns exec "$netns" nft list ruleset -sn >"$newrules"
+ip netns del "$netns"
+netns=
+
+if [ ! -t 0 ] || [ ! -t 1 ]; then
+    diff -q -- "$oldrules" "$newrules" && exit 0 || exit 1
+elif ! diff -u --color=auto --label=a/ruleset --label=b/ruleset \
+                -- "$oldrules" "$newrules" && nft -f - <"$script"; then
+    read -p "Ruleset applied. Revert? [Y/n] " -r -t10 r || r="y"
+    if [ "${r,,[a-z]}" != "n" ]; then 
+        echo "Reverting..."
+        echo "flush ruleset" >"$script"
+        cat <"$oldrules"    >>"$script"
+        nft -f - <"$script"
+    fi
+fi

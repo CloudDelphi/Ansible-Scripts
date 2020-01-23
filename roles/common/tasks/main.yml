@@ -12,6 +12,7 @@
   tags:
     - firewall
     - iptables
+    - nftables
 
 - import_tasks: stunnel.yml
   tags: stunnel

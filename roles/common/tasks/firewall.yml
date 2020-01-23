@@ -1,41 +1,27 @@
-- name: Install some packages required for the firewall
-  apt: pkg={{ packages }}
-  vars:
-    packages:
-    - iptables
-    - netmask
-    - bsdutils
+- name: Install nftables
+  apt: pkg=nftables
 
-- name: Create directory /etc/iptables
-  file: path=/etc/iptables
-        state=directory
-        owner=root group=root
-        mode=0755
-
-- name: Generate /etc/iptables/services
-  template: src=etc/iptables/services.j2
-            dest=/etc/iptables/services
-            owner=root group=root
-            mode=0600
-
-- name: Copy /usr/local/sbin/update-firewall.sh
-  copy: src=usr/local/sbin/update-firewall.sh
-        dest=/usr/local/sbin/update-firewall.sh
+- name: Copy /usr/local/sbin/update-firewall
+  copy: src=usr/local/sbin/update-firewall
+        dest=/usr/local/sbin/update-firewall
         owner=root group=staff
         mode=0755
 
-- name: Make the rulesets persistent
-  copy: src=etc/network/{{ item }}
-        dest=/etc/network/{{ item }}
-        owner=root group=root
-        mode=0755
-  with_items:
-    - if-pre-up.d/iptables
-    - if-post-down.d/iptables
+- name: Copy /etc/nftables.conf
+  template: src=etc/nftables.conf.j2
+            dest=/etc/nftables.conf
+            owner=root group=root
+            mode=0644
 
 - name: Ensure the firewall is up to date
-  command: /usr/local/sbin/update-firewall.sh -c
+  command: /usr/local/sbin/update-firewall -c
   register: rv
   # A non-zero return value will make ansible stop and show stderr. This
   # is what we want.
   changed_when: rv.rc
+
+- name: Enable nftables.service
+  service: name=nftables enabled=yes
+
+- name: Start nftables.service
+  service: name=nftables state=started

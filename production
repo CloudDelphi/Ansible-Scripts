@@ -82,3 +82,7 @@ benjamin
 # hostnames resolving to a dynamic IP
 [DynDNS:children]
 benjamin
+
+# need dhcp client
+[dhclient:children]
+benjamin

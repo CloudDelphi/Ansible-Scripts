@@ -25,10 +25,9 @@ PATH=/usr/sbin:/usr/bin:/sbin:/bin
 
 # Only the device with the default, globally-scoped route, is of
 # interest here.
-ip="$( ip -4 -o route show to default scope global \
-     | sed -nr '/^default via (\S+) dev (\S+).*/ {s//\2 \1/p;q}' )"
-[ "${ip% *}" = "$IFACE" ] || exit 0
-ip="${ip##* }"
+iface="$( ip -o route show to default scope global \
+        | sed -nr '/^default via \S+ dev (\S+).*/ {s//\1/p;q}' )"
+[ "$iface" = "$IFACE" ] || exit 0
 
 vip="{{ ipsec[inventory_hostname_short] }}"
 vsubnet="{{ ipsec_subnet }}"
@@ -39,9 +38,9 @@ case "$MODE" in
            # in the absence of xfrm lookup (i.e., when there is no
            # matching IPsec Security Association).
            ip route replace prohibit "$vsubnet" proto static || true
-           ip route replace table 220 to "$vsubnet" via "$ip" dev "$IFACE" proto static src "$vip" || true
+           ip route replace table 220 to "$vsubnet" dev "$IFACE" proto static src "$vip" || true
     ;;
-    stop)  ip route del table 220 to "$vsubnet" via "$ip" dev "$IFACE" proto static src "$vip" || true
+    stop)  ip route del table 220 to "$vsubnet" dev "$IFACE" proto static src "$vip" || true
            ip route del prohibit "$vsubnet" proto static || true
            ip address del "$vip/32" dev "$IFACE" scope global || true
 esac

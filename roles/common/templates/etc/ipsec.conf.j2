@@ -20,7 +20,7 @@ conn %default
     leftsubnet     = {{ ipsec[inventory_hostname_short] | ipv4 }}/32
     leftid         = {{ inventory_hostname }}
     leftsigkey     = {{ inventory_hostname_short }}.pem
-    leftfirewall   = yes
+    leftfirewall   = no
     lefthostaccess = yes
     rightauth      = pubkey
     auto           = route
