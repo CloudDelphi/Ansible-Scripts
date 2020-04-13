@@ -58,3 +58,6 @@ dkim_keys:
     "~": # catch-all, for our virtual domains
       d: x.fripost.org
       s: 9df9cdc7e101629b5003b587945afa70
+    "guilhem@debian.org":
+      d: debian.org
+      s: 5d30c523ff3622ed454230a16a11ddf6.guilhem.user
