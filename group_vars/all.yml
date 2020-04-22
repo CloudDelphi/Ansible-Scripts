@@ -55,6 +55,9 @@ dkim_keys:
       d: fripost.org
       # selector (randomly generated with `xxd -p -l16 </dev/urandom`)
       s: 8f00fb94ec6c37aacb48bd43e073f9b7
+    "lists.fripost.org":
+      d: lists.fripost.org
+      s: d3df4ddda85e3c927621b1b02a9cbb85
     "~": # catch-all, for our virtual domains
       d: x.fripost.org
       s: 9df9cdc7e101629b5003b587945afa70
