@@ -4,10 +4,10 @@ server {
 
     server_name cloud.fripost.org;
 
-    include snippets/acme-challenge.conf;
+    include /etc/lacme/nginx.conf;
 
-    access_log  /var/log/nginx/cloud.access.log;
-    error_log   /var/log/nginx/cloud.error.log info;
+    access_log /var/log/nginx/cloud.access.log;
+    error_log  /var/log/nginx/cloud.error.log info;
 
     location / {
         return 301 https://$host$request_uri;
@@ -20,7 +20,7 @@ server {
 
     server_name cloud.fripost.org;
 
-    root /var/www/nextcloud/;
+    root /usr/local/share/nextcloud;
 
     include snippets/headers.conf;
     add_header X-Robots-Tag                      none;
@@ -38,8 +38,8 @@ server {
         access_log off;
     }
 
-    access_log  /var/log/nginx/cloud.access.log;
-    error_log   /var/log/nginx/cloud.error.log info;
+    access_log /var/log/nginx/cloud.access.log;
+    error_log  /var/log/nginx/cloud.error.log info;
 
     location = /.well-known/carddav { return 301 $scheme://$host/remote.php/dav; }
     location = /.well-known/caldav  { return 301 $scheme://$host/remote.php/dav; }
@@ -67,15 +67,15 @@ server {
     location ~ ^/(?:\.|autotest|occ|issue|indie|db_|console)         { internal; }
 
     location ~ ^/(?:index|remote|public|cron|core/ajax/update|status|ocs/v[12]|updater/.+|ocs-provider/.+|core/templates/40[34])\.php(?:$|/) {
-        fastcgi_split_path_info ^(.+\.php)(/.*)$;
         include snippets/fastcgi-php.conf;
         fastcgi_param modHeadersAvailable     true;
         fastcgi_param front_controller_active true;
+        fastcgi_intercept_errors on;
         fastcgi_request_buffering off;
         fastcgi_param PHP_VALUE "upload_max_filesize=512M
                                  post_max_size=512M
                                  memory_limit=512M";
-        fastcgi_param PHP_ADMIN_VALUE "open_basedir=$document_root:/mnt/nextcloud-data:/etc/nextcloud:/usr/share/php:/tmp:/dev";
+        fastcgi_param PHP_ADMIN_VALUE "open_basedir=$document_root:/var/www/nextcloud:/mnt/nextcloud-data:/etc/nextcloud:/var/cache/nextcloud:/var/log/nextcloud:/usr/share/php:/tmp:/dev";
     }
 
     location ~ ^/(?:updater|ocs-provider)(?:$|/) {
@@ -91,6 +91,10 @@ server {
     location ~* \.(?:png|html|ttf|ico|jpg|jpeg)$ {
         try_files $uri /index.php$uri$is_args$args;
     }
+
+    location = /core/img/favicon.ico {
+        alias /var/www/nextcloud/fripost.ico;
+    }
 }
 
 server {
@@ -101,10 +105,10 @@ server {
 
     server_name www.cloud.fripost.org;
 
-    include snippets/acme-challenge.conf;
+    include /etc/lacme/nginx.conf;
 
-    access_log  /var/log/nginx/cloud.access.log;
-    error_log   /var/log/nginx/cloud.error.log info;
+    access_log /var/log/nginx/cloud.access.log;
+    error_log  /var/log/nginx/cloud.error.log info;
 
     location / {
         return 301 https://cloud.fripost.org$request_uri;

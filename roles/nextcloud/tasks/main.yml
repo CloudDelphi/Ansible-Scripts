@@ -8,7 +8,6 @@
     - php-gd
     - php-imagick
     - php-mbstring
-    - php-mcrypt
     - php-xml
     - php-curl
     - php-intl
@@ -16,26 +15,22 @@
     - php-mysql
     - php-zip
     - php-json
+    - php-gmp
 
-- name: Configure PHP 7.0 Zend opcache
-  lineinfile: dest=/etc/php/7.0/fpm/php.ini
+- name: Configure PHP 7.3 Zend opcache
+  lineinfile: dest=/etc/php/7.3/fpm/php.ini
               regexp='^;?{{ item.var }}\\s*='
               line="{{ item.var }} = {{ item.value }}"
               owner=root group=root
               mode=0644
   with_items:
-    - { var: opcache.enable,                  value: 1     }
-    - { var: opcache.enable_cli,              value: 1     }
-    - { var: opcache.memory_consumption,      value: 128   }
-    - { var: opcache.interned_strings_buffer, value: 8     }
-    - { var: opcache.max_accelerated_files,   value: 10000 }
-    - { var: opcache.revalidate_freq,         value: 1     }
-    - { var: opcache.fast_shutdown,           value: 1     }
+    - { var: opcache.memory_consumption,      value: 512 }
+    - { var: opcache.revalidate_freq,         value: 180 }
   notify:
-    - Restart php7.0-fpm
+    - Restart php7.3-fpm
 
-- name: Configure PHP 7.0 pool environment
-  lineinfile: dest=/etc/php/7.0/fpm/pool.d/www.conf
+- name: Configure PHP 7.3 pool environment
+  lineinfile: dest=/etc/php/7.3/fpm/pool.d/www.conf
               regexp='^;?env\[{{ item.var }}\]\\s*='
               line="env[{{ item.var }}] = {{ item.value }}"
               owner=root group=root
@@ -47,10 +42,10 @@
     - { var: TMPDIR,   value: "/tmp"          }
     - { var: TEMP,     value: "/tmp"          }
   notify:
-    - Restart php7.0-fpm
+    - Restart php7.3-fpm
 
-- name: Start php7.0-fpm
-  service: name=php7.0-fpm state=started
+- name: Start php7.3-fpm
+  service: name=php7.3-fpm state=started
 
 - name: Copy /etc/cron.d/nextcloud
   copy: src=etc/cron.d/nextcloud
@@ -106,3 +101,66 @@
   when: "'LDAP-provider' not in group_names"
   tags:
     - ldap
+
+- name: Create directory /var/www/nextcloud
+  file: path=/var/www/nextcloud
+        state=directory
+        owner=root group=root
+        mode=0755
+
+# Note: Nextcloud doesn't like symlinked apps
+# * https://github.com/nextcloud/server/issues/10437
+# * https://github.com/nextcloud/server/issues/13556
+- name: Create directory /var/www/nextcloud/apps
+  file: path=/var/www/nextcloud/apps
+        state=directory
+        owner=www-data group=www-data
+        mode=0755
+
+- name: Create directory /var/log/nextcloud
+  file: path=/var/log/nextcloud
+        state=directory
+        owner=www-data group=adm
+        mode=0750
+
+- name: Create directory /var/cache/nextcloud
+  file: path=/var/cache/nextcloud
+        state=directory
+        owner=www-data group=www-data
+        mode=0700
+
+- name: Copy Nextcloud logrotate snippet
+  copy: src=etc/logrotate.d/nextcloud
+        dest=/etc/logrotate.d/nextcloud
+        owner=root group=root
+        mode=0644
+  tags:
+    - logrotate
+
+- name: Install redis-server
+  apt: pkg={{ packages }}
+  vars:
+    packages:
+    - php-redis
+    - redis-server
+
+- name: Configure Redis
+  lineinfile: dest=/etc/redis/redis.conf
+              regexp='^#?{{ item.var }}\\s+'
+              line="{{ item.var }} {{ item.value }}"
+              owner=redis group=redis
+              mode=0640
+  with_items:
+    - { var: port,           value: 0 }
+    - { var: unixsocket,     value: /run/redis/redis-server.sock }
+    - { var: unixsocketperm, value: 770 }
+  notify:
+    - Restart Redis
+
+- name: Start redis-server
+  service: name=redis-server state=started
+
+- name: Add 'www-data' to the group 'redis'
+  user: name=www-data groups=redis append=yes
+  notify:
+    - Restart php7.3-fpm

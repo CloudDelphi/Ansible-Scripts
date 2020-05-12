@@ -1,2 +1,2 @@
 MAILTO=root
-*/15 * * * * www-data php -f /var/www/nextcloud/cron.php
+*/5 * * * * www-data php -f /usr/local/share/nextcloud/cron.php
