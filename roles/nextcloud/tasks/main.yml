@@ -162,14 +162,14 @@
 
 - name: Configure Redis
   lineinfile: dest=/etc/redis/redis.conf
-              regexp='^#?{{ item.var }}\\s+'
+              regexp='^#?\\s*{{ item.var }}\\s+'
               line="{{ item.var }} {{ item.value }}"
               owner=redis group=redis
               mode=0640
   with_items:
     - { var: port,           value: 0 }
     - { var: unixsocket,     value: /run/redis/redis-server.sock }
-    - { var: unixsocketperm, value: 770 }
+    - { var: unixsocketperm, value: 660 }
   notify:
     - Restart Redis
 
