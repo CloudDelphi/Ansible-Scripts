@@ -1,0 +1,9 @@
+/var/log/nextcloud/*.log {
+    daily
+    missingok
+    rotate 7
+    compress
+    delaycompress
+    notifempty
+    create 0640 _nextcloud adm
+}
