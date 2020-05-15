@@ -29,18 +29,25 @@
   notify:
     - Restart php7.3-fpm
 
-- name: Configure PHP 7.3 pool environment
-  lineinfile: dest=/etc/php/7.3/fpm/pool.d/www.conf
-              regexp='^;?env\[{{ item.var }}\]\\s*='
-              line="env[{{ item.var }}] = {{ item.value }}"
-              owner=root group=root
-              mode=0644
-  with_items:
-    - { var: HOSTNAME, value: "$HOSTNAME"     }
-    - { var: PATH,     value: "/usr/bin:/bin" }
-    - { var: TMP,      value: "/tmp"          }
-    - { var: TMPDIR,   value: "/tmp"          }
-    - { var: TEMP,     value: "/tmp"          }
+- name: Create '_nextcloud' user
+  user: name=_nextcloud system=yes
+        group=nogroup
+        createhome=no
+        home=/nonexistent
+        shell=/usr/sbin/nologin
+        password=!
+        state=present
+
+- name: Delete PHP 7.3 FPM's www pool
+  file: path=/etc/php/7.3/fpm/pool.d/www.conf state=absent
+  notify:
+    - Restart php7.3-fpm
+
+- name: Configure PHP 7.3 FPM's nextcloud pool
+  copy: src=etc/php/fpm/pool.d/nextcloud.conf
+        dest=/etc/php/7.3/fpm/pool.d/nextcloud.conf
+        owner=root group=root
+        mode=0644
   notify:
     - Restart php7.3-fpm
 
@@ -102,6 +109,15 @@
   tags:
     - ldap
 
+# Note: intentionally don't set an owner/group as we don't want to set
+# ownership unless the path is a mountpoint.  The service will fail
+# unless the data directory is mounted and accessible, and that's what
+# we want.
+- name: Create directory /mnt/nextcloud-data
+  file: path=/mnt/nextcloud-data
+        state=directory
+        mode=0700
+
 - name: Create directory /var/www/nextcloud
   file: path=/var/www/nextcloud
         state=directory
@@ -114,19 +130,19 @@
 - name: Create directory /var/www/nextcloud/apps
   file: path=/var/www/nextcloud/apps
         state=directory
-        owner=www-data group=www-data
+        owner=_nextcloud group=nogroup
         mode=0755
 
 - name: Create directory /var/log/nextcloud
   file: path=/var/log/nextcloud
         state=directory
-        owner=www-data group=adm
+        owner=_nextcloud group=adm
         mode=0750
 
 - name: Create directory /var/cache/nextcloud
   file: path=/var/cache/nextcloud
         state=directory
-        owner=www-data group=www-data
+        owner=_nextcloud group=nogroup
         mode=0700
 
 - name: Copy Nextcloud logrotate snippet
@@ -160,7 +176,7 @@
 - name: Start redis-server
   service: name=redis-server state=started
 
-- name: Add 'www-data' to the group 'redis'
-  user: name=www-data groups=redis append=yes
+- name: Add '_nextcloud' user to 'redis' group
+  user: name=_nextcloud groups=redis append=yes
   notify:
     - Restart php7.3-fpm
