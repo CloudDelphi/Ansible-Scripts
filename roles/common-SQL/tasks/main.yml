@@ -23,7 +23,7 @@
 
 # XXX Dirty fix for #742046
 - name: Force root to use UNIX permissions
-  mysql_user2: name=root password= auth_plugin=unix_socket soname=auth_socket.so
+  mysql_user2: name=root password="" auth_plugin=unix_socket soname=auth_socket.so
                state=present
 
 - name: Disallow anonymous and TCP/IP root login
