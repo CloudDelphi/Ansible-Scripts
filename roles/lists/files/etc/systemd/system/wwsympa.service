@@ -12,16 +12,15 @@ ExecStart=/usr/lib/cgi-bin/sympa/wwsympa.fcgi
 
 # Hardening
 NoNewPrivileges=yes
+ReadWriteDirectories=/etc/sympa
+ReadWriteDirectories=/var/lib/sympa
+ReadWriteDirectories=/var/spool/sympa
+RuntimeDirectory=sympa
 PrivateDevices=yes
+PrivateNetwork=yes
 ProtectHome=yes
 ProtectSystem=strict
 PrivateTmp=yes
-ReadWriteDirectories=/etc/sympa
-ReadWriteDirectories=/var/lib/sympa
-ReadWriteDirectories=-/var/run/sympa
-ReadWriteDirectories=/var/spool/sympa
-PrivateDevices=yes
-PrivateNetwork=yes
 ProtectControlGroups=yes
 ProtectKernelModules=yes
 ProtectKernelTunables=yes

@@ -4,7 +4,7 @@ server {
 
     server_name lists.fripost.org;
 
-    include snippets/acme-challenge.conf;
+    include /etc/lacme/nginx.conf;
 
     access_log /var/log/nginx/lists.access.log;
     error_log  /var/log/nginx/lists.error.log info;
@@ -26,12 +26,18 @@ server {
 
     include snippets/headers.conf;
     add_header Content-Security-Policy
-               "default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; upgrade-insecure-requests; block-all-mixed-content; reflected-xss block; referrer no-referrer-when-downgrade; frame-ancestors 'none'; form-action 'self'; base-uri lists.fripost.org";
+               "default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri lists.fripost.org";
 
     include snippets/ssl.conf;
     ssl_certificate     ssl/lists.fripost.org.pem;
     ssl_certificate_key ssl/lists.fripost.org.key;
     include             snippets/lists.fripost.org.hpkp-hdr;
+
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 256;
+    gzip_proxied expired no-cache no-store private no_last_modified no_etag auth;
+    gzip_types application/javascript application/json application/xml image/x-icon text/css text/plain;
 
     location = /robots.txt {
         allow all;
@@ -44,24 +50,24 @@ server {
         return 302 /sympa$args;
     }
 
-    location ^~ /static-sympa/ {
-        alias /var/lib/sympa/static_content/;
-        expires 30d;
-    }
+    location ^~ /static-sympa/   { alias /usr/share/sympa/static_content/; }
+    location ^~ /css-sympa/      { alias /var/lib/sympa/css/; }
+    location ^~ /pictures-sympa/ { alias /var/lib/sympa/pictures; }
 
-    location ^~ /sympa {
+    location ~* ^/sympa(?:/|$) {
+        gzip off;
+
         fastcgi_split_path_info ^(/sympa)(.*)$;
         include snippets/fastcgi.conf;
-
+        fastcgi_param PATH_INFO $fastcgi_path_info;
         fastcgi_pass unix:/run/wwsympa.socket;
-        gzip off;
     }
 
     location ~* ^/([^/]+)/?$ {
         return 302 /$1/sympa$args;
     }
-    location ~* ^/([^/]+)/sympa(/.*)?$ {
-        set $vhost $1;
+    location ~* ^/(?<vhost>[^/]+)/sympa(?:/|$) {
+        gzip off;
 
         if (!-f /etc/sympa/$vhost/robot.conf) {
             return 404;
@@ -69,11 +75,9 @@ server {
 
         fastcgi_split_path_info ^(/[^/]+/sympa)(.*)$;
         include snippets/fastcgi.conf;
-
-        fastcgi_pass unix:/run/wwsympa.socket;
-        gzip off;
-
+        fastcgi_param PATH_INFO $fastcgi_path_info;
         fastcgi_param SERVER_NAME $vhost;
+        fastcgi_pass unix:/run/wwsympa.socket;
     }
 
     location / {
