@@ -1,0 +1,10 @@
+[Unit]
+Description=OpenDMARC Milter activation socket
+
+[Socket]
+ListenStream=/var/spool/postfix-mx/public/opendmarc
+SocketUser=postfix
+SocketMode=0666
+
+[Install]
+WantedBy=sockets.target

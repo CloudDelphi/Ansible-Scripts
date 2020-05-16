@@ -137,3 +137,49 @@
     - munin-node
   notify:
     - Restart munin-node
+
+# XXX we probaly want SPF verification for domains without DMARC
+# policies
+- name: Install OpenDMARC
+  apt: pkg=opendmarc
+
+- name: Copy OpenDMARC configuration
+  copy: src=etc/opendmarc.conf
+        dest=/etc/opendmarc.conf
+        owner=root group=root
+        mode=0644
+  notify:
+    - Stop OpenDMARC
+
+- name: Create directory /etc/systemd/system/opendmarc.service.d
+  file: path=/etc/systemd/system/opendmarc.service.d
+        state=directory
+        owner=root group=root
+        mode=0755
+
+- name: Harden OpenDMARC service unit
+  copy: src=etc/systemd/system/opendmarc.service.d/override.conf
+        dest=/etc/systemd/system/opendmarc.service.d/override.conf
+        owner=root group=root
+        mode=0644
+  notify:
+    - systemctl daemon-reload
+    - Stop OpenDMARC
+
+- meta: flush_handlers
+
+- name: Copy OpenDMARC socket unit
+  copy: src=etc/systemd/system/opendmarc.socket
+        dest=/etc/systemd/system/opendmarc.socket
+        owner=root group=root
+        mode=0644
+  register: r
+  notify:
+    - systemctl daemon-reload
+    - Restart OpenDMARC
+
+- name: Disable OpenDMARC service
+  service: name=opendmarc.service enabled=false
+
+- name: Start OpenDMARC socket
+  service: name=opendmarc.socket state=started enabled=true

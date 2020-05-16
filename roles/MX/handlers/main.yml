@@ -1,6 +1,15 @@
 ---
+- name: systemctl daemon-reload
+  command: /bin/systemctl daemon-reload
+
 - name: Reload Postfix
   service: name=postfix state=reloaded
 
 - name: Restart munin-node
   service: name=munin-node state=restarted
+
+- name: Stop OpenDMARC
+  service: name=opendmarc.service state=stopped
+
+- name: Restart OpenDMARC
+  service: name=opendmarc.socket state=restarted
