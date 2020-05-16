@@ -4,7 +4,7 @@ server {
 
     server_name  git.fripost.org;
 
-    include snippets/acme-challenge.conf;
+    include /etc/lacme/nginx.conf;
 
     access_log /var/log/nginx/git.access.log;
     error_log  /var/log/nginx/git.error.log info;
@@ -25,6 +25,8 @@ server {
     error_log  /var/log/nginx/git.error.log info;
 
     include snippets/headers.conf;
+    add_header Content-Security-Policy
+               "default-src 'none'; img-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self'";
 
     include snippets/ssl.conf;
     ssl_certificate     ssl/git.fripost.org.pem;
@@ -36,33 +38,35 @@ server {
         expires 30d;
     }
 
-    # Bypass the CGI to return static files stored on disk. Try first repo with
-    # a trailing '.git', then without.
-    location ~* "^/((?U)[^/]+)(?:\.git)?/objects/(?:[0-9a-f]{2}/[0-9a-f]{38}|pack/pack-[0-9a-f]{40}\.(?:pack|idx))$" {
-        root /var/lib/gitolite/repositories;
-        try_files /$1.git/objects/$2 /$1/objects/$2 =404;
-        expires 30d;
-        gzip off;
-        # TODO honor git-daemon-export-ok
-    }
-
     # disallow push over HTTP/HTTPS
-    location ~* "^/[^/]+/git-receive-pack$" { return 403; }
+    location ~ "^/.+/git-receive-pack$" { return 403; }
 
-    location ~* "^/[^/]+/(?:HEAD|info/refs|objects/info/[^/]+|git-upload-pack)$" {
+    location ~ "^/.+/(?:info/refs|git-upload-pack)$" {
+        limit_except GET POST { deny all; }
+        fastcgi_buffering off;
         gzip off;
-        include uwsgi_params;
-        uwsgi_modifier1 9;
-        uwsgi_param GIT_PROJECT_ROOT /var/lib/gitolite/repositories;
-        uwsgi_pass unix:/run/uwsgi/app/git-http-backend/socket;
+
+        fastcgi_param SCRIPT_FILENAME /usr/lib/git-core/git-http-backend;
+        fastcgi_param NO_BUFFERING    "";
+
+        # cf. git-http-backend(1)
+        fastcgi_param GIT_PROJECT_ROOT /var/lib/gitolite/repositories;
+        fastcgi_param PATH_INFO        $uri;
+        fastcgi_param CONTENT_TYPE     $content_type;
+        fastcgi_param QUERY_STRING     $query_string;
+        fastcgi_param REQUEST_METHOD   $request_method;
+        fastcgi_pass unix:/run/git-http-backend.socket;
     }
 
 
     # send all other URLs to cgit
     location / {
         gzip off;
-        include uwsgi_params;
-        uwsgi_modifier1 9;
-        uwsgi_pass unix:/run/uwsgi/app/cgit/socket;
+        fastcgi_param SCRIPT_FILENAME  /usr/lib/cgit/cgit.cgi;
+        fastcgi_param PATH_INFO        $uri;
+        fastcgi_param CONTENT_TYPE     $content_type;
+        fastcgi_param QUERY_STRING     $query_string;
+        fastcgi_param REQUEST_METHOD   $request_method;
+        fastcgi_pass unix:/run/cgit.socket;
     }
 }

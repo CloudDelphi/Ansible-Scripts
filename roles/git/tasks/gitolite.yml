@@ -31,6 +31,6 @@
               owner=root group=root
               mode=0644
   with_items:
-    # See /usr/share/doc/gitolite3/README.txt.gz
+    # See /usr/share/doc/gitolite3/README.markdown.gz
     - { var: UMASK,           value: "0027"                            }
     - { var: GIT_CONFIG_KEYS, value: "'gitweb\\..* gc\\..* hook\\..*'" }

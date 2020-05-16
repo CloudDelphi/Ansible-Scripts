@@ -4,79 +4,99 @@
     packages:
     - cgit
     - highlight
-    - uwsgi
+    - fcgiwrap
+
+- name: Stop and disable fcgiwrap socket
+  service: name=fcgiwrap.socket state=stopped enabled=false
+
+- name: Stop fcgiwrap service
+  service: name=fcgiwrap.service state=stopped
 
 - name: Configure cgit
   copy: src=etc/cgitrc
         dest=/etc/cgitrc
         owner=root group=root
         mode=0644
-  register: r1
   notify:
-    - Restart uWSGI
+    - Stop cgit
 
 - name: Copy /usr/lib/cgit/filters/syntax-highlighting2.sh
   copy: src=usr/lib/cgit/filters/syntax-highlighting2.sh
         dest=/usr/lib/cgit/filters/syntax-highlighting2.sh
         owner=root group=root
         mode=0755
-  register: r2
   notify:
-    - Restart uWSGI
+    - Stop cgit
 
-- name: Create a user 'cgit'
-  user: name=cgit system=yes
-        home=/var/www
+- name: Create '_cgit' user
+  user: name=_cgit system=yes
+        group=nogroup
+        home=/nonexistent
         shell=/usr/sbin/nologin
         password=!
         state=present
-  register: r3
   notify:
-    - Restart uWSGI
+    - Stop cgit
 
+# Make it sticky: `dpkg-statoverride --add _cgit nogroup 0700 /var/cache/cgit`
 - name: Create cache directory /var/cache/cgit
   file: path=/var/cache/cgit
         state=directory
-        owner=cgit group=cgit
+        owner=_cgit group=nogroup
         mode=0700
 
-- name: Create /etc/uwsgi/apps-available/{cgit,git-http-backend}.ini
-  copy: src=etc/uwsgi/apps-available/{{ item }}.ini
-        dest=/etc/uwsgi/apps-available/{{ item }}.ini
+- name: Copy cgit service unit
+  copy: src=etc/systemd/system/cgit.service
+        dest=/etc/systemd/system/cgit.service
         owner=root group=root
         mode=0644
-  register: r4
-  with_items:
-    - cgit
-    - git-http-backend
   notify:
-    - Restart uWSGI
+    - systemctl daemon-reload
+    - Stop cgit
 
-- name: Create /etc/uwsgi/apps-enabled/{cgit,git-http-backend}.ini
-  file: src=../apps-available/{{ item }}.ini
-        dest=/etc/uwsgi/apps-enabled/{{ item }}.ini
+- name: Copy cgit socket unit
+  copy: src=etc/systemd/system/cgit.socket
+        dest=/etc/systemd/system/cgit.socket
         owner=root group=root
-        state=link force=yes
-  register: r5
-  with_items:
-    - cgit
-    - git-http-backend
+        mode=0644
   notify:
-    - Restart uWSGI
+    - systemctl daemon-reload
+    - Restart cgit
 
-- name: Start uWSGI
-  service: name=nginx state=started
-  when: not (r1.changed or r2.changed or r3.changed or r4.changed or r5.changed)
+- name: Disable cgit service
+  service: name=cgit.service enabled=false
+
+- name: Start cgit socket
+  service: name=cgit.socket state=started enabled=true
 
 - meta: flush_handlers
 
-- name: Add 'cgit' & 'www-data' to the group 'gitolite'
-  user: name={{ item }} groups=gitolite append=yes
-  with_items:
-    # for the cgit interface
-    - cgit
-    # for pulls over HTTP/HTTPS
-    - www-data
+
+- name: Copy git-http-backend service unit
+  copy: src=etc/systemd/system/git-http-backend.service
+        dest=/etc/systemd/system/git-http-backend.service
+        owner=root group=root
+        mode=0644
+  notify:
+    - systemctl daemon-reload
+    - Stop git-http-backend
+
+- name: Copy git-http-backend socket unit
+  copy: src=etc/systemd/system/git-http-backend.socket
+        dest=/etc/systemd/system/git-http-backend.socket
+        owner=root group=root
+        mode=0644
+  notify:
+    - systemctl daemon-reload
+    - Restart git-http-backend
+
+- name: Disable git-http-backend service
+  service: name=git-http-backend.service enabled=false
+
+- name: Start git-http-backend socket
+  service: name=git-http-backend.socket state=started enabled=true
+
+- meta: flush_handlers
 
 
 - name: Copy /etc/nginx/sites-available/git

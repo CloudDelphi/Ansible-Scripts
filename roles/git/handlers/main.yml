@@ -2,8 +2,17 @@
 - name: systemctl daemon-reload
   command: /bin/systemctl daemon-reload
 
-- name: Restart uWSGI
-  service: name=uwsgi state=restarted
+- name: Stop cgit
+  service: name=cgit.service state=stopped
+
+- name: Restart cgit
+  service: name=cgit.socket state=restarted
+
+- name: Stop git-http-backend
+  service: name=git-http-backend.service state=stopped
+
+- name: Restart git-http-backend
+  service: name=git-http-backend.socket state=restarted
 
 - name: Restart Nginx
   service: name=nginx state=restarted

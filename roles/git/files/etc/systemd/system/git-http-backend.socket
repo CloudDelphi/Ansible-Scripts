@@ -1,0 +1,11 @@
+[Unit]
+Description=Git HTTP backend
+Documentation=man:git-http-backend(1)
+
+[Socket]
+ListenStream=%t/git-http-backend.socket
+SocketUser=www-data
+SocketMode=0600
+
+[Install]
+WantedBy=sockets.target

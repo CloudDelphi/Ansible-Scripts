@@ -1,0 +1,21 @@
+[Unit]
+Description=Git HTTP backend
+Documentation=man:git-http-backend(1)
+
+[Service]
+DynamicUser=yes
+SupplementaryGroups=gitolite
+ExecStart=/usr/sbin/fcgiwrap
+SyslogIdentifier=git-http-backend
+#
+# Hardening
+NoNewPrivileges=yes
+PrivateDevices=yes
+ProtectHome=yes
+ProtectSystem=strict
+ProtectControlGroups=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+
+[Install]
+WantedBy=multi-user.target

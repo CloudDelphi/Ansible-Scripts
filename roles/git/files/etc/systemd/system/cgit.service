@@ -1,0 +1,23 @@
+[Unit]
+Description=hyperfast web frontend for git repositories written in C
+Documentation=https://git.zx2c4.com/cgit/
+
+[Service]
+User=_cgit
+Group=nogroup
+SupplementaryGroups=gitolite
+ExecStart=/usr/sbin/fcgiwrap
+SyslogIdentifier=cgit
+#
+# Hardening
+NoNewPrivileges=yes
+PrivateDevices=yes
+ProtectHome=yes
+ProtectSystem=strict
+ProtectControlGroups=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+ReadWriteDirectories=/var/cache/cgit
+
+[Install]
+WantedBy=multi-user.target
