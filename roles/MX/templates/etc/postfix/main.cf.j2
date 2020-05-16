@@ -149,10 +149,6 @@ smtpd_recipient_restrictions =
     check_recipient_access ldap:$config_directory/reject-unknown-client-hostname.cf
     reject_rhsbl_reverse_client dbl.spamhaus.org=127.0.1.[2..99]
     reject_rhsbl_sender         dbl.spamhaus.org=127.0.1.[2..99]
-    # defer if "abused legit": DBL return code in the 127.0.1.100+ range
-    defer_if_reject
-    reject_rhsbl_reverse_client dbl.spamhaus.org=127.0.1.[100..254]
-    reject_rhsbl_sender         dbl.spamhaus.org=127.0.1.[100..254]
 
 smtpd_data_restrictions =
     reject_unauth_pipelining
