@@ -20,7 +20,6 @@
     - fastcgi-php-ssl.conf
     - ssl.conf
     - headers.conf
-    - acme-challenge.conf
   notify:
     - Restart Nginx
 
