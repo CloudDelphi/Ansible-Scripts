@@ -5,3 +5,12 @@
 - name: Refresh ikiwiki
   become_user: ikiwiki
   command: ikiwiki --setup /var/lib/ikiwiki/fripost-wiki.setup --refresh --wrappers
+
+- name: systemctl daemon-reload
+  command: /bin/systemctl daemon-reload
+
+- name: Stop ikiwiki
+  service: name=ikiwiki.service state=stopped
+
+- name: Restart ikiwiki
+  service: name=ikiwiki.socket state=restarted

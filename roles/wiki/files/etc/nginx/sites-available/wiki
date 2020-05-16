@@ -4,7 +4,7 @@ server {
 
     server_name wiki.fripost.org;
 
-    include snippets/acme-challenge.conf;
+    include /etc/lacme/nginx.conf;
 
     access_log /var/log/nginx/wiki.access.log;
     error_log  /var/log/nginx/wiki.error.log info;
@@ -27,7 +27,7 @@ server {
 
     include snippets/headers.conf;
     add_header Content-Security-Policy
-               "default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; upgrade-insecure-requests; block-all-mixed-content; reflected-xss block; referrer no-referrer-when-downgrade; frame-ancestors 'none'; form-action 'self'; base-uri wiki.fripost.org";
+               "default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri wiki.fripost.org";
 
     include snippets/ssl.conf;
     ssl_certificate     ssl/www.fripost.org.pem;
@@ -46,7 +46,7 @@ server {
         fastcgi_param SCRIPT_FILENAME /var/lib/ikiwiki/public_html/ikiwiki.cgi;
         fastcgi_index ikiwiki.cgi;
         include snippets/fastcgi.conf;
-        fastcgi_pass unix:/var/run/fcgiwrap.socket;
+        fastcgi_pass unix:/run/ikiwiki.socket;
         gzip off;
     }
 }

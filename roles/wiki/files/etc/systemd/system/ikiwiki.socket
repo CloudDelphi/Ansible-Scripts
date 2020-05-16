@@ -1,0 +1,11 @@
+[Unit]
+Description=wiki compiler (CGI script)
+Documentation=https://ikiwiki.info/
+
+[Socket]
+ListenStream=%t/ikiwiki.socket
+SocketUser=www-data
+SocketMode=0600
+
+[Install]
+WantedBy=sockets.target

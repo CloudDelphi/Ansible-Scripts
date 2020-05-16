@@ -1,0 +1,23 @@
+[Unit]
+Description=wiki compiler (CGI script)
+Documentation=https://ikiwiki.info/
+
+[Service]
+User=ikiwiki
+Group=ikiwiki
+ExecStart=/usr/sbin/fcgiwrap
+SyslogIdentifier=ikiwiki
+#
+# Hardening
+NoNewPrivileges=yes
+ReadWriteDirectories=/var/lib/ikiwiki/fripost-wiki
+ReadWriteDirectories=/var/lib/ikiwiki/public_html/fripost-wiki
+PrivateDevices=yes
+ProtectHome=yes
+ProtectSystem=strict
+ProtectControlGroups=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+
+[Install]
+WantedBy=multi-user.target

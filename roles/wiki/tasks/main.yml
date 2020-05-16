@@ -12,6 +12,12 @@
     - fcgiwrap
     - pandoc
 
+- name: Stop and disable fcgiwrap socket
+  service: name=fcgiwrap.socket state=stopped enabled=false
+
+- name: Stop fcgiwrap service
+  service: name=fcgiwrap.service state=stopped
+
 - name: Create a user 'ikiwiki'
   user: name=ikiwiki system=yes
         home=/var/lib/ikiwiki
@@ -20,9 +26,6 @@
         state=present
         generate_ssh_key=yes
         ssh_key_comment=ikiwiki@{{ ansible_fqdn }}
-
-- name: Add 'www-data' to the group 'ikiwiki'
-  user: name=www-data groups=ikiwiki append=yes
 
 - name: Create directory ~ikiwiki/IkiWiki/Plugin
   file: path=/var/lib/ikiwiki/IkiWiki/Plugin
@@ -67,6 +70,32 @@
               line='ikiwiki /var/lib/ikiwiki/fripost-wiki.setup'
               owner=root group=root
               mode=0644
+
+- meta: flush_handlers
+
+- name: Copy ikiwiki service unit
+  copy: src=etc/systemd/system/ikiwiki.service
+        dest=/etc/systemd/system/ikiwiki.service
+        owner=root group=root
+        mode=0644
+  notify:
+    - systemctl daemon-reload
+    - Stop ikiwiki
+
+- name: Copy ikiwiki socket unit
+  copy: src=etc/systemd/system/ikiwiki.socket
+        dest=/etc/systemd/system/ikiwiki.socket
+        owner=root group=root
+        mode=0644
+  notify:
+    - systemctl daemon-reload
+    - Restart ikiwiki
+
+- name: Disable ikiwiki service
+  service: name=ikiwiki.service enabled=false
+
+- name: Start ikiwiki socket
+  service: name=ikiwiki.socket state=started enabled=true
 
 - meta: flush_handlers
 

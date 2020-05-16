@@ -31,7 +31,7 @@ reverse_proxy: 0
 # filename of cgi wrapper to generate
 cgi_wrapper: /var/lib/ikiwiki/public_html/ikiwiki.cgi
 # mode for cgi_wrapper (can safely be made suid)
-cgi_wrappermode: 06755
+cgi_wrappermode: 0755
 # number of seconds to delay CGI requests when overloaded
 cgi_overload_delay: ''
 # message to display when overloaded (may contain html)
@@ -416,5 +416,4 @@ getsource_mimetype: text/plain; charset=utf-8
 #tag_autocreate_commit: 1
 
 # pandoc plugin
-pandoc_smart: 1
 pandoc_html5: 1
