@@ -62,7 +62,7 @@ table inet filter {
         # https://blog.fraggod.net/2016/09/25/nftables-re-injected-ipsec-matching-without-xt_policy.html
         define IPsec.mark = 0x220
         meta l4proto esp mark set mark | $IPsec.mark accept
-        ip saddr 172.16.0.0/24 ip daddr 172.16.0.7 mark & $IPsec.mark == $IPsec.mark accept
+        ip saddr 172.16.0.0/24 ip daddr {{ ipsec[inventory_hostname_short] }} mark & $IPsec.mark == $IPsec.mark accept
 
         # rate-limiting is done directly by the kernel (net.ipv4.icmp_{ratelimit,ratemask} runtime options)
         icmp   type { echo-reply, echo-request, destination-unreachable } counter accept
@@ -108,7 +108,7 @@ table inet filter {
         # because by the time we see a packet to 172.16.0.0/24 we don't
         # know if it'll be encapsulated
         meta l4proto esp accept
-        ip saddr 172.16.0.7 ip daddr 172.16.0.0/24 accept
+        ip saddr {{ ipsec[inventory_hostname_short] }} ip daddr 172.16.0.0/24 accept
 
         meta l4proto { icmp, icmpv6 } accept
 
