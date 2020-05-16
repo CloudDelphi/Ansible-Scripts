@@ -72,10 +72,6 @@ server {
         fastcgi_param front_controller_active true;
         fastcgi_intercept_errors on;
         fastcgi_request_buffering off;
-        fastcgi_param PHP_VALUE "upload_max_filesize=512M
-                                 post_max_size=512M
-                                 memory_limit=512M";
-        fastcgi_param PHP_ADMIN_VALUE "open_basedir=$document_root:/var/www/nextcloud:/mnt/nextcloud-data:/etc/nextcloud:/var/cache/nextcloud:/var/log/nextcloud:/usr/share/php:/tmp:/dev";
         fastcgi_pass  unix:/run/php/php7.3-fpm@nextcloud.sock;
     }
 
