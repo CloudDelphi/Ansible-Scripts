@@ -22,13 +22,6 @@ cat <"$NFTABLES" >>"$script"
 ip netns add "nft-dryrun"
 netns="nft-dryrun"
 
-# clear sets in the old rules before diff'ing with the new ones
-nft list ruleset -sn >"$oldrules"
-ip netns exec "$netns" nft -f - <"$oldrules"
-ip netns exec "$netns" nft flush set inet filter fail2ban
-ip netns exec "$netns" nft flush set inet filter fail2ban6
-ip netns exec "$netns" nft list ruleset -sn >"$oldrules"
-
 declare -a INTERFACES=()
 for iface in /sys/class/net/*; do
     idx="$(< "$iface/ifindex")"
@@ -41,6 +34,13 @@ for idx in "${!INTERFACES[@]}"; do
     [ "${INTERFACES[idx]}" != "lo" ] || continue
     ip netns exec "$netns" ip link add "${INTERFACES[idx]}" index "$idx" type dummy
 done
+
+# clear sets in the old rules before diff'ing with the new ones
+nft list ruleset -sn >"$oldrules"
+ip netns exec "$netns" nft -f - <"$oldrules"
+ip netns exec "$netns" nft flush set inet filter fail2ban  || true
+ip netns exec "$netns" nft flush set inet filter fail2ban6 || true
+ip netns exec "$netns" nft list ruleset -sn >"$oldrules"
 
 ip netns exec "$netns" nft -f - <"$script"
 ip netns exec "$netns" nft list ruleset -sn >"$newrules"

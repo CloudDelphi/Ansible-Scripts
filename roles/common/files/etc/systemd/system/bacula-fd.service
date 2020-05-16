@@ -9,17 +9,17 @@ ExecStart=/usr/sbin/bacula-fd -f -c /etc/bacula/bacula-fd.conf
 
 # Hardening
 NoNewPrivileges=yes
-PrivateDevices=yes
 ProtectHome=read-only
 ProtectSystem=strict
+ReadWriteDirectories=/var/lib/bacula
+RuntimeDirectory=bacula
 PrivateTmp=yes
-ReadWriteDirectories=-/var/lib
-ReadWriteDirectories=-/var/run/bacula
 PrivateDevices=yes
 ProtectControlGroups=yes
 ProtectKernelModules=yes
 ProtectKernelTunables=yes
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+CapabilityBoundingSet=CAP_DAC_READ_SEARCH
 
 [Install]
 WantedBy=multi-user.target

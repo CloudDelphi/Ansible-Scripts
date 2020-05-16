@@ -14,8 +14,6 @@
             dest=/etc/network/if-up.d/ipsec
             owner=root group=root
             mode=0755
-  notify:
-    - Reload networking
 
 - name: Auto-deactivate the dedicated virtual subnet for IPsec
   file: src=../if-up.d/ipsec

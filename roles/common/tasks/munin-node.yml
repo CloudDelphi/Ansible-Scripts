@@ -133,8 +133,32 @@
   notify:
     - Restart munin-node
 
+- name: Create directory /etc/systemd/system/munin-node.service.d
+  file: path=/etc/systemd/system/munin-node.service.d
+        state=directory
+        owner=root group=root
+        mode=0755
+
+- name: Copy munin-node.service override
+  copy: src=etc/systemd/system/munin-node.service.d/override.conf
+        dest=/etc/systemd/system/munin-node.service.d/override.conf
+        owner=root group=root
+        mode=0644
+  register: r8
+  notify:
+    - systemctl daemon-reload
+    - Restart munin-node
+
+# We use RuntimeDirectory in our overrride unit to avoid permission
+# issues caused by the restrictive Capability Bounding Set
+- name: Mask /usr/lib/tmpfiles.d/munin-common.conf
+  file: src=/dev/null
+        dest=/etc/tmpfiles.d/munin-common.conf
+        owner=root group=root
+        state=link
+
 - name: Start munin-node
   service: name=munin-node state=started
-  when: not (r1.changed or r2.changed or r3.changed or r4.changed or r5.changed or r6.changed or r7.changed)
+  when: not (r1.changed or r2.changed or r3.changed or r4.changed or r5.changed or r6.changed or r7.changed or r8.changed)
 
 - meta: flush_handlers

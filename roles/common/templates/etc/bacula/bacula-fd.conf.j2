@@ -1,7 +1,8 @@
 #
 # Default  Bacula File Daemon Configuration file
 #
-#  For Bacula release 5.2.6 (21 February 2012) -- debian jessie/sid
+# For Bacula release 9.4.2 (04 February 2019) -- debian buster/sid
+#
 
 #
 # List Directors who are permitted to contact this File daemon
@@ -25,7 +26,7 @@ Messages {
 FileDaemon {  # define myself
   Name = {{ inventory_hostname_short }}-fd
   Working Directory = /var/lib/bacula
-  Pid Directory = /var/run/bacula
+  Pid Directory = /run/bacula
   Maximum Concurrent Jobs = 20
   FDAddress = {{ ipsec[inventory_hostname_short] }}
   FDPort = 9102

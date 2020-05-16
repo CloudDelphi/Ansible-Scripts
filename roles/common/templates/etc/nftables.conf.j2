@@ -86,7 +86,8 @@ table inet filter {
         udp sport 53 ct state related,established accept
         tcp sport 53 ct state related,established accept
 {% if 'dhclient' in group_names %}
-        udp sport 67 ct state related,established accept
+        ip  version 4 udp sport  67 udp dport  68 ct state related,established accept
+        ip6 version 6 udp sport 547 udp dport 546 ct state related,established accept
 {% endif %}
 
         meta l4proto tcp ip  saddr @fail2ban  counter drop
@@ -115,13 +116,18 @@ table inet filter {
         jump invalid
 
         udp sport  123 udp dport  123 ct state new,related,established accept
+{% if groups.all | length > 1 %}
         udp sport  500 udp dport  500 ct state new,related,established accept
+{% if groups.NATed | length > 0 %}
         udp sport 4500 udp dport 4500 ct state new,related,established accept
+{% endif %}
+{% endif %}
 
         udp dport 53 ct state new,related,established accept
         tcp dport 53 ct state new,related,established accept
 {% if 'dhclient' in group_names %}
-        udp dport 67 ct state new,related,established accept
+        ip  version 4 udp sport  68 udp dport  67 ct state new,related,established accept
+        ip6 version 6 udp sport 546 udp dport 547 ct state new,related,established accept
 {% endif %}
 
         tcp sport $in-tcp-ports  ct state related,established accept

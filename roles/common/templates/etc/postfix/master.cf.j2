@@ -85,7 +85,7 @@ sympa     unix  -       n       n       -       -       pipe
 
 {% if inst is defined and inst == 'out' %}
 # Client part (lmtp) - amavis
-amavisfeed unix -       -       n       -       5       lmtp
+amavisfeed unix -       -       y       -       5       lmtp
   -o lmtp_destination_recipient_limit=1000
   -o lmtp_send_xforward_command=yes
   -o lmtp_data_done_timeout=1200s

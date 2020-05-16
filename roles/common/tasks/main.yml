@@ -82,7 +82,6 @@
     - molly-guard
     - rsync
     - screen
-    - telnet-ssl
 
 - name: Disable resume device
   # Cf. initramfs-tools(7) and initramfs.conf(5).

@@ -53,11 +53,11 @@
   notify:
     - Restart fail2ban
 
-- name: Create directory /etc/systemd/system/fail2ban.service.d/override.conf
+- name: Create directory /etc/systemd/system/fail2ban.service.d
   file: path=/etc/systemd/system/fail2ban.service.d
         state=directory
         owner=root group=root
-        mode=0750
+        mode=0755
 
 - name: Harden fail2ban.service
   copy: src=etc/systemd/system/fail2ban.service.d/override.conf
