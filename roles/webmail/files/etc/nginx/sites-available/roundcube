@@ -35,11 +35,15 @@ server {
     ssl_certificate_key ssl/mail.fripost.org.key;
     include             snippets/mail.fripost.org.hpkp-hdr;
 
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 256;
+    gzip_types application/font-woff application/font-woff2 application/javascript application/json application/xml image/svg+xml image/x-icon text/css text/plain text/vcard;
+
     location = /favicon.ico {
         root          /usr/share/roundcube/skins/default/images;
         log_not_found off;
         access_log    off;
-        expires       max;
     }
 
     location = /robots.txt {
@@ -54,13 +58,17 @@ server {
     client_max_body_size 64m;
     location = / { index index.php; }
     location = /index.php {
+        # TODO enable gzip for Roundcube >=1.5: it's immune to BREACH attacks once
+        # $config['session_samesite'] is set to 'Strict', see
+        #   https://github.com/roundcube/roundcubemail/pull/6772
+        #   https://www.sjoerdlangkemper.nl/2016/11/07/current-state-of-breach-attack/#same-site-cookies
+        gzip off;
         include snippets/fastcgi-php-ssl.conf;
         fastcgi_pass unix:/var/run/php/php7.3-fpm@roundcube.sock;
     }
 
     location ~ "^/(?:plugins|program/js|program/resources|skins)(?:/[[:alnum:]][[:alnum:]\-\._]*)+\.(?:css|eot|gif|html|ico|jpg|js|pdf|png|svg|tiff?|ttf|woff2?)$" {
         try_files $uri =404;
-        expires 30d;
     }
     location / { internal; }
 }
