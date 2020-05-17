@@ -131,7 +131,7 @@
     - { var: password_charset,       value: "'UTF-8'"           }
     - { var: skin_logo,              value: 'array("classic:*" => "program/resources/fripost_logo_black.png", "larry:*" => "program/resources/fripost_logo_white.png", "elastic:login[favicon]" => "", "elastic:login" => "program/resources/fripost_logo_black.png")' }
     # Plugins
-    - { var: plugins,                value: "array('archive','additional_message_headers','attachment_reminder','authres_status','emoticons','hide_blockquote','keyboard_shortcuts','html5_notifier','managesieve','password','thunderbird_labels','vcard_attachments')" }
+    - { var: plugins,                value: "array('archive','additional_message_headers','attachment_reminder','authres_status','emoticons','hide_blockquote','html5_notifier','managesieve','password','thunderbird_labels','vcard_attachments')" }
     # Spell Checking
     - { var: enable_spellcheck,      value: "'true'"                                    }
     - { var: spellcheck_engine,      value: "'enchant'"                                 }
