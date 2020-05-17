@@ -67,7 +67,7 @@ server {
         fastcgi_pass unix:/var/run/php/php7.3-fpm@roundcube.sock;
     }
 
-    location ~ "^/(?:plugins|program/js|program/resources|skins)(?:/[[:alnum:]][[:alnum:]\-\._]*)+\.(?:css|eot|gif|html|ico|jpg|js|pdf|png|svg|tiff?|ttf|woff2?)$" {
+    location ~ "^/(?:plugins|program/js|program/resources|skins)(?:/[[:alnum:]][[:alnum:]\-\._]*)+\.(?:css|eot|gif|html|ico|jpg|js|pdf|png|svg|tiff?|ttf|webp|woff2?)$" {
         try_files $uri =404;
     }
     location / { internal; }
