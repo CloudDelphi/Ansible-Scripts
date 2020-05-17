@@ -5,8 +5,8 @@
     - liblwp-protocol-https-perl
     - lacme
 
-- name: Create a user 'lacme'
-  user: name=lacme system=yes
+- name: Create '_lacme' user
+  user: name=_lacme system=yes
         group=nogroup
         createhome=no
         home=/nonexistent
