@@ -34,6 +34,11 @@ server {
     ssl_certificate_key ssl/www.fripost.org.key;
     include             snippets/fripost.org.hpkp-hdr;
 
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 256;
+    gzip_types application/font-woff application/font-woff2 application/javascript application/json application/xml image/svg+xml image/x-icon text/css text/plain;
+
     location / {
         location ~ ^/website(/.*)?$ { return 302 $scheme://fripost.org$1; }
         try_files $uri $uri/ =404;
@@ -47,6 +52,6 @@ server {
         fastcgi_index ikiwiki.cgi;
         include snippets/fastcgi.conf;
         fastcgi_pass unix:/run/ikiwiki.socket;
-        gzip off;
+        gzip off; # protect against BREACH
     }
 }
