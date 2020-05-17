@@ -47,6 +47,8 @@ server {
     }
     location = /ikiwiki.cgi { internal; }
     location /static/ {
+        expires 30d;
+        try_files $uri =404;
         alias /var/lib/ikiwiki/public_html/fripost-wiki/static/;
     }
     location /material/ {

@@ -49,9 +49,9 @@ server {
         return 302 /sympa$args;
     }
 
-    location ^~ /static-sympa/   { alias /usr/share/sympa/static_content/; }
-    location ^~ /css-sympa/      { alias /var/lib/sympa/css/; }
-    location ^~ /pictures-sympa/ { alias /var/lib/sympa/pictures; }
+    location ^~ /static-sympa/   { expires 30d; try_files $uri =404; alias /usr/share/sympa/static_content/; }
+    location ^~ /css-sympa/      { expires 30d; try_files $uri =404; alias /var/lib/sympa/css/; }
+    location ^~ /pictures-sympa/ { expires 30d; try_files $uri =404; alias /var/lib/sympa/pictures; }
 
     location ~* ^/sympa(?:/|$) {
         gzip off; # protect against BREACH

@@ -68,6 +68,7 @@ server {
     }
 
     location ~ "^/(?:plugins|program/js|program/resources|skins)(?:/[[:alnum:]][[:alnum:]\-\._]*)+\.(?:css|eot|gif|html|ico|jpg|js|pdf|png|svg|tiff?|ttf|webp|woff2?)$" {
+        expires 30d;
         try_files $uri =404;
     }
     location / { internal; }
