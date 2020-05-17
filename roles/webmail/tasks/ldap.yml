@@ -28,5 +28,3 @@
 - name: Start stunnel@ldap
   service: name=stunnel4@ldap state=started
   when: not (r1.changed or r2.changed)
-
-- meta: flush_handlers
