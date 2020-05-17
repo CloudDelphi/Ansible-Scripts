@@ -50,8 +50,19 @@
   notify:
     - Restart Nginx
 
+# WARN Bullseye: nginx >=1.15.1 uses font/woff and font/woff2 (cf. https://trac.nginx.org/nginx/ticket/1243)
+# however Bootstrap(?) appears to query resources with "Accept: application/font-woff" resp. application/font-woff2.
+# Unfortunately it also uses "Accept-Encoding: identity" so the resource isn't compressed...
+- name: Fix MIME type for woff
+  lineinfile: dest=/etc/nginx/mime.types
+              insertafter='^\s*\S+\s\s+woff;'
+              line='    application/font-woff2                woff2;'
+  register: r5
+  notify:
+    - Restart Nginx
+
 - name: Start Nginx
   service: name=nginx state=started
-  when: not (r1.changed or r2.changed or r3.changed or r4.changed)
+  when: not (r1.changed or r2.changed or r3.changed or r4.changed or r5.changed)
 
 - meta: flush_handlers
