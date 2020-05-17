@@ -33,7 +33,7 @@ enabled  = {{ 'MSA' in group_names }}
 
 [roundcube-auth]
 enabled = {{ 'webmail' in group_names }}
-# XXX Bullseye: logpath = /var/log/roundcube/errors.log
+logpath = /var/log/roundcube/errors.log
 
 [nextcloud]
 enabled = {{ 'nextcloud' in group_names }}

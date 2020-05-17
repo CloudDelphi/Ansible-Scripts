@@ -9,22 +9,57 @@
     # spell-checking
     - php-enchant
 
-- name: Configure PHP 7.0 Zend opcache
-  lineinfile: dest=/etc/php/7.0/fpm/php.ini
+## TODO: run php as a dedicated system user
+- name: Configure PHP 7.3 Zend opcache
+  lineinfile: dest=/etc/php/7.3/fpm/php.ini
               regexp='^;?{{ item.var }}\\s*='
               line="{{ item.var }} = {{ item.value }}"
               owner=root group=root
               mode=0644
   with_items:
-    - { var: opcache.enable,                  value: 1    }
-    - { var: opcache.enable_cli,              value: 1    }
     - { var: opcache.memory_consumption,      value: 128  }
-    - { var: opcache.interned_strings_buffer, value: 8    }
-    - { var: opcache.max_accelerated_files,   value: 2048 }
     - { var: opcache.revalidate_freq,         value: 60   }
-    - { var: opcache.fast_shutdown,           value: 1    }
   notify:
-    - Restart php7.0-fpm
+    - Restart php7.3-fpm
+
+- name: Create '_roundcube' user
+  user: name=_roundcube system=yes
+        group=nogroup
+        createhome=no
+        home=/nonexistent
+        shell=/usr/sbin/nologin
+        password=!
+        state=present
+
+- name: Delete PHP 7.3 FPM's www pool
+  file: path=/etc/php/7.3/fpm/pool.d/www.conf state=absent
+  notify:
+    - Restart php7.3-fpm
+
+- name: Configure PHP 7.3 FPM's roundcube pool
+  copy: src=etc/php/fpm/pool.d/roundcube.conf
+        dest=/etc/php/7.3/fpm/pool.d/roundcube.conf
+        owner=root group=root
+        mode=0644
+  notify:
+    - Restart php7.3-fpm
+
+- name: Start php7.3-fpm
+  service: name=php7.3-fpm state=started
+
+# Make it sticky: `dpkg-statoverride --add _roundcube nogroup 0700 /var/lib/roundcube/temp`
+- name: Create cache directory /var/lib/roundcube/temp
+  file: path=/var/lib/roundcube/temp
+        state=directory
+        owner=_roundcube group=nogroup
+        mode=0700
+
+# Make it sticky: `dpkg-statoverride --add _roundcube adm 0750 /var/log/roundcube`
+- name: Create cache directory /var/log/roundcube
+  file: path=/var/log/roundcube
+        state=directory
+        owner=_roundcube group=adm
+        mode=0750
 
 - name: Install GNU Aspell and some dictionaries
   apt: pkg={{ packages }}
@@ -40,30 +75,35 @@
     - aspell-sv
 
 - name: Install Roundcube
-  apt: pkg={{ packages }}
+  apt: pkg={{ packages }} default_release={{ ansible_lsb.codename }}-backports
   vars:
     packages:
     - roundcube-core
     - roundcube-mysql
     - roundcube-plugins
+    - roundcube-plugins-extra
+
+- name: Install plugin dependencies
+  apt: pkg={{ packages }}
+  vars:
+    packages:
     - php-net-sieve
-    - php-net-ldap3
 
 - name: Copy fripost's logo
-  copy: src=usr/share/roundcube/skins/{{ item }}/images/fripost_logo.png
-        dest=/usr/share/roundcube/skins/{{ item }}/images/fripost_logo.png
+  copy: src=usr/share/roundcube/program/resources/{{ item }}
+        dest=/usr/share/roundcube/program/resources/{{ item }}
         owner=root group=root
         mode=0644
   with_items:
-    - classic
-    - larry
+    - fripost_logo_black.png
+    - fripost_logo_white.png
 
 - name: Configure Roundcube
   lineinfile: dest=/etc/roundcube/config.inc.php
               regexp='^\\s*\\$config\\[\'{{ item.var }}\'\\]\\s*='
               line='$config[\'{{ item.var }}\'] = {{ item.value }};'
-              owner=root group=www-data
-              mode=0640
+              owner=_roundcube group=nogroup
+              mode=0600
   with_items:
     # Logging/Debugging
     - { var: smtp_log,               value: "false" }
@@ -84,20 +124,20 @@
     - { var: smtp_user,              value: "'%u'"                                       }
     - { var: smtp_pass,              value: "'%p'"                                       }
     # System
-    - { var: force_https,            value: "true"                       }
-    - { var: login_autocomplete,     value: "2"                          }
-    - { var: skin_logo,              value: "'/images/fripost_logo.png'" }
-    - { var: username_domain,        value: "'fripost.org'"              }
-    - { var: product_name,           value: "'Fripost Webmail'"          }
-    - { var: password_charset,       value: "'UTF-8'"                    }
+    - { var: force_https,            value: "true"              }
+    - { var: login_autocomplete,     value: "2"                 }
+    - { var: username_domain,        value: "'fripost.org'"     }
+    - { var: product_name,           value: "'Fripost Webmail'" }
+    - { var: password_charset,       value: "'UTF-8'"           }
+    - { var: skin_logo,              value: 'array("classic:*" => "program/resources/fripost_logo_black.png", "larry:*" => "program/resources/fripost_logo_white.png", "elastic:login[favicon]" => "", "elastic:login" => "program/resources/fripost_logo_black.png")' }
     # Plugins
-    - { var: plugins,                value: "array('archive','additional_message_headers','managesieve','password')" }
+    - { var: plugins,                value: "array('archive','additional_message_headers','attachment_reminder','authres_status','emoticons','hide_blockquote','keyboard_shortcuts','html5_notifier','managesieve','password','thunderbird_labels','vcard_attachments')" }
     # Spell Checking
     - { var: enable_spellcheck,      value: "'true'"                                    }
     - { var: spellcheck_engine,      value: "'enchant'"                                 }
     - { var: spellcheck_languages,   value: "array('da','de','en','es','fr','no','sv')" }
     # User Interface
-    - { var: skin,                   value: "'larry'"                        }
+    - { var: skin,                   value: "'elastic'"                      }
     - { var: language,               value: "'sv_SE'"                        }
     - { var: create_default_folders, value: "true"                           }
     - { var: support_url,            value: "'https://fripost.org/kontakt/'" }
@@ -105,17 +145,20 @@
     - { var: htmleditor,             value: "3"     }
     - { var: skip_deleted,           value: "true"  }
     - { var: check_all_folders,      value: "false" }
+    - { var: hide_blockquote_limit,  value: "8"     }
+    - { var: attachment_reminder,    value: "true"  }
 
 - name: Make the logo a hyperlink to the website
   lineinfile: dest=/usr/share/roundcube/skins/{{ item }}/templates/login.html
-              regexp='^(<roundcube:object name="logo" src="/images/roundcube_logo.png"[^>]* />)$'
-              line='<a href="https://fripost.org">\1</a>'
+              regexp='^(\s*)(<roundcube:object name="logo" src="[^"]*"[^>]* />)'
+              line='\1<a href="https://fripost.org">\2</a>'
               backrefs=yes
               owner=root group=root
               mode=0644
   with_items:
     - classic
     - larry
+    - elastic
 
 - name: Configure Roundcube plugins
   copy: src=etc/roundcube/plugins/{{ item }}/config.inc.php
@@ -124,8 +167,9 @@
         mode=0644
   with_items:
     - additional_message_headers
-    - jqueryui
+    - authres_status
     - password
+    - html5_notifier
 
 - name: Configure Roundcube plugins (2)
   template: src=etc/roundcube/plugins/{{ item }}/config.inc.php.j2
@@ -135,8 +179,22 @@
   with_items:
     - managesieve
 
-- name: Start php7.0-fpm
-  service: name=php7.0-fpm state=started
+- name: Start php7.3-fpm
+  service: name=php7.3-fpm state=started
+
+- name: Copy /etc/cron.d/roundcube-core
+  copy: src=etc/cron.d/roundcube-core
+        dest=/etc/cron.d/roundcube-core
+        owner=root group=root
+        mode=0644
+
+- name: Tweak /etc/logrotate.d/roundcube-core
+  lineinfile: dest=/etc/logrotate.d/roundcube-core
+              regexp='^(\s*)create\s+[0-9]+\s+\S+\s+adm$'
+              backrefs=yes
+              line='\1create 0640 _roundcube adm'
+              owner=root group=root
+              mode=0644
 
 - name: Copy /etc/nginx/sites-available/roundcube
   copy: src=etc/nginx/sites-available/roundcube

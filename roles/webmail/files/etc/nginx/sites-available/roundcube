@@ -6,10 +6,10 @@ server {
     server_name    mail.fripost.org;
     server_name webmail.fripost.org;
 
-    include snippets/acme-challenge.conf;
+    include /etc/lacme/nginx.conf;
 
-    access_log  /var/log/nginx/roundcube.access.log;
-    error_log   /var/log/nginx/roundcube.error.log info;
+    access_log /var/log/nginx/roundcube.access.log;
+    error_log  /var/log/nginx/roundcube.error.log info;
 
     location / {
         return 301 https://$host$request_uri;
@@ -24,7 +24,7 @@ server {
     server_name    mail.fripost.org;
     server_name webmail.fripost.org;
 
-    root         /var/lib/roundcube;
+    root /var/lib/roundcube;
 
     include snippets/headers.conf;
     add_header Content-Security-Policy
@@ -48,23 +48,14 @@ server {
         access_log    off;
     }
 
-    access_log  /var/log/nginx/roundcube.access.log;
-    error_log   /var/log/nginx/roundcube.error.log info;
+    access_log /var/log/nginx/roundcube.access.log;
+    error_log  /var/log/nginx/roundcube.error.log info;
 
     client_max_body_size 64m;
     location = / { index index.php; }
     location = /index.php {
         include snippets/fastcgi-php-ssl.conf;
-
-        # From /var/lib/roundcube/.htaccess
-        fastcgi_param PHP_VALUE "upload_max_filesize=25M
-                                 post_max_size=30M
-                                 memory_limit=64M
-                                 session.gc_maxlifetime=21600
-                                 session.gc_divisor=500
-                                 session.gc_probability=1";
-        fastcgi_param PHP_ADMIN_VALUE "open_basedir=$document_root:/usr/share/roundcube:/etc/roundcube:/var/log/roundcube:/usr/share/php:/usr/share/javascript:/usr/share/tinymce:/usr/share/misc/magic:/dev
-                                       upload_tmp_dir=$document_root/temp";
+        fastcgi_pass unix:/var/run/php/php7.3-fpm@roundcube.sock;
     }
 
     location ~ "^/(?:plugins|program/js|program/resources|skins)/.*[^./]\.(?:css|eot|gif|html|ico|jpg|js|pdf|png|svg|tif|ttf|woff)$" {
