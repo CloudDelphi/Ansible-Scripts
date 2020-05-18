@@ -173,7 +173,6 @@
         dest=/etc/systemd/system/opendmarc.socket
         owner=root group=root
         mode=0644
-  register: r
   notify:
     - systemctl daemon-reload
     - Restart OpenDMARC
