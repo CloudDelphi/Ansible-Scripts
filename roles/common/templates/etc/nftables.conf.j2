@@ -61,9 +61,10 @@ table inet filter {
         # https://serverfault.com/questions/971735/how-to-match-reqid-in-nftables
         # https://blog.fraggod.net/2016/09/25/nftables-re-injected-ipsec-matching-without-xt_policy.html
         # (We can't use marks to match post-ESP decapsulation here because that doesn't work well with UDP
-        # encapsulation.)
+        # encapsulation.)  We'll also pin the reqid to the lowest address byte in ipsec.conf(5); that way
+        # peers can't impersonate each other.
         meta l4proto esp accept
-        # ipsec in ip saddr {{ ipsec_subnet }} ip daddr {{ ipsec[inventory_hostname_short] }} accept
+        # ip saddr {{ ipsec_subnet }} ip daddr {{ ipsec[inventory_hostname_short] }} ipsec in reqid $i accept
         ip saddr {{ ipsec_subnet }} ip daddr {{ ipsec[inventory_hostname_short] }} meta secpath exists accept
 
         # rate-limiting is done directly by the kernel (net.ipv4.icmp_{ratelimit,ratemask} runtime options)
@@ -110,7 +111,7 @@ table inet filter {
         # secpath existence here, because by the time we see a packet to
         # 172.16.0.0/24 we don't know if it'll be encapsulated
         meta l4proto esp accept
-        # ipsec out ip saddr {{ ipsec[inventory_hostname_short] }} ip daddr {{ ipsec_subnet }} accept
+        # ip saddr {{ ipsec[inventory_hostname_short] }} ip daddr {{ ipsec_subnet }} ipsec out reqid $i accept
         ip saddr {{ ipsec[inventory_hostname_short] }} ip daddr {{ ipsec_subnet }} accept
 
         meta l4proto { icmp, icmpv6 } accept
