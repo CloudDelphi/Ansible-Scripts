@@ -1,0 +1,11 @@
+[Unit]
+Description=SSL tunnel for network daemons (instance %i)
+Documentation=man:stunnel4(8)
+
+[Socket]
+BindToDevice=lo
+ListenStream=127.0.0.1:389
+NoDelay=yes
+
+[Install]
+WantedBy=sockets.target

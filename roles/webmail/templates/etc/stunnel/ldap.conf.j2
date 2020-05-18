@@ -2,11 +2,6 @@
 ; * Global options                                                         *
 ; **************************************************************************
 
-; setuid()/setgid() to the specified user/group in daemon mode
-setuid = stunnel4
-setgid = stunnel4
-
-; PID is created inside the chroot jail
 pid =
 foreground = yes
 
@@ -17,30 +12,17 @@ debug = 4
 ; * Service defaults may also be specified in individual service sections  *
 ; **************************************************************************
 
-; Certificate/key is needed in server mode and optional in client mode
-;cert = /etc/stunnel/mail.pem
-;key = /etc/stunnel/mail.pem
 client = yes
-socket = a:SO_BINDTODEVICE=lo
 
 ; Some performance tunings
-socket = l:TCP_NODELAY=1
 socket = r:TCP_NODELAY=1
 
 ; Prevent MITM attacks
-verify = 4
+verifyPeer = yes
 
 ; Disable support for insecure protocols
-;options = NO_SSLv2
-options = NO_SSLv3
-options = NO_TLSv1
-options = NO_TLSv1.1
-
+sslVersionMin = TLSv1.2
 options = NO_COMPRESSION
-
-; These options provide additional security at some performance degradation
-;options = SINGLE_ECDH_USE
-;options = SINGLE_DH_USE
 
 ; Select permitted SSL ciphers
 ciphers = EECDH+AESGCM:EECDH+CHACHA20!MEDIUM!LOW!EXP!aNULL!eNULL
@@ -50,8 +32,10 @@ ciphers = EECDH+AESGCM:EECDH+CHACHA20!MEDIUM!LOW!EXP!aNULL!eNULL
 ; **************************************************************************
 
 [ldaps]
-accept  = localhost:389
-connect = ldap.fripost.org:636
-CAfile  = /etc/stunnel/certs/ldap.pem
+; dummy address (socket-activated)
+accept  = 127.0.0.1:0
+connect = {{ ipsec[ hostvars[groups.LDAP_provider[0]].inventory_hostname_short ] }}:636
+checkHost = ldap.fripost.org
+CAfile = /etc/stunnel/certs/ldap.pem
 
 ; vim:ft=dosini

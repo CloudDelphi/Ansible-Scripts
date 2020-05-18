@@ -1,14 +1,7 @@
 - name: Install stunnel4
   apt: pkg=stunnel4
 
-- name: Set 'ENABLED=0' in /etc/default/stunnel4
-  lineinfile: dest=/etc/default/stunnel4
-              regexp='^(\s*#)?\s*ENABLED='
-              line='ENABLED=0'
-              owner=root group=root
-              mode=0644
-
-- name: Copy stunnel4 service file
+- name: Copy stunnel4 service files
   copy: src=etc/systemd/system/{{ item }}
         dest=/etc/systemd/system/{{ item }}
         owner=root group=root
@@ -18,3 +11,6 @@
   with_items:
     - stunnel4.service
     - stunnel4@.service
+
+- name: Disable stunnel4 service
+  service: name=stunnel4.service enabled=false

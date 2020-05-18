@@ -1,3 +1,12 @@
+- name: Copy stunnel4@ldap.socket
+  copy: src=etc/systemd/system/stunnel4@ldap.socket
+        dest=/etc/systemd/system/stunnel4@ldap.socket
+        owner=root group=root
+        mode=0644
+  notify:
+    - systemctl daemon-reload
+    - Restart stunnel4@ldap.socket
+
 - name: Create /etc/stunnel/certs
   file: path=/etc/stunnel/certs
         state=directory
@@ -9,22 +18,19 @@
         dest=/etc/stunnel/certs/ldap.pem
         owner=root group=root
         mode=0644
-  register: r1
   notify:
-    - Restart stunnel@ldap
+    - Stop stunnel4@ldap.service
 
 - name: Configure stunnel
-  copy: src=etc/stunnel/ldap.conf
-        dest=/etc/stunnel/ldap.conf
-        owner=root group=root
-        mode=0644
-  register: r2
+  template: src=etc/stunnel/ldap.conf.j2
+            dest=/etc/stunnel/ldap.conf
+            owner=root group=root
+            mode=0644
   notify:
-    - Restart stunnel@ldap
+    - Stop stunnel4@ldap.service
 
-- name: Enable stunnel@ldap
-  service: name=stunnel4@ldap enabled=yes
+- name: Disable stunnel4@ldap.service
+  service: name=stunnel4@ldap.service enabled=false
 
-- name: Start stunnel@ldap
-  service: name=stunnel4@ldap state=started
-  when: not (r1.changed or r2.changed)
+- name: Start stunnel4@ldap.socket socket
+  service: name=stunnel4@ldap.socket state=started enabled=true

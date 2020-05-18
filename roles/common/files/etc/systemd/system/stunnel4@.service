@@ -1,10 +1,15 @@
 [Unit]
 Description=SSL tunnel for network daemons (instance %i)
+Documentation=man:stunnel4(8)
 After=network.target nss-lookup.target
 PartOf=stunnel4.service
 ReloadPropagatedFrom=stunnel4.service
 
 [Service]
+DynamicUser=yes
+; force dynamic user/group allocation (stunnel4 user exists already)
+User=_stunnel4-%i
+Group=_stunnel4-%i
 ExecStart=/usr/bin/stunnel4 /etc/stunnel/%i.conf
 ExecReload=/bin/kill -HUP ${MAINPID}
 KillSignal=SIGINT

@@ -122,7 +122,7 @@ $config['password_saslpasswd_args'] = '';
 // You can provide one or several hosts in an array in which case the hosts are tried from left to right.
 // Exemple: array('ldap1.exemple.com', 'ldap2.exemple.com');
 // Default: 'localhost'
-$config['password_ldap_host'] = 'localhost';
+$config['password_ldap_host'] = '127.0.0.1';
 
 // LDAP server port to connect to
 // Default: '389'

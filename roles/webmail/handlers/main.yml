@@ -7,3 +7,9 @@
 
 - name: Restart Nginx
   service: name=nginx state=restarted
+
+- name: Stop stunnel4@ldap.service
+  service: name=stunnel4@ldap.service state=stopped
+
+- name: Restart stunnel4@ldap.socket
+  service: name=stunnel4@ldap.socket state=restarted
