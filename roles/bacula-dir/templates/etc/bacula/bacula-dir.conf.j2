@@ -133,7 +133,7 @@ Job {
 }
 {% endfor %}
 
-{% for fd in groups['MDA'] | union(groups['MSA']) | union(groups['LDAP-provider']) | union(groups['MX']) | sort %}
+{% for fd in groups['MDA'] | union(groups['MSA']) | union(groups['LDAP_provider']) | union(groups['MX']) | sort %}
 Job {
   Name = {{ hostvars[fd].inventory_hostname_short }}-slapd
   Client = {{ hostvars[fd].inventory_hostname_short }}-fd

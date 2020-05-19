@@ -26,7 +26,7 @@ olcThreads: {{ 2 * ansible_processor_vcpus }}
 {% else %}
 olcThreads: 8
 {% endif %}
-{% if 'LDAP-provider' in group_names %}
+{% if 'LDAP_provider' in group_names %}
 olcTLSCertificateFile: /etc/ldap/ssl/ldap.fripost.org.pem
 olcTLSCertificateKeyFile: /etc/ldap/ssl/ldap.fripost.org.key
 # If we are being offered a client cert, it has to be trusted (in which
@@ -61,10 +61,10 @@ objectClass: olcDatabaseConfig
 objectClass: olcMdbConfig
 olcDbDirectory: /var/lib/ldap
 olcSuffix: dc=fripost,dc=org
-{% if 'LDAP-provider' not in group_names and 'MX' in group_names %}
+{% if 'LDAP_provider' not in group_names and 'MX' in group_names %}
 olcReadOnly: TRUE
 {% endif %}
-{% if 'LDAP-provider' in group_names %}
+{% if 'LDAP_provider' in group_names %}
 olcLastMod: TRUE
 olcDbCheckpoint: 512 15
 {% else %}
@@ -91,23 +91,23 @@ olcSecurity: simple_bind=128 ssf=128 update_ssf=128
 #
 olcDbIndex: objectClass eq
 # Let us make Postfix's life easier.
-{% if 'LDAP-provider' in group_names %}
+{% if 'LDAP_provider' in group_names %}
 olcDbIndex: fvd,fvl eq,sub
 olcDbIndex: fripostIsStatusActive eq
 {% elif 'MX' in group_names or 'MDA' in group_names %}
 olcDbIndex: fripostIsStatusActive,fvd,fvl eq
 {% endif %}
-{% if 'LDAP-provider' in group_names %}
+{% if 'LDAP_provider' in group_names %}
 olcDbIndex: fripostOptionalMaildrop,fripostMaildrop eq,sub
 olcDbIndex: fripostCanAddDomain,fripostCanAddAlias,fripostCanAddList,fripostOwner,fripostPostmaster,fripostListManager eq
 {% elif 'MX' in group_names %}
 olcDbIndex: fripostOptionalMaildrop pres
 {% endif %}
-{% if 'LDAP-provider' in group_names %}
+{% if 'LDAP_provider' in group_names %}
 olcDbIndex: member,cn eq
 {% endif %}
-{% if ('LDAP-provider' not in group_names and 'MX' in group_names) or
-      ('LDAP-provider' in group_names and groups.MX | difference([inventory_hostname])) %}
+{% if ('LDAP_provider' not in group_names and 'MX' in group_names) or
+      ('LDAP_provider' in group_names and groups.MX | difference([inventory_hostname])) %}
 # SyncProv/SyncRepl specific indexing.
 olcDbIndex: entryCSN,entryUUID eq
 {% endif%}
@@ -128,14 +128,14 @@ olcDbIndex: entryCSN,entryUUID eq
 # - http://www.openldap.org/doc/admin24/replication.html#Syncrepl
 # - http://www.zytrax.com/books/ldap/ch7/#ol-syncrepl-rap
 #
-{% if 'LDAP-provider' in group_names %}
+{% if 'LDAP_provider' in group_names %}
 olcLimits: dn.onelevel="ou=syncRepl,dc=fripost,dc=org"
   time.soft=unlimited
   time.hard=unlimited
   size.soft=unlimited
   size.hard=unlimited
 {% endif %}
-{% if 'MX' in group_names and 'LDAP-provider' not in group_names %}
+{% if 'MX' in group_names and 'LDAP_provider' not in group_names %}
 # Test it:
 #   LDAPSASL_MECH=external LDAPTLS_CACERT=/etc/ldap/ssl/ldap.fripost.org.pem LDAPTLS_CERT=/etc/ldap/ssl/mx.pem LDAPTLS_KEY=/etc/ldap/ssl/mx.key sudo -u openldap ldapwhoami -H ldaps://ldap.fripost.org/
 #   LDAPSASL_MECH=external LDAPTLS_CACERT=/etc/ldap/ssl/ldap.fripost.org.pem LDAPTLS_CERT=/etc/ldap/ssl/mx.pem LDAPTLS_KEY=/etc/ldap/ssl/mx.key sudo -u openldap ldapsearch -H ldaps://ldap.fripost.org/ -b ou=virtual,dc=fripost,dc=org
@@ -215,7 +215,7 @@ olcAccess: to dn.regex="^fvl=[^,]+,(fvd=[^,]+,ou=virtual,dc=fripost,dc=org)$"
     by group.exact="cn=admin,ou=groups,dc=fripost,dc=org"                                     =w
 #
 # * Services can authenticate
-{% if 'LDAP-provider' in group_names -%}
+{% if 'LDAP_provider' in group_names -%}
 olcAccess: to dn.onelevel="ou=services,dc=fripost,dc=org"
         filter=(objectClass=simpleSecurityObject)
         attrs=userPassword
@@ -233,7 +233,7 @@ olcAccess: to dn.subtree="dc=fripost,dc=org"
 #
 # * Only SyncRepl replicates may access operational attributes in the
 #   subtree, when using a TLS-protected connection.
-{% if 'LDAP-provider' in group_names -%}
+{% if 'LDAP_provider' in group_names -%}
 olcAccess: to dn.subtree="ou=virtual,dc=fripost,dc=org"
         attrs=entryCSN,structuralObjectClass,hasSubordinates,subschemaSubentry
     by dn.onelevel="ou=syncRepl,dc=fripost,dc=org" tls_ssf=128 =rsd
@@ -269,7 +269,7 @@ olcAccess: to dn.exact="ou=virtual,dc=fripost,dc=org"
     {% if 'MX' in group_names or 'MSA' in group_names -%}
     by dn.exact="username=postfix,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =sd
     {% endif -%}
-    {% if 'LDAP-provider' in group_names -%}
+    {% if 'LDAP_provider' in group_names -%}
     by dn.exact="cn=nextcloud,ou=services,dc=fripost,dc=org"       tls_ssf=128                                                                  =sd
     {% endif -%}
     by users                                                                                                                                    =0 break
@@ -293,7 +293,7 @@ olcAccess: to dn.exact="ou=virtual,dc=fripost,dc=org"
 olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
         attrs=entry,objectClass,fvd
         filter=(&(objectClass=FripostVirtualDomain)(!(objectClass=FripostPendingEntry)))
-    {% if 'LDAP-provider' in group_names -%}
+    {% if 'LDAP_provider' in group_names -%}
     {% if groups.MX | difference([inventory_hostname]) -%}
     by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"              tls_ssf=128                                                                  =rsd
     {% endif -%}
@@ -314,11 +314,11 @@ olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
 # * So can Postfix on the MX:es, when connecting a local ldapi:// socket
 #   from the 'private' directory in one of the non-default instance's
 #   chroot.
-{% if 'MX' in group_names or ('LDAP-provider' in group_names and groups.MX | difference([inventory_hostname])) %}
+{% if 'MX' in group_names or ('LDAP_provider' in group_names and groups.MX | difference([inventory_hostname])) %}
 olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
         attrs=fripostIsStatusActive,fripostOptionalMaildrop
         filter=(&(objectClass=FripostVirtualDomain)(!(objectClass=FripostPendingEntry)))
-    {% if 'LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) -%}
+    {% if 'LDAP_provider' in group_names and groups.MX | difference([inventory_hostname]) -%}
     by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"              tls_ssf=128                                                                  =rsd
     {% endif -%}
     {% if 'MX' in group_names -%}
@@ -334,7 +334,7 @@ olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
 olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
         attrs=fripostOwner,fripostPostmaster
         filter=(&(objectClass=FripostVirtualDomain)(!(objectClass=FripostPendingEntry)))
-    {% if 'LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) -%}
+    {% if 'LDAP_provider' in group_names and groups.MX | difference([inventory_hostname]) -%}
     by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"             tls_ssf=128               =rsd
     {% endif -%}
     {% if 'MX' in group_names %}
@@ -351,11 +351,11 @@ olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
 # * So has Postfix on the MX:es, when connecting a local ldapi:// socket
 #   from the 'private' directory in one of the non-default instance's
 #   chroot.
-{% if 'MX' in group_names or ('LDAP-provider' in group_names and groups.MX | difference([inventory_hostname])) %}
+{% if 'MX' in group_names or ('LDAP_provider' in group_names and groups.MX | difference([inventory_hostname])) %}
 olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
         attrs=entry,fripostMaildrop
         filter=(&(objectClass=FripostVirtualAliasDomain)(!(objectClass=FripostPendingEntry)))
-    {% if 'LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) -%}
+    {% if 'LDAP_provider' in group_names and groups.MX | difference([inventory_hostname]) -%}
     by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"              tls_ssf=128                                                                  =rsd
     {% endif -%}
     {% if 'MX' in group_names -%}
@@ -379,7 +379,7 @@ olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
 olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
         attrs=entry,objectClass,fvl
         filter=(objectClass=FripostVirtualUser)
-    {% if 'LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) -%}
+    {% if 'LDAP_provider' in group_names and groups.MX | difference([inventory_hostname]) -%}
     by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"                      tls_ssf=128                                                                  =rsd
     {% endif -%}
     by dn.exact="username=postfix,cn=peercred,cn=external,cn=auth"         sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
@@ -394,11 +394,11 @@ olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
 # * So can Postfix on the MX:es, when connecting a local ldapi:// socket
 #   from the 'private' directory in one of the non-default instance's
 #   chroot.
-{% if 'MX' in group_names or ('LDAP-provider' in group_names and groups.MX | difference([inventory_hostname])) %}
+{% if 'MX' in group_names or ('LDAP_provider' in group_names and groups.MX | difference([inventory_hostname])) %}
 olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
         attrs=fripostIsStatusActive,fripostUseContentFilter
         filter=(objectClass=FripostVirtualUser)
-    {% if 'LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) -%}
+    {% if 'LDAP_provider' in group_names and groups.MX | difference([inventory_hostname]) -%}
     by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"      tls_ssf=128                                                                          =rsd
     {% endif -%}
     {% if 'MX' in group_names -%}
@@ -437,11 +437,11 @@ olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
 # * So can Postfix on the MX:es, when connecting a local ldapi:// socket
 #   from the 'private' directory in one of the non-default instance's
 #   chroot.
-{% if 'MX' in group_names or ('LDAP-provider' in group_names and groups.MX | difference([inventory_hostname])) %}
+{% if 'MX' in group_names or ('LDAP_provider' in group_names and groups.MX | difference([inventory_hostname])) %}
 olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
         attrs=entry,objectClass,fvl,fripostMaildrop,fripostIsStatusActive
         filter=(objectClass=FripostVirtualAlias)
-    {% if 'LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) -%}
+    {% if 'LDAP_provider' in group_names and groups.MX | difference([inventory_hostname]) -%}
     by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"              tls_ssf=128                                                                  =rsd
     {% endif -%}
     {% if 'MX' in group_names -%}
@@ -457,11 +457,11 @@ olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
 #   using a TLS-protected connection.
 # * So can Postfix on the MX:es, when connecting a local ldapi:// socket
 #   from the 'private' directory in one of the non-default instance's chroot.
-{% if 'MX' in group_names or ('LDAP-provider' in group_names and groups.MX | difference([inventory_hostname])) %}
+{% if 'MX' in group_names or ('LDAP_provider' in group_names and groups.MX | difference([inventory_hostname])) %}
 olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
         attrs=entry,objectClass,fvl,fripostListManager
         filter=(&(objectClass=FripostVirtualList)(!(objectClass=FripostPendingEntry)))
-    {% if 'LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) -%}
+    {% if 'LDAP_provider' in group_names and groups.MX | difference([inventory_hostname]) -%}
     by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"              tls_ssf=128                                                                  =rsd
     {% endif -%}
     {% if 'MX' in group_names -%}
@@ -475,11 +475,11 @@ olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
 # * So can Postfix on the MX:es, when connecting a local ldapi:// socket
 #   from the 'private' directory in one of the non-default instance's
 #   chroot.
-{% if 'MX' in group_names or ('LDAP-provider' in group_names and groups.MX | difference([inventory_hostname])) %}
+{% if 'MX' in group_names or ('LDAP_provider' in group_names and groups.MX | difference([inventory_hostname])) %}
 olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
         attrs=fripostIsStatusActive
         filter=(&(objectClass=FripostVirtualList)(!(objectClass=FripostPendingEntry)))
-    {% if 'LDAP-provider' in group_names and groups.MX | difference([inventory_hostname]) -%}
+    {% if 'LDAP_provider' in group_names and groups.MX | difference([inventory_hostname]) -%}
     by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"              tls_ssf=128                                                                  =rsd
     {% endif -%}
     {% if 'MX' in group_names -%}
@@ -502,7 +502,7 @@ olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
     by dn.exact="username=postfix,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
     by users                                                                                                                                    =0 break
 {% endif %}
-{% if 'LDAP-provider' in group_names %}
+{% if 'LDAP_provider' in group_names %}
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #

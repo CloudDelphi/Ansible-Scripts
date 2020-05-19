@@ -5,7 +5,7 @@ define in-tcp-ports = {
 {% if 'MX' in group_names %}
   , 25      # SMTP
 {% endif %}
-{% if 'LDAP-provider' in group_names %}
+{% if 'LDAP_provider' in group_names %}
   , 636     # ldaps
 {% endif %}
 {% if 'IMAP' in group_names %}
@@ -29,7 +29,7 @@ define out-tcp-ports = {
 {% if 'out' in group_names or 'MSA' in group_names %}
   , 25      # SMTP
 {% endif %}
-{% if 'LDAP-provider' in group_names %}
+{% if 'LDAP_provider' in group_names %}
   , 11371   # OpenPGP HTTP Keyserver
   , 43      # whois
 {% elif 'MX' in group_names or 'lists' in group_names or 'nextcloud' in group_names %}

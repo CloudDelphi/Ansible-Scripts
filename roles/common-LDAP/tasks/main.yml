@@ -48,7 +48,7 @@
   changed_when: r2.rc == 0
   failed_when: r2.rc > 1
   with_items:
-    - { group: 'LDAP-provider', name: ldap.fripost.org, ou:               }
+    - { group: 'LDAP_provider', name: ldap.fripost.org, ou:               }
     - { group: 'MX',            name: mx,               ou: --ou=SyncRepl }
     - { group: 'lists',         name: lists,            ou: --ou=SyncRepl }
   when: "item.group in group_names"
@@ -62,7 +62,7 @@
              stdin=/etc/ldap/ssl/{{ item.name }}.pem
              dest=certs/ldap/{{ item.name }}.pem
   with_items:
-    - { group: 'LDAP-provider', name: ldap.fripost.org }
+    - { group: 'LDAP_provider', name: ldap.fripost.org }
     - { group: 'MX',            name: mx               }
     - { group: 'lists',         name: lists            }
   when: "item.group in group_names"
@@ -74,7 +74,7 @@
         dest=/etc/ldap/ssl/ldap.fripost.org.pem
         owner=root group=root
         mode=0644
-  when: "'LDAP-provider' not in group_names"
+  when: "'LDAP_provider' not in group_names"
   tags:
     - genkey
 
@@ -83,7 +83,7 @@
             dest=/etc/ldap/ssl/clients.pem
             owner=root group=root
             mode=0644
-  when: "'LDAP-provider' in group_names"
+  when: "'LDAP_provider' in group_names"
   tags:
     - genkey
 

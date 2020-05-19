@@ -16,7 +16,7 @@
 
 - import_tasks: stunnel.yml
   tags: stunnel
-  when: "'webmail' in group_names and 'LDAP-provider' not in group_names"
+  when: "'webmail' in group_names and 'LDAP_provider' not in group_names"
 - import_tasks: auditd.yml
   tags: auditd
 - import_tasks: unbound.yml
