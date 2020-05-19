@@ -17,8 +17,8 @@
 dn: cn=config
 objectClass: olcGlobal
 cn: config
-olcArgsFile: /var/run/slapd/slapd.args
-olcPidFile: /var/run/slapd/slapd.pid
+olcArgsFile: /run/slapd/slapd.args
+olcPidFile: /run/slapd/slapd.pid
 olcLogLevel: none
 olcToolThreads: 1
 {% if ansible_processor_vcpus > 4 %}
@@ -39,6 +39,7 @@ olcAuthzRegexp: "^(cn=[^,]+,ou=syncRepl),ou=LDAP,ou=SSLcerts,o=Fripost$"
                 "dn.exact:$1,dc=fripost,dc=org"
 olcSaslSecProps: minssf=128,noanonymous,noplain,nodict
 olcTLSCipherSuite: PFS:%LATEST_RECORD_VERSION:!CIPHER-ALL:+AES-128-GCM:+AES-256-GCM:!VERS-SSL3.0:!VERS-TLS1.0:!VERS-TLS1.1
+olcTLSDHParamFile: /etc/ssl/dhparams.pem
 {% endif %}
 olcLocalSSF: 128
 # /!\ This is not portable! But we only use glibc's crypt(3), which

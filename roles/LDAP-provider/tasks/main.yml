@@ -4,6 +4,9 @@
             target=etc/ldap/syncprov.ldif
             local=file
 
+## XXX should be /etc/sasl2/slapd.conf ideally, but it doesn't work with
+## Stretch, cf #211156 and #798462:
+##   ldapsearch -LLLx -H ldapi:// -b "" -s base supportedSASLMechanisms
 - name: Enable the EXTERNAL SASL mechanism
   lineinfile: dest=/usr/lib/sasl2/slapd.conf
               regexp='^mech_list{{':'}}'
