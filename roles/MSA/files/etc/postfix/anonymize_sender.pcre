@@ -1,5 +1,6 @@
 /^Received:\s+from\s+(?:\S+\s+\(\S+\s+\[(?:IPv6:)?[[:xdigit:].:]{3,39}\]\))
-        (\s+\(using\s+(?:TLS|SSL)(?:v\S+)?\s+with\s+cipher\s+\S+\s+\(\S+\s+bits\)\)\s+).*
+        (\s+\(using\s+(?:TLS|SSL)(?:v\S+)?\s+with\s+cipher\s+\S+\s+\(\S+\s+bits\)
+            (?:\s+key-exchange\s+\S+\s+(?:\([^)]+\)\s+)?server-signature\s+\S+\s+\(\d+\s+bits\)\s+server-digest\s+\S+)?\)\s+).*
         (\bby\s+(?:\S+\.)?fripost\.org\s+\([^)]+\)
         \s+with\s+E?SMTPS?A\s+id\s+[[:xdigit:]]+;?\s.*)/x
     REPLACE Received: from [127.0.0.1] (localhost [127.0.0.1])${1}${2}

@@ -19,10 +19,8 @@ tlsproxy  unix  -       -       y       -       0       tlsproxy
 dnsblog   unix  -       -       y       -       0       dnsblog
 {% elif inst == 'MSA' %}
 submission inet n       -       y       -       -       smtpd
-  -o tls_high_cipherlist=EECDH+AESGCM:EECDH+CHACHA20!MEDIUM!LOW!EXP!aNULL!eNULL
 submissions inet n      -       y       -       -       smtpd
   -o smtpd_tls_wrappermode=yes
-  -o tls_high_cipherlist=EECDH+AESGCM:EECDH+CHACHA20!MEDIUM!LOW!EXP!aNULL!eNULL
 {% if groups.webmail | difference([inventory_hostname]) | length > 0 %}
 [{{ postfix_instance.MSA.addr }}]:{{ postfix_instance.MSA.port }} inet n       -       y       -       -       smtpd
   -o broken_sasl_auth_clients=no
