@@ -130,7 +130,7 @@ pass_attrs =
 #pass_attrs = uid=user,userPassword=password,\
 #  homeDirectory=userdb_home,uidNumber=userdb_uid,gidNumber=userdb_gid
 
-# Filter for password lookups (ignored for auth binds)
+# Filter for password lookups
 pass_filter = (&(objectClass=FripostVirtualUser)(fvl=%n)(fripostIsStatusActive=TRUE))
 
 # Attributes and filter to get a list of all users
@@ -140,3 +140,12 @@ pass_filter = (&(objectClass=FripostVirtualUser)(fvl=%n)(fripostIsStatusActive=T
 # Default password scheme. "{scheme}" before password overrides this.
 # List of supported schemes is in: http://wiki2.dovecot.org/Authentication
 #default_pass_scheme = CRYPT
+
+# By default all LDAP lookups are performed by the auth master process.
+# If blocking=yes, auth worker processes are used to perform the lookups.
+# Each auth worker process creates its own LDAP connection so this can
+# increase parallelism. With blocking=no the auth master process can
+# keep 8 requests pipelined for the LDAP connection, while with blocking=yes
+# each connection has a maximum of 1 request running. For small systems the
+# blocking=no is sufficient and uses less resources.
+#blocking = no

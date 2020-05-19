@@ -53,6 +53,19 @@ service pop3-login {
   }
 }
 
+service stats {
+  unix_listener stats-writer {
+    user = vmail
+    mode = 0600
+  }
+}
+
+service submission-login {
+  inet_listener submission {
+    port = 0
+  }
+}
+
 service lmtp {
   user = vmail
 
@@ -88,6 +101,8 @@ service imap {
 
 service imap-hibernate {
   unix_listener imap-hibernate {
+    # Match user running imap processes, cf.
+    # https://dovecot.org/pipermail/dovecot/2015-August/101783.html
     user = vmail
     mode = 0600
   }
@@ -95,6 +110,11 @@ service imap-hibernate {
 
 service pop3 {
   # Max. number of POP3 processes (connections)
+  #process_limit = 1024
+}
+
+service submission {
+  # Max. number of SMTP Submission processes (connections)
   #process_limit = 1024
 }
 
@@ -120,6 +140,7 @@ service auth {
   # Postfix smtp-auth
   unix_listener /var/spool/postfix-{{ postfix_instance.MSA.name }}/private/dovecot-auth {
     user = postfix
+    group = postfix
     mode = 0600
   }
 
@@ -141,12 +162,5 @@ service dict {
     #mode = 0600
     #user = 
     #group = 
-  }
-}
-
-service stats {
-  fifo_listener stats-mail {
-    user = vmail
-    mode = 0600
   }
 }

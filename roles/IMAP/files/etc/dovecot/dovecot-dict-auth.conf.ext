@@ -2,7 +2,7 @@
 # conf.d/auth-dict.conf.ext
 
 # Dictionary URI
-uri = proxy:/var/run/dovecot/auth-proxy:
+uri = proxy:/run/dovecot/auth-proxy:
 
 # Username iteration prefix. Keys under this are assumed to contain usernames.
 iterate_prefix = userdb/

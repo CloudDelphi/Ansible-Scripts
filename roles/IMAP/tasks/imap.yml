@@ -123,7 +123,6 @@
   register: r1
   with_items:
     - conf.d/10-auth.conf
-    - conf.d/10-logging.conf
     - conf.d/10-mail.conf
     - conf.d/10-ssl.conf
     - conf.d/15-mailboxes.conf
