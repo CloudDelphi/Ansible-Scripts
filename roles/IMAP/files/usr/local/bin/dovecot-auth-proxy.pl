@@ -74,7 +74,7 @@ sub server() {
             next;
         }
         # <major-version> <minor-version> <value type>
-        unless ($1 == 2 and $2 == 1 and $3 == 0) {
+        unless ($1 == 2 and $2 == 2 and $3 == 0) {
             warn "Unsupported protocol version $1.$2 (or value type $3)\n";
             close $conn or warn "Can't close: $!";
             next;
