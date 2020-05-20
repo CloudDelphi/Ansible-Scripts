@@ -4,8 +4,7 @@ After=mail-transport-agent.target
 Requires=postfix-sender-login.socket
 
 [Service]
-User=postfix
-Group=postfix
+User=_postfix-sender-login
 StandardInput=null
 SyslogFacility=mail
 ExecStart=/usr/local/bin/postfix-sender-login.pl
@@ -13,10 +12,9 @@ ExecStart=/usr/local/bin/postfix-sender-login.pl
 # Hardening
 NoNewPrivileges=yes
 PrivateDevices=yes
+PrivateNetwork=yes
 ProtectHome=yes
 ProtectSystem=strict
-PrivateDevices=yes
-PrivateNetwork=yes
 ProtectControlGroups=yes
 ProtectKernelModules=yes
 ProtectKernelTunables=yes

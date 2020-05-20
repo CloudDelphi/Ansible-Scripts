@@ -6,11 +6,27 @@
     - postfix-pcre
     - postfix-policyd-spf-python
 
+- name: Install Net::LDAP and Authen::SASL
+  apt: pkg={{ packages }}
+  vars:
+    packages:
+    - libnet-ldap-perl
+    - libauthen-sasl-perl
+
 - name: Copy Postfix sender login socketmap
   copy: src=usr/local/bin/postfix-sender-login.pl
         dest=/usr/local/bin/postfix-sender-login.pl
         owner=root group=staff
         mode=0755
+
+- name: Create '_postfix-sender-login' user
+  user: name=_postfix-sender-login system=yes
+        group=nogroup
+        createhome=no
+        home=/nonexistent
+        shell=/usr/sbin/nologin
+        password=!
+        state=present
 
 - name: Copy Postfix sender login socketmap systemd unit files
   copy: src=etc/systemd/system/{{ item }}

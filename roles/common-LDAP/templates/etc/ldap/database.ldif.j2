@@ -267,8 +267,11 @@ olcAccess: to dn.exact="ou=virtual,dc=fripost,dc=org"
     {% if 'MDA' in group_names -%}
     by dn.exact="username=_dovecot-auth-proxy,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://"                                        =sd
     {% endif -%}
-    {% if 'MX' in group_names or 'MSA' in group_names -%}
+    {% if 'MX' in group_names -%}
     by dn.exact="username=postfix,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =sd
+    {% endif -%}
+    {% if 'MSA' in group_names -%}
+    by dn.exact="username=_postfix-sender-login,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://"                                      =sd
     {% endif -%}
     {% if 'LDAP_provider' in group_names -%}
     by dn.exact="cn=nextcloud,ou=services,dc=fripost,dc=org"       tls_ssf=128                                                                  =sd
@@ -282,30 +285,35 @@ olcAccess: to dn.exact="ou=virtual,dc=fripost,dc=org"
 #   using a TLS-protected connection.
 # * So has Postfix, when connecting a local ldapi:// socket from the
 #   'private' directory in one of the non-default instance's chroot.
-# * So has _dovecot-auth-proxy on the MDA (for the iterate logic), when
-#   SASL-binding using the EXTERNAL mechanism and connecting to a local
-#   ldapi:// socket.
-# * Amavis may use the entry as searchBase (required to look for the
-#   per-user preferences) but doesn't have read access to the entry.
 # * The 'nobody' UNIX user has read access on the MX:es, when using
 #   SASL-binding using the EXTERNAL mechanism and connecting to a local
 #   ldapi:// socket.  This is required for the 'reserved-alias.pl'
 #   script.
+# * Amavis may use the entry as searchBase (required to look for the
+#   per-user preferences) but doesn't have read access to the entry.
+# * So has _dovecot-auth-proxy on the MDA (for the iterate logic), when
+#   SASL-binding using the EXTERNAL mechanism and connecting to a local
+#   ldapi:// socket.
+# * So has _postfix-sender-login on the submission service to verify
+#   envelope sender ownership
 olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
         attrs=entry,objectClass,fvd
         filter=(&(objectClass=FripostVirtualDomain)(!(objectClass=FripostPendingEntry)))
-    {% if 'LDAP_provider' in group_names -%}
-    {% if groups.MX | difference([inventory_hostname]) -%}
+    {% if 'LDAP_provider' in group_names and groups.MX | difference([inventory_hostname]) -%}
     by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"              tls_ssf=128                                                                  =rsd
     {% endif -%}
-    {% endif -%}
+    {% if 'MX' in group_names -%}
     by dn.exact="username=postfix,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
+    by dn.exact="username=nobody,cn=peercred,cn=external,cn=auth"  sockurl.regex="^ldapi://"                                                    =rsd
+    {% endif -%}
     {% if 'MDA' in group_names -%}
-    by dn.exact="username=_dovecot-auth-proxy,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://"                                        =rsd
     by dn.exact="username=amavis,cn=peercred,cn=external,cn=auth"  sockurl.regex="^ldapi://"                                                    =sd
     {% endif -%}
-    {% if 'MX' in group_names -%}
-    by dn.exact="username=nobody,cn=peercred,cn=external,cn=auth"  sockurl.regex="^ldapi://"                                                    =rsd
+    {% if 'IMAP' in group_names -%}
+    by dn.exact="username=_dovecot-auth-proxy,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://"                                        =rsd
+    {% endif -%}
+    {% if 'MSA' in group_names -%}
+    by dn.exact="username=_postfix-sender-login,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://"                                      =rsd
     {% endif -%}
     by users                                                                                                                                    =0 break
 #
@@ -383,10 +391,17 @@ olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
     {% if 'LDAP_provider' in group_names and groups.MX | difference([inventory_hostname]) -%}
     by dn.exact="cn=mX,ou=syncRepl,dc=fripost,dc=org"                      tls_ssf=128                                                                  =rsd
     {% endif -%}
+    {% if 'MX' in group_names -%}
     by dn.exact="username=postfix,cn=peercred,cn=external,cn=auth"         sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
+    {% endif -%}
     {% if 'MDA' in group_names -%}
-    by dn.exact="username=_dovecot-auth-proxy,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://"                                                =rsd
     by dn.exact="username=amavis,cn=peercred,cn=external,cn=auth"          sockurl.regex="^ldapi://"                                                    =rsd
+    {% endif -%}
+    {% if 'IMAP' in group_names -%}
+    by dn.exact="username=_dovecot-auth-proxy,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://"                                                =rsd
+    {% endif -%}
+    {% if 'MSA' in group_names -%}
+    by dn.exact="username=_postfix-sender-login,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://"                                              =rsd
     {% endif -%}
     by users                                                                                                                                            =0 break
 #
@@ -489,19 +504,19 @@ olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
     by users                                                                                                                                    =0 break
 {% endif %}
 #
-# * The MSA's postfix user can read entry ownership to dermine the SASL
-#   login name(s) owning a given sender address
+# * The MSA's _postfix-sender-login user can read entry ownership to
+#   dermine the SASL login name(s) owning a given sender address
 {% if 'MSA' in group_names %}
 olcAccess: to dn.regex="^fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
         attrs=fripostOwner,fripostPostmaster
         filter=(|(objectClass=FripostVirtualAliasDomain)(objectClass=FripostVirtualDomain))
-    by dn.exact="username=postfix,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
-    by users                                                                                                                                    =0 break
+    by dn.exact="username=_postfix-sender-login,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://" =rsd
+    by users                                                                                               =0 break
 olcAccess: to dn.regex="^fvl=[^,]+,fvd=[^,]+,ou=virtual,dc=fripost,dc=org$"
         attrs=entry,objectClass,fvl,fripostOwner
         filter=(|(objectClass=FripostVirtualAlias)(objectClass=FripostVirtualList)(objectClass=FripostVirtualUser))
-    by dn.exact="username=postfix,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://%2Fvar%2Fspool%2Fpostfix-[-[:alnum:]]+%2Fprivate%2F" =rsd
-    by users                                                                                                                                    =0 break
+    by dn.exact="username=_postfix-sender-login,cn=peercred,cn=external,cn=auth" sockurl.regex="^ldapi://" =rsd
+    by users                                                                                               =0 break
 {% endif %}
 {% if 'LDAP_provider' in group_names %}
 #

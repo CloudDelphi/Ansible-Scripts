@@ -3,7 +3,7 @@
 #----------------------------------------------------------------------
 # socketmap lookup table returning the SASL login name(s) owning a given
 # sender address
-# Copyright © 2017 Guilhem Moulin <guilhem@fripost.org>
+# Copyright © 2017,2020 Guilhem Moulin <guilhem@fripost.org>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -33,12 +33,13 @@ use Authen::SASL ();
 $ENV{PATH} = join ':', qw{/usr/bin /bin};
 delete @ENV{qw/IFS CDPATH ENV BASH_ENV/};
 
-my $nProc      = 2;                        # number of pre-forked servers
-my $POSTMASTER = 'postmaster@fripost.org'; # returned for forbidden envelope sender addresses
+my $nProc       = 2;                        # number of pre-forked servers
+my $maxRequests = 32;                       # maximum number of requests per worker
+my $POSTMASTER  = 'postmaster@fripost.org'; # returned for forbidden envelope sender addresses
 
-my $BASEDN  = 'ou=virtual,dc=fripost,dc=org';
+my $BASEDN  = "ou=virtual,dc=fripost,dc=org";
 my $BUFSIZE = 65536; # try to read that many bytes at the time
-my $LDAPI   = 'ldapi://%2Fvar%2Fspool%2Fpostfix-msa%2Fprivate%2Fldapi/';
+my $LDAPI   = "ldapi://";
 sub server();
 
 
@@ -66,7 +67,7 @@ exit $?;
 #############################################################################
 
 sub server() {
-    for (my $n = 0; $n < 32; $n++) {
+    for (my $n = 0; $n < $maxRequests; $n++) {
         accept(my $conn, $S) or do {
             next if $! == EINTR;
             die "accept: $!";
