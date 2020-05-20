@@ -1,8 +1,8 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -T
 
 #----------------------------------------------------------------------
 # Dovecot userdb lookup proxy table for user iteration
-# Copyright © 2017 Guilhem Moulin <guilhem@fripost.org>
+# Copyright © 2017,2020 Guilhem Moulin <guilhem@fripost.org>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,14 +21,22 @@
 use warnings;
 use strict;
 
-use Errno 'EINTR';
+use Errno qw/EINTR/;
+use Net::LDAPI;
+use Net::LDAP::Constant qw/LDAP_CONTROL_PAGED LDAP_SUCCESS/;
+use Net::LDAP::Control::Paged ();
+use Net::LDAP::Util qw/ldap_explode_dn/;
+use Authen::SASL;
+
+my $BASE = "ou=virtual,dc=fripost,dc=org";
 
 # clean up PATH
 $ENV{PATH} = join ':', qw{/usr/bin /bin};
 delete @ENV{qw/IFS CDPATH ENV BASH_ENV/};
 
-# number of pre-forked servers
+# number of pre-forked servers and maximum requests per worker
 my $nProc = 1;
+my $maxRequests = 1;
 sub server();
 
 # fdopen(3) the file descriptor FD
@@ -36,12 +44,6 @@ die "This service must be socket-activated.\n"
     unless defined $ENV{LISTEN_PID} and $ENV{LISTEN_PID} == $$
        and defined $ENV{LISTEN_FDS} and $ENV{LISTEN_FDS} == 1;
 open my $S, '+<&=', 3 or die "fdopen: $!";
-
-do {
-    my $dir = (getpwnam('vmail'))[7] // die "No such user: vmail";
-    $dir .= '/virtual';
-    chdir($dir) or die "chdir($dir): $!";
-};
 
 my @CHILDREN;
 for (my $i = 0; $i < $nProc-1; $i++) {
@@ -61,7 +63,7 @@ exit $?;
 #############################################################################
 
 sub server() {
-    for (my $n = 0; $n < 1; $n++) {
+    for (my $n = 0; $n < $maxRequests; $n++) {
         accept(my $conn, $S) or do {
             next if $! == EINTR;
             die "accept: $!";
@@ -94,10 +96,20 @@ sub server() {
 sub fail($;$) {
     my ($fh, $msg) = @_;
     $fh->printflush("F\n");
-    warn "$msg\n" if defined $msg;
+    print STDERR $msg, "\n" if defined $msg;
 }
 
-# list all users, even the inactive ones
+sub dn2user($) {
+    my $dn = shift;
+    $dn = ldap_explode_dn($dn, casefold => "lower");
+    if (defined $dn and $#$dn == 4
+            and defined (my $l = $dn->[0]->{fvl})
+            and defined (my $d = $dn->[1]->{fvd})) {
+        return $l ."@". $d;
+    }
+}
+
+# list all users (even the inactive ones)
 sub iterate($$$$) {
     my ($fh, $flags, $max_rows, $prefix) = @_;
     unless ($flags == 0) {
@@ -105,27 +117,55 @@ sub iterate($$$$) {
         return;
     }
 
-    opendir my $dh, '.' or do {
-        fail($fh => "opendir: $!");
-        return;
-    };
-    my $count = 0;
-    while (defined (my $d = readdir $dh)) {
-        next if $d eq '.' or $d eq '..';
-        opendir my $dh, $d or do {
-            fail($fh => "opendir: $!");
-            return;
-        };
-        while (defined (my $l = readdir $dh) and ($max_rows <= 0 or $count < $max_rows)) {
-            next if $l eq '.' or $l eq '..';
-            my $user = $l.'@'.$d;
-            next unless $user =~ /\A[a-zA-Z0-9\.\-_@]+\z/; # skip invalid user names
-            $fh->printf("O%s%s\t\n", $prefix, $user);
-            $count++;
-        }
-        closedir $dh or warn "closedir: $!";
-    }
-    closedir $dh or warn "closedir: $!";
+    my $ldap = Net::LDAPI::->new();
+    $ldap->bind( undef, sasl => Authen::SASL::->new(mechanism => "EXTERNAL") )
+        or do { fail($fh => "Error: Couldn't bind"); return; };
+    my $page = Net::LDAP::Control::Paged::->new(size => 100);
 
+    my $callback = sub($$) {
+        my ($mesg, $entry) = @_;
+        return unless defined $entry;
+
+        my $dn = $entry->dn();
+        if (defined (my $user = dn2user($dn))) {
+            $fh->printf("O%s%s\t\n", $prefix, $user);
+        } else {
+            print STDERR "Couldn't extract username from dn: ", $dn, "\n";
+        }
+        $mesg->pop_entry;
+    };
+
+    my @search_args = (
+          base => $BASE,
+        , scope => "children"
+        , deref => "never"
+        , filter => "(objectClass=FripostVirtualUser)"
+        , sizelimit => $max_rows
+        , control => [$page]
+        , callback => $callback
+        , attrs => ["1.1"]
+    );
+
+    my $cookie;
+    while (1) {
+        my $mesg = $ldap->search(@search_args);
+        last unless $mesg->code == LDAP_SUCCESS;
+
+        my ($resp) = $mesg->control(LDAP_CONTROL_PAGED) or last;
+        $cookie = $resp->cookie();
+        goto SEARCH_DONE unless defined $cookie and length($cookie) > 0;
+
+        $page->cookie($cookie);
+    }
+
+    if (defined $cookie and length($cookie) > 0) {
+        fail($fh => "Abnormal exit from LDAP search, aborting");
+        $page->cookie($cookie);
+        $page->size(0);
+        $ldap->search(@search_args);
+    }
+
+    SEARCH_DONE:
+    $ldap->unbind();
     $fh->printflush("\n");
 }

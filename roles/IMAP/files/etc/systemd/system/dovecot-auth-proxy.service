@@ -4,8 +4,7 @@ After=dovecot.target
 Requires=dovecot-auth-proxy.socket
 
 [Service]
-User=vmail
-Group=vmail
+User=_dovecot-auth-proxy
 StandardInput=null
 SyslogFacility=mail
 ExecStart=/usr/local/bin/dovecot-auth-proxy.pl
@@ -13,14 +12,13 @@ ExecStart=/usr/local/bin/dovecot-auth-proxy.pl
 # Hardening
 NoNewPrivileges=yes
 PrivateDevices=yes
-ProtectSystem=strict
-ProtectHome=read-only
-PrivateDevices=yes
 PrivateNetwork=yes
+ProtectHome=yes
+ProtectSystem=strict
 ProtectControlGroups=yes
 ProtectKernelModules=yes
 ProtectKernelTunables=yes
-RestrictAddressFamilies=
+RestrictAddressFamilies=AF_UNIX
 
 [Install]
 WantedBy=multi-user.target

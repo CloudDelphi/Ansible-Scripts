@@ -18,6 +18,13 @@
         password=!
         state=present
 
+- name: Install Net::LDAP and Authen::SASL
+  apt: pkg={{ packages }}
+  vars:
+    packages:
+    - libnet-ldap-perl
+    - libauthen-sasl-perl
+
 - name: Copy dovecot auth proxy
   copy: src=usr/local/bin/dovecot-auth-proxy.pl
         dest=/usr/local/bin/dovecot-auth-proxy.pl
@@ -29,6 +36,15 @@
   sysctl: name=fs.inotify.max_user_instances value=512 sysctl_set=yes
   tags:
    - sysctl
+
+- name: Create '_dovecot-auth-proxy' user
+  user: name=_dovecot-auth-proxy system=yes
+        group=nogroup
+        createhome=no
+        home=/nonexistent
+        shell=/usr/sbin/nologin
+        password=!
+        state=present
 
 - name: Copy dovecot auth proxy systemd unit files
   copy: src=etc/systemd/system/{{ item }}

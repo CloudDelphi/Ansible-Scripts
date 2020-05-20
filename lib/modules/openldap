@@ -61,7 +61,7 @@ indexedDN = {
 # 102 is postfix's UID and 106 its primary GID.
 # (Regular expressions are not allowed.)
 sasl_ext_re = re.compile( r"""(?P<start>\sby\s+dn(?:\.exact)?)=
-                              (?P<quote>['\"]?)username=(?P<user>[a-z][-a-z0-9_]*),
+                              (?P<quote>['\"]?)username=(?P<user>_?[a-z][-a-z0-9_]*),
                               (?P<end>cn=peercred,cn=external,cn=auth)
                               (?P=quote)\s"""
                         , re.VERBOSE )
