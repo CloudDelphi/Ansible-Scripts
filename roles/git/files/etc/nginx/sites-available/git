@@ -26,7 +26,7 @@ server {
 
     include snippets/headers.conf;
     add_header Content-Security-Policy
-               "default-src 'none'; img-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self'";
+               "default-src 'none'; img-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self'; frame-ancestors 'none'; form-action 'self'";
 
     include snippets/ssl.conf;
     ssl_certificate     ssl/git.fripost.org.pem;
