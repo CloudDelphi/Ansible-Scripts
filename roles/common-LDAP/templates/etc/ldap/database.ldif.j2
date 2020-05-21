@@ -540,6 +540,9 @@ olcAccess: to dn.exact="ou=groups,dc=fripost,dc=org"
 olcAccess: to dn.exact="cn=medlemmar,ou=groups,dc=fripost,dc=org"
     by dn.exact="cn=nextcloud,ou=services,dc=fripost,dc=org" tls_ssf=128 =rsd
     by users                                                             =0 break
+olcAccess: to dn.exact="cn=styrelse,ou=groups,dc=fripost,dc=org"
+    by dn.exact="cn=nextcloud,ou=services,dc=fripost,dc=org" tls_ssf=128 =rsd
+    by users                                                             =0 break
 #
 # TODO: allow users to edit their entry, etc
 #
