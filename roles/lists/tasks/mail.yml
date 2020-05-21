@@ -3,7 +3,7 @@
   vars:
     packages:
     - postfix
-    - postfix-ldap
+    - postfix-lmdb
 
 - name: Configure Postfix
   template: src=etc/postfix/{{ item }}.j2

@@ -3,6 +3,7 @@
   vars:
     packages:
     - postfix
+    - postfix-lmdb
     - postfix-pcre
     - postfix-policyd-spf-python
 
