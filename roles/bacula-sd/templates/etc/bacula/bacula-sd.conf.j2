@@ -1,7 +1,7 @@
 #
 # Default Bacula Storage Daemon Configuration file
 #
-#  For Bacula release 5.2.6 (21 February 2012) -- debian jessie/sid
+#  For Bacula release 9.4.2 (04 February 2019) -- debian buster/sid
 #
 # You may need to change the name of your tape drive
 #   on the "Archive Device" directive in the Device
@@ -13,7 +13,7 @@
 Storage {  # define myself
   Name = {{ inventory_hostname_short }}-sd
   Working Directory = /var/lib/bacula
-  Pid Directory = /var/run/bacula
+  Pid Directory = /run/bacula
   Maximum Concurrent Jobs = 20
   SDAddress = {{ ipsec[inventory_hostname_short] }}
   SDPort = 9103

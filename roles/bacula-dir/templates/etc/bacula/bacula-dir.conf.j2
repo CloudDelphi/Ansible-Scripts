@@ -1,6 +1,6 @@
 #
 # Default Bacula Director Configuration file
-# For Bacula release 5.2.6 (21 February 2012) -- debian jessie/sid
+# For Bacula release 9.4.2 (04 February 2019) -- debian buster/sid
 #
 
 Director {  # define myself
@@ -8,7 +8,7 @@ Director {  # define myself
   @|"sed -n '/^bconsole\\s/ {s//Password = /p; q}' /etc/bacula/passwords-dir"
   Messages = Daemon
   Working Directory = /var/lib/bacula
-  Pid Directory = /var/run/bacula
+  Pid Directory = /run/bacula
   QueryFile = "/etc/bacula/scripts/query.sql"
   Maximum Concurrent Jobs = 1
   DirAddress = 127.0.0.1
