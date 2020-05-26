@@ -9,7 +9,7 @@
 - name: Configure rrdcached
   lineinfile: "dest=/etc/default/rrdcached
                regexp='^#?OPTS='
-               line='OPTS=\"-s munin -m 660 -l unix:/var/run/rrdcached.sock -w 1800 -z 1800 -f 3600 -j /var/lib/rrdcached/journal -F -b /var/lib/munin -B\"'"
+               line='OPTS=\"-s munin -m 660 -l unix:/run/rrdcached.sock -w 1800 -z 1800 -f 3600 -j /var/lib/rrdcached/journal -F -b /var/lib/munin -B\"'"
   register: r
   notify:
     - Restart rrdcached
