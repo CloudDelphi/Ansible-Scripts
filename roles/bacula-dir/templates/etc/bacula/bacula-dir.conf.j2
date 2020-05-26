@@ -112,6 +112,21 @@ Job {
 }
 {% endfor %}
 
+# Backup the Nextcloud data
+{% for h in groups.nextcloud | sort %}
+Job {
+  Name = {{ hostvars[h].inventory_hostname_short }}-nextcloud
+  Client = {{ hostvars[h].inventory_hostname_short }}-fd
+  JobDefs = DefaultJob
+  FileSet = NextcloudData
+  Pool = nextcloud-inc
+  Full Backup Pool = nextcloud-full
+  Schedule = Nextcloud13WeeksCycle
+  Max Start Delay = 50 min # To avoid too many overlaps
+  Max Full Interval = 15 weeks
+}
+{% endfor %}
+
 # Backup each machine
 {% for fd in groups.all | sort %}
 Job {
@@ -202,6 +217,42 @@ Schedule {
   Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 22:00
   Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 23:00
   Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 00:00
+}
+
+# Backup Nextcloud data: full backup every 3 months, hourly incremental backup
+Schedule {
+  Name = Nextcloud13WeeksCycle
+  Run = Level=Full Pool=nextcloud-full w04 mon at 02:00
+  Run = Level=Full Pool=nextcloud-full w17 mon at 02:00
+  Run = Level=Full Pool=nextcloud-full w30 mon at 02:00
+  Run = Level=Full Pool=nextcloud-full w43 mon at 02:00
+  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 01:00
+  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet w05-w16 mon-sun at 02:00
+  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet w18-w29 mon-sun at 02:00
+  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet w31-w42 mon-sun at 02:00
+  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet w44-w03 mon-sun at 02:00
+  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 03:00
+  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 04:00
+  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 05:00
+  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 06:00
+  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 07:00
+  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 08:00
+  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 09:00
+  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 10:00
+  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 11:00
+  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 12:00
+  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 13:00
+  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 14:00
+  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 15:00
+  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 16:00
+  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 17:00
+  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 18:00
+  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 19:00
+  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 20:00
+  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 21:00
+  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 22:00
+  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 23:00
+  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 00:00
 }
 
 # This schedule does the databases. It starts after the WeeklyCycle
@@ -367,6 +418,28 @@ FileSet {
   }
 }
 
+FileSet {
+  Name = NextcloudData
+  Include {
+    Options {
+      WildFile = "/mnt/nextcloud-data/nextcloud.log"
+      WildFile = "/mnt/nextcloud-data/nextcloud.log.*"
+      WildDir = "/mnt/nextcloud-data/lost+found"
+      WildDir = "/mnt/nextcloud-data/*/cache"
+      WildDir = "/mnt/nextcloud-data/*/files_trashbin"
+      WildDir = "/mnt/nextcloud-data/*/files_versions"
+      WildDir = "/mnt/nextcloud-data/*/preview"
+      WildDir = "/mnt/nextcloud-data/*/uploads"
+      Exclude = yes
+    }
+    Options {
+      signature = SHA1
+      verify = pins1
+    }
+    File = /mnt/nextcloud-data
+  }
+}
+
 
 # Client (File Services) to backup
 {% for fd in groups.all | sort %}
@@ -449,6 +522,28 @@ Pool {
   Volume Retention = 26 weeks
   Maximum Volume Bytes = 5GB
   Label Format = "mailboxes-inc-${NumVols:p/4/0/r}"
+}
+
+# Nextcloud pool definition (full backup)
+Pool {
+  Name = nextcloud-full
+  Pool Type = Backup
+  Recycle = yes
+  AutoPrune = yes
+  Volume Retention = 26 weeks
+  Maximum Volume Bytes = 5GB
+  Label Format = "nextcloud-full-${NumVols:p/4/0/r}"
+}
+
+# Nextcloud pool definition (inc backup)
+Pool {
+  Name = nextcloud-inc
+  Pool Type = Backup
+  Recycle = yes
+  AutoPrune = yes
+  Volume Retention = 26 weeks
+  Maximum Volume Bytes = 5GB
+  Label Format = "nextcloud-inc-${NumVols:p/4/0/r}"
 }
 
 # Database pool definition
