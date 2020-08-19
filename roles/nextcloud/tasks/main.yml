@@ -3,9 +3,11 @@
   vars:
     packages:
     - php-cli
+    - php-bcmath
     - php-fpm
     - php-apcu
     - php-gd
+    - php-gmp
     - php-imagick
     - php-mbstring
     - php-xml
