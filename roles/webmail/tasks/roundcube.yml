@@ -148,7 +148,7 @@
     - { var: hide_blockquote_limit,  value: "8"     }
     - { var: attachment_reminder,    value: "true"  }
     # Don't allow overriding these settings
-    - { var: dont_override, value: "array('use_fallback_verifier', 'trusted_mtas');"  }
+    - { var: dont_override, value: "array('use_fallback_verifier', 'trusted_mtas')"  }
 
 - name: Make the logo a hyperlink to the website
   lineinfile: dest=/usr/share/roundcube/skins/{{ item }}/templates/login.html
