@@ -172,6 +172,7 @@
     - authres_status
     - password
     - html5_notifier
+    - thunderbird_labels
 
 - name: Configure Roundcube plugins (2)
   template: src=etc/roundcube/plugins/{{ item }}/config.inc.php.j2
