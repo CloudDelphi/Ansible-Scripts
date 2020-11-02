@@ -1,0 +1,4 @@
+[mysqld]
+skip-networking
+innodb_file_per_table
+innodb_flush_method = O_DIRECT
