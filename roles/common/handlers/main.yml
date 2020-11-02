@@ -18,7 +18,7 @@
   command: /usr/bin/rkhunter --propupd
 
 - name: Update firewall
-  command: /usr/local/sbin/update-firewall.sh -c
+  command: /usr/local/sbin/update-firewall -c
 
 - name: Restart fail2ban
   service: name=fail2ban state=restarted
