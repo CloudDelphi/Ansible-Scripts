@@ -11,6 +11,10 @@
     - libnet-dns-sec-perl
     - fcgiwrap
     - pandoc
+    ###
+    - fonts-font-awesome
+    - libjs-bootstrap4
+    - libjs-jquery
 
 - name: Stop and disable fcgiwrap socket
   service: name=fcgiwrap.socket state=stopped enabled=false
