@@ -8,8 +8,15 @@
 
 - name: Configure rrdcached
   lineinfile: "dest=/etc/default/rrdcached
-               regexp='^#?OPTS='
-               line='OPTS=\"-s munin -m 660 -l unix:/run/rrdcached.sock -w 1800 -z 1800 -f 3600 -j /var/lib/rrdcached/journal -F -b /var/lib/munin -B\"'"
+               regexp='^#?{{ item.name }}='
+               line='{{ item.name }}=\"{{ item.value }}\"'"
+  with_items:
+    - { name: 'BASE_OPTIONS',  value: '-B -F'               }
+    - { name: 'BASE_PATH',     value: '/var/lib/munin'      }
+    - { name: 'SOCKFILE',      value: '/run/rrdcached.sock' }
+    - { name: 'SOCKGROUP',     value: 'munin'               }
+    - { name: 'SOCKMODE',      value: '0660'                }
+    - { name: 'WRITE_TIMEOUT', value: '1800'                }
   register: r
   notify:
     - Restart rrdcached
