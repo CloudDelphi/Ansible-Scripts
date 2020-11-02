@@ -11,10 +11,16 @@
     - { name: 'net.ipv4.conf.default.rp_filter', value: 1 }
     - { name: 'net.ipv4.conf.all.rp_filter',     value: 1 }
 
-      # Enable TCP/IP SYN cookies to avoid TCP SYN flood attacks. We
-      # rate-limit not only the default ICMP types 3, 4, 11 and 12
+      # Disable SYN cookies and improve SYN backlog handling, see tcp(7) and
+      # https://levelup.gitconnected.com/linux-kernel-tuning-for-high-performance-networking-high-volume-incoming-connections-196e863d458a
+      # TODO bullseye: remove net.core.somaxconn as 5.4 and later default to 4096
+    - { name: 'net.ipv4.tcp_syncookies',      value: 0     }
+    - { name: 'net.ipv4.tcp_synack_retries',  value: 1     }
+    - { name: 'net.ipv4.tcp_max_syn_backlog', value: 32768 }
+    - { name: 'net.core.somaxconn',           value: 4096  }
+
+      # We rate-limit not only the default ICMP types 3, 4, 11 and 12
       # (0x1818), but also types 0 and 8. See icmp(7).
-    - { name: 'net.ipv4.tcp_syncookies',  value: 1 }
     - { name: 'net.ipv4.icmp_ratemask',   value: 6425 }
     - { name: 'net.ipv4.icmp_ratelimit',  value: 1000 }
 
