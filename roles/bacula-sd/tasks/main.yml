@@ -1,7 +1,7 @@
 - name: Install bacula-sd
   apt: pkg=bacula-sd
 
-# Create with:
+# Populate with:
 #   echo $director-dir $(pwgen -sn 64 1) | sudo tee -a /etc/bacula/passwords-sd
 - name: Ensure /etc/bacula/passwords-sd exists
   file: path=/etc/bacula/passwords-sd
@@ -17,9 +17,15 @@
   notify:
     - Restart bacula-sd
 
-- name: Copy bacula-sd.service
-  copy: src=etc/systemd/system/bacula-sd.service
-        dest=/etc/systemd/system/bacula-sd.service
+- name: Create /etc/systemd/system/bacula-sd.service.d
+  file: path=/etc/systemd/system/bacula-sd.service.d
+        state=directory
+        owner=root group=root
+        mode=0755
+
+- name: Copy bacula-sd.service override
+  copy: src=etc/systemd/system/bacula-sd.service.d/override.conf
+        dest=/etc/systemd/system/bacula-sd.service.d/override.conf
         owner=root group=root
         mode=0644
   notify:

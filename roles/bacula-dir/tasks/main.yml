@@ -12,7 +12,7 @@
   notify:
     - Restart bacula-director
 
-# Create with:
+# Populate with:
 #   echo bconsole $(pwgen -sn 64 1) | sudo tee -a /etc/bacula/passwords-dir
 #   echo $sd-sd   $(pwgen -sn 64 1) | sudo tee -a /etc/bacula/passwords-dir
 #   echo $fd-fd   $(pwgen -sn 64 1) | sudo tee -a /etc/bacula/passwords-dir
@@ -41,9 +41,15 @@
   notify:
     - Restart bacula-director
 
-- name: Copy bacula-director.service
-  copy: src=etc/systemd/system/bacula-director.service
-        dest=/etc/systemd/system/bacula-director.service
+- name: Create /etc/systemd/system/bacula-director.service.d
+  file: path=/etc/systemd/system/bacula-director.service.d
+        state=directory
+        owner=root group=root
+        mode=0755
+
+- name: Copy bacula-director.service override
+  copy: src=etc/systemd/system/bacula-director.service.d/override.conf
+        dest=/etc/systemd/system/bacula-director.service.d/override.conf
         owner=root group=root
         mode=0644
   notify:

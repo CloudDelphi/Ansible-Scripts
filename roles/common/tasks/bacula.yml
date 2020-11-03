@@ -10,7 +10,7 @@
 - name: Delete /etc/bacula/common_default_passwords
   file: path=/etc/bacula/common_default_passwords state=absent
 
-# Create with:
+# Populate with:
 #   echo $director-dir $(pwgen -sn 64 1) | sudo tee -a /etc/bacula/passwords-fd
 - name: Ensure /etc/bacula/passwords-fd exists
   file: path=/etc/bacula/passwords-fd
@@ -54,22 +54,20 @@
   tags:
     - genkey
 
-- name: Copy bacula-fd.service
-  copy: src=etc/systemd/system/bacula-fd.service
-        dest=/etc/systemd/system/bacula-fd.service
+- name: Create /etc/systemd/system/bacula-fd.service.d
+  file: path=/etc/systemd/system/bacula-fd.service.d
+        state=directory
+        owner=root group=root
+        mode=0755
+
+- name: Copy bacula-fd.service override
+  copy: src=etc/systemd/system/bacula-fd.service.d/override.conf
+        dest=/etc/systemd/system/bacula-fd.service.d/override.conf
         owner=root group=root
         mode=0644
   notify:
     - systemctl daemon-reload
     - Restart bacula-fd
-
-# We use RuntimeDirectory in our service unit to avoid permission issues
-# caused by the restrictive Capability Bounding Set
-- name: Mask /usr/lib/tmpfiles.d/bacula.conf
-  file: src=/dev/null
-        dest=/etc/tmpfiles.d/bacula.conf
-        owner=root group=root
-        state=link
 
 - meta: flush_handlers
 
