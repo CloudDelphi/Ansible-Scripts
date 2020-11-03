@@ -79,7 +79,7 @@ JobDefs {
     Runs On Success = yes
     Runs On Failure = yes
     Runs When = after
-    Command = "/usr/bin/find /var/lib/bacula/tmp -type f \\( -name '*.ldif' -o -name 'slapd-*' \\) -delete"
+    Command = "/usr/bin/find /var/lib/bacula/tmp -type f \( -name \"*.ldif\" -o -name \"slapd-*\" \) -delete"
   }
   Pool = database
   Priority = 20
