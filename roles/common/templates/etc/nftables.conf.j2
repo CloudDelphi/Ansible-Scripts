@@ -57,7 +57,7 @@ table netdev filter {
         ip saddr {{ ipsec_subnet }} ip daddr {{ ipsec[inventory_hostname_short] }} meta secpath exists accept
 
         # rate-limiting is done directly by the kernel (net.ipv4.icmp_{ratelimit,ratemask} runtime options)
-        icmp   type { echo-reply, echo-request, destination-unreachable } counter accept
+        icmp   type { echo-reply, echo-request, destination-unreachable, time-exceeded } counter accept
         icmpv6 type { echo-reply, echo-request, destination-unreachable,
                       packet-too-big, time-exceeded, parameter-problem } counter accept
 
@@ -165,6 +165,7 @@ table inet filter {
         # ip saddr {{ ipsec_subnet }} ip daddr {{ ipsec[inventory_hostname_short] }} ipsec in reqid $i accept
         ip saddr {{ ipsec_subnet }} ip daddr {{ ipsec[inventory_hostname_short] }} meta secpath exists accept
 
+        # incoming ICMP/ICMPv6 traffic was filtered in the ingress chain already
         meta l4proto { icmp, icmpv6 } counter accept
 
         udp sport  123 udp dport  123 ct state     related,established accept
