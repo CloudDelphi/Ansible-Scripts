@@ -13,8 +13,8 @@ antilop.fripost.org geoip=se
 [civett]
 civett.fripost.org geoip=se mxno=2
 
-[benjamin]
-benjamin.skangas.se geoip=se
+[levante]
+levante.fripost.org geoip=se
 
 [calima]
 calima.fripost.org geoip=se
@@ -49,10 +49,10 @@ IMAP
 giraff
 
 [bacula_dir:children]
-benjamin
+levante
 
 [bacula_sd:children]
-benjamin
+levante
 
 # webmail.fripost.org
 [webmail:children]
@@ -72,7 +72,7 @@ wiki
 calima
 
 [munin_master:children]
-benjamin
+levante
 
 
 [backports:children]
@@ -80,12 +80,12 @@ webmail
 
 # machines behind NAT
 [NATed:children]
-benjamin
+levante
 
 # hostnames resolving to a dynamic IP
 [DynDNS:children]
-benjamin
+levante
 
 # need dhcp client
 [dhclient:children]
-benjamin
+levante

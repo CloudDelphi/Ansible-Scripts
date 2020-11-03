@@ -2,6 +2,9 @@
 non_free_packages:
   elefant:
     - firmware-bnx2
+  levante:
+    # for tg3
+    - firmware-misc-nonfree
 
 # Virtual (non-routable) IPv4 subnet for IPsec.  It is always nullrouted
 # in the absence of xfrm lookup (i.e., when there is no matching IPsec
@@ -11,7 +14,7 @@ ipsec:
   # Virtual (non-routable) addresses for IPsec.  They all need to be
   # distinct and belong to the above subnet 'ipsec_subnet'.
   antilop:  172.16.0.1
-  benjamin: 172.16.0.2
+  levante:  172.16.0.2
   civett:   172.16.0.3
   elefant:  172.16.0.4
   giraff:   172.16.0.5
