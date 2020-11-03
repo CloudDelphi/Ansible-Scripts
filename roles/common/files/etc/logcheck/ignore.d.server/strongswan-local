@@ -3,17 +3,20 @@
 #
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (charon|ipsec\[[[:digit:]]+\]): [[:digit:]]+\[KNL\] creating acquire job for policy [[:xdigit:].:]{3,39}/[[:digit:]]+(\[\w+(/[[:alnum:]-]+)?\])? === [[:xdigit:].:]{3,39}/[[:digit:]]+(\[\w+(/[[:alnum:]-]+)?\])? with reqid \{[[:digit:]]+\}$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (charon|ipsec\[[[:digit:]]+\]): [[:digit:]]+\[KNL\] creating rekey job for CHILD_SA ESP/0x[[:xdigit:]]{8}/[[:xdigit:].:]{3,39}$
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (charon|ipsec\[[[:digit:]]+\]): [[:digit:]]+\[KNL\] creating delete job for CHILD_SA ESP/0x[[:xdigit:]]{8}/[[:xdigit:].:]{3,39}$
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (charon|ipsec\[[[:digit:]]+\]): [[:digit:]]+\[JOB\] CHILD_SA ESP/0x[[:xdigit:]]{8}/[[:xdigit:].:]{3,39} not found for delete$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (charon|ipsec\[[[:digit:]]+\]): [[:digit:]]+\[KNL\] creating delete job for CHILD_SA ESP/0x[[:xdigit:]]{8}/([[:xdigit:].:]{3,39}|%any)$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (charon|ipsec\[[[:digit:]]+\]): [[:digit:]]+\[JOB\] CHILD_SA ESP/0x[[:xdigit:]]{8}/([[:xdigit:].:]{3,39}|%any) not found for delete$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ ipsec\[[[:digit:]]+\]: [[:digit:]]+\[JOB\] spawning [0-9]+ worker threads$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (charon|ipsec\[[[:digit:]]+\]): [[:digit:]]+\[IKE\] initiating IKE_SA [[:alnum:]._-]+\[[[:digit:]]+\] to [[:xdigit:].:]{3,39}$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (charon|ipsec\[[[:digit:]]+\]): [[:digit:]]+\[IKE\] [[:xdigit:].:]{3,39} is initiating an IKE_SA$
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (charon|ipsec\[[[:digit:]]+\]): [[:digit:]]+\[IKE\] establishing CHILD_SA [[:alnum:]._-]+(\{[[:digit:]]+\})?$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (charon|ipsec\[[[:digit:]]+\]): [[:digit:]]+\[IKE\] establishing CHILD_SA [[:alnum:]._-]+(\{[[:digit:]]+\}( reqid [0-9]+)?)?$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (charon|ipsec\[[[:digit:]]+\]): [[:digit:]]+\[IKE\] IKE_SA [[:alnum:]._-]+\[[[:digit:]]+\] established between [[:xdigit:].:]{3,39}\[[^]\"]+\]\.\.\.[[:xdigit:].:]{3,39}\[[^]]+\]$
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (charon|ipsec\[[[:digit:]]+\]): [[:digit:]]+\[IKE\] CHILD_SA [[:alnum:]._-]+\{[[:digit:]]+\} established with SPIs [[:xdigit:]]{8}_i [[:xdigit:]]{8}_o and TS [[:xdigit:].:]{3,39}/[[:digit:]]+ === [[:xdigit:].:]{3,39}/[[:digit:]]+$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (charon|ipsec\[[[:digit:]]+\]): [[:digit:]]+\[IKE\] ((in|out)bound )?CHILD_SA [[:alnum:]._-]+\{[[:digit:]]+\} established with SPIs [[:xdigit:]]{8}_i [[:xdigit:]]{8}_o and TS [[:xdigit:].:]{3,39}/[[:digit:]]+ === [[:xdigit:].:]{3,39}/[[:digit:]]+$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (charon|ipsec\[[[:digit:]]+\]): [[:digit:]]+\[IKE\] closing CHILD_SA [[:alnum:]._-]+\{[[:digit:]]+\} with SPIs [[:xdigit:]]{8}_i \([[:digit:]]+ bytes\) [[:xdigit:]]{8}_o \([[:digit:]]+ bytes\) and TS [[:xdigit:].:]{3,39}/[[:digit:]]+ === [[:xdigit:].:]{3,39}/[[:digit:]]+$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (charon|ipsec\[[[:digit:]]+\]): [[:digit:]]+\[IKE\] reauthenticating IKE_SA [[:alnum:]._-]+\[[[:digit:]]+\]$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (charon|ipsec\[[[:digit:]]+\]): [[:digit:]]+\[JOB\] deleting IKE_SA after [[:digit:]]+ seconds of CHILD_SA inactivity$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (charon|ipsec\[[[:digit:]]+\]): [[:digit:]]+\[IKE\] deleting IKE_SA [[:alnum:]._-]+\[[[:digit:]]+\] between [[:xdigit:].:]{3,39}\[[^]\"]+\]\.\.\.[[:xdigit:].:]{3,39}\[[^]]+\]$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (charon|ipsec\[[[:digit:]]+\]): [[:digit:]]+\[JOB\] deleting CHILD_SA after [[:digit:]]+ seconds of inactivity$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (charon|ipsec\[[[:digit:]]+\]): [[:digit:]]+\[JOB\] CHILD_SA \{[[:digit:]]+\} not found for delete$
+^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (charon|ipsec\[[[:digit:]]+\]): [[:digit:]]+\[JOB\] deleting half open IKE_SA with [[:xdigit:].:]{3,39} after timeout$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (charon|ipsec\[[[:digit:]]+\]): [[:digit:]]+\[IKE\] IKE_SA deleted$
-^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ vpn: [+-] .* [[:xdigit:].:]{3,39}/[[:digit:]]+ == [[:xdigit:].:]{3,39} -- [[:xdigit:].:]{3,39} == [[:xdigit:].:]{3,39}/[[:digit:]]+$
 ^\w{3} [ :[:digit:]]{11} [._[:alnum:]-]+ (charon|ipsec\[[[:digit:]]+\]): [[:digit:]]+\[MGR\] ignoring request with ID [[:digit:]]+, already processing$
