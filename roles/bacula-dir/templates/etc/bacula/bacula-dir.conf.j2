@@ -190,69 +190,71 @@ Schedule {
   Run = Level=Full Pool=mailboxes-full w17 mon at 02:00
   Run = Level=Full Pool=mailboxes-full w30 mon at 02:00
   Run = Level=Full Pool=mailboxes-full w43 mon at 02:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 01:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet w05-w16 mon-sun at 02:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet w18-w29 mon-sun at 02:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet w31-w42 mon-sun at 02:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet w44-w03 mon-sun at 02:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 03:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 04:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 05:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 06:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 07:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 08:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 09:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 10:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 11:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 12:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 13:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 14:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 15:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 16:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 17:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 18:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 19:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 20:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 21:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 22:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 23:00
-  Run = Level=Incremental Pool=mailboxes-inc FullPool=mailboxes-full Messages=Quiet mon-sun at 00:00
+  Run = Level=Differential Pool=mailboxes-diff FullPool=mailboxes-full Messages=Quiet w05-w16 mon at 02:00
+  Run = Level=Differential Pool=mailboxes-diff FullPool=mailboxes-full Messages=Quiet w18-w29 mon at 02:00
+  Run = Level=Differential Pool=mailboxes-diff FullPool=mailboxes-full Messages=Quiet w31-w42 mon at 02:00
+  Run = Level=Differential Pool=mailboxes-diff FullPool=mailboxes-full Messages=Quiet w44-w03 mon at 02:00
+  Run = Level=Incremental Pool=mailboxes-inc DifferentialPool=mailboxes-diff FullPool=mailboxes-full Messages=Quiet mon-sun at 00:00
+  Run = Level=Incremental Pool=mailboxes-inc DifferentialPool=mailboxes-diff FullPool=mailboxes-full Messages=Quiet mon-sun at 01:00
+  Run = Level=Incremental Pool=mailboxes-inc DifferentialPool=mailboxes-diff FullPool=mailboxes-full Messages=Quiet tue-sun at 02:00
+  Run = Level=Incremental Pool=mailboxes-inc DifferentialPool=mailboxes-diff FullPool=mailboxes-full Messages=Quiet mon-sun at 03:00
+  Run = Level=Incremental Pool=mailboxes-inc DifferentialPool=mailboxes-diff FullPool=mailboxes-full Messages=Quiet mon-sun at 04:00
+  Run = Level=Incremental Pool=mailboxes-inc DifferentialPool=mailboxes-diff FullPool=mailboxes-full Messages=Quiet mon-sun at 05:00
+  Run = Level=Incremental Pool=mailboxes-inc DifferentialPool=mailboxes-diff FullPool=mailboxes-full Messages=Quiet mon-sun at 06:00
+  Run = Level=Incremental Pool=mailboxes-inc DifferentialPool=mailboxes-diff FullPool=mailboxes-full Messages=Quiet mon-sun at 07:00
+  Run = Level=Incremental Pool=mailboxes-inc DifferentialPool=mailboxes-diff FullPool=mailboxes-full Messages=Quiet mon-sun at 08:00
+  Run = Level=Incremental Pool=mailboxes-inc DifferentialPool=mailboxes-diff FullPool=mailboxes-full Messages=Quiet mon-sun at 09:00
+  Run = Level=Incremental Pool=mailboxes-inc DifferentialPool=mailboxes-diff FullPool=mailboxes-full Messages=Quiet mon-sun at 10:00
+  Run = Level=Incremental Pool=mailboxes-inc DifferentialPool=mailboxes-diff FullPool=mailboxes-full Messages=Quiet mon-sun at 11:00
+  Run = Level=Incremental Pool=mailboxes-inc DifferentialPool=mailboxes-diff FullPool=mailboxes-full Messages=Quiet mon-sun at 12:00
+  Run = Level=Incremental Pool=mailboxes-inc DifferentialPool=mailboxes-diff FullPool=mailboxes-full Messages=Quiet mon-sun at 13:00
+  Run = Level=Incremental Pool=mailboxes-inc DifferentialPool=mailboxes-diff FullPool=mailboxes-full Messages=Quiet mon-sun at 14:00
+  Run = Level=Incremental Pool=mailboxes-inc DifferentialPool=mailboxes-diff FullPool=mailboxes-full Messages=Quiet mon-sun at 15:00
+  Run = Level=Incremental Pool=mailboxes-inc DifferentialPool=mailboxes-diff FullPool=mailboxes-full Messages=Quiet mon-sun at 16:00
+  Run = Level=Incremental Pool=mailboxes-inc DifferentialPool=mailboxes-diff FullPool=mailboxes-full Messages=Quiet mon-sun at 17:00
+  Run = Level=Incremental Pool=mailboxes-inc DifferentialPool=mailboxes-diff FullPool=mailboxes-full Messages=Quiet mon-sun at 18:00
+  Run = Level=Incremental Pool=mailboxes-inc DifferentialPool=mailboxes-diff FullPool=mailboxes-full Messages=Quiet mon-sun at 19:00
+  Run = Level=Incremental Pool=mailboxes-inc DifferentialPool=mailboxes-diff FullPool=mailboxes-full Messages=Quiet mon-sun at 20:00
+  Run = Level=Incremental Pool=mailboxes-inc DifferentialPool=mailboxes-diff FullPool=mailboxes-full Messages=Quiet mon-sun at 21:00
+  Run = Level=Incremental Pool=mailboxes-inc DifferentialPool=mailboxes-diff FullPool=mailboxes-full Messages=Quiet mon-sun at 22:00
+  Run = Level=Incremental Pool=mailboxes-inc DifferentialPool=mailboxes-diff FullPool=mailboxes-full Messages=Quiet mon-sun at 23:00
 }
 
 # Backup Nextcloud data: full backup every 3 months, hourly incremental backup
 Schedule {
   Name = Nextcloud13WeeksCycle
-  Run = Level=Full Pool=nextcloud-full w04 mon at 02:00
-  Run = Level=Full Pool=nextcloud-full w17 mon at 02:00
-  Run = Level=Full Pool=nextcloud-full w30 mon at 02:00
-  Run = Level=Full Pool=nextcloud-full w43 mon at 02:00
-  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 01:00
-  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet w05-w16 mon-sun at 02:00
-  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet w18-w29 mon-sun at 02:00
-  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet w31-w42 mon-sun at 02:00
-  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet w44-w03 mon-sun at 02:00
-  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 03:00
-  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 04:00
-  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 05:00
-  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 06:00
-  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 07:00
-  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 08:00
-  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 09:00
-  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 10:00
-  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 11:00
-  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 12:00
-  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 13:00
-  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 14:00
-  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 15:00
-  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 16:00
-  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 17:00
-  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 18:00
-  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 19:00
-  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 20:00
-  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 21:00
-  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 22:00
-  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 23:00
-  Run = Level=Incremental Pool=nextcloud-inc FullPool=nextcloud-full Messages=Quiet mon-sun at 00:00
+  Run = Level=Full Pool=nextcloud-full w05 mon at 02:30
+  Run = Level=Full Pool=nextcloud-full w18 mon at 02:30
+  Run = Level=Full Pool=nextcloud-full w31 mon at 02:30
+  Run = Level=Full Pool=nextcloud-full w44 mon at 02:30
+  Run = Level=Differential Pool=nextcloud-diff FullPool=nextcloud-full Messages=Quiet w06-w17 mon at 02:30
+  Run = Level=Differential Pool=nextcloud-diff FullPool=nextcloud-full Messages=Quiet w19-w30 mon at 02:30
+  Run = Level=Differential Pool=nextcloud-diff FullPool=nextcloud-full Messages=Quiet w32-w43 mon at 02:30
+  Run = Level=Differential Pool=nextcloud-diff FullPool=nextcloud-full Messages=Quiet w45-w04 mon at 02:30
+  Run = Level=Incremental Pool=nextcloud-inc DifferentialPool=nextcloud-diff FullPool=nextcloud-full Messages=Quiet mon-sun at 00:30
+  Run = Level=Incremental Pool=nextcloud-inc DifferentialPool=nextcloud-diff FullPool=nextcloud-full Messages=Quiet mon-sun at 01:30
+  Run = Level=Incremental Pool=nextcloud-inc DifferentialPool=nextcloud-diff FullPool=nextcloud-full Messages=Quiet tue-sun at 02:30
+  Run = Level=Incremental Pool=nextcloud-inc DifferentialPool=nextcloud-diff FullPool=nextcloud-full Messages=Quiet mon-sun at 03:30
+  Run = Level=Incremental Pool=nextcloud-inc DifferentialPool=nextcloud-diff FullPool=nextcloud-full Messages=Quiet mon-sun at 04:30
+  Run = Level=Incremental Pool=nextcloud-inc DifferentialPool=nextcloud-diff FullPool=nextcloud-full Messages=Quiet mon-sun at 05:30
+  Run = Level=Incremental Pool=nextcloud-inc DifferentialPool=nextcloud-diff FullPool=nextcloud-full Messages=Quiet mon-sun at 06:30
+  Run = Level=Incremental Pool=nextcloud-inc DifferentialPool=nextcloud-diff FullPool=nextcloud-full Messages=Quiet mon-sun at 07:30
+  Run = Level=Incremental Pool=nextcloud-inc DifferentialPool=nextcloud-diff FullPool=nextcloud-full Messages=Quiet mon-sun at 08:30
+  Run = Level=Incremental Pool=nextcloud-inc DifferentialPool=nextcloud-diff FullPool=nextcloud-full Messages=Quiet mon-sun at 09:30
+  Run = Level=Incremental Pool=nextcloud-inc DifferentialPool=nextcloud-diff FullPool=nextcloud-full Messages=Quiet mon-sun at 10:30
+  Run = Level=Incremental Pool=nextcloud-inc DifferentialPool=nextcloud-diff FullPool=nextcloud-full Messages=Quiet mon-sun at 11:30
+  Run = Level=Incremental Pool=nextcloud-inc DifferentialPool=nextcloud-diff FullPool=nextcloud-full Messages=Quiet mon-sun at 12:30
+  Run = Level=Incremental Pool=nextcloud-inc DifferentialPool=nextcloud-diff FullPool=nextcloud-full Messages=Quiet mon-sun at 13:30
+  Run = Level=Incremental Pool=nextcloud-inc DifferentialPool=nextcloud-diff FullPool=nextcloud-full Messages=Quiet mon-sun at 14:30
+  Run = Level=Incremental Pool=nextcloud-inc DifferentialPool=nextcloud-diff FullPool=nextcloud-full Messages=Quiet mon-sun at 15:30
+  Run = Level=Incremental Pool=nextcloud-inc DifferentialPool=nextcloud-diff FullPool=nextcloud-full Messages=Quiet mon-sun at 16:30
+  Run = Level=Incremental Pool=nextcloud-inc DifferentialPool=nextcloud-diff FullPool=nextcloud-full Messages=Quiet mon-sun at 17:30
+  Run = Level=Incremental Pool=nextcloud-inc DifferentialPool=nextcloud-diff FullPool=nextcloud-full Messages=Quiet mon-sun at 18:30
+  Run = Level=Incremental Pool=nextcloud-inc DifferentialPool=nextcloud-diff FullPool=nextcloud-full Messages=Quiet mon-sun at 19:30
+  Run = Level=Incremental Pool=nextcloud-inc DifferentialPool=nextcloud-diff FullPool=nextcloud-full Messages=Quiet mon-sun at 20:30
+  Run = Level=Incremental Pool=nextcloud-inc DifferentialPool=nextcloud-diff FullPool=nextcloud-full Messages=Quiet mon-sun at 21:30
+  Run = Level=Incremental Pool=nextcloud-inc DifferentialPool=nextcloud-diff FullPool=nextcloud-full Messages=Quiet mon-sun at 22:30
+  Run = Level=Incremental Pool=nextcloud-inc DifferentialPool=nextcloud-diff FullPool=nextcloud-full Messages=Quiet mon-sun at 23:30
 }
 
 # This schedule does the databases. It starts after the WeeklyCycle
@@ -369,6 +371,7 @@ FileSet {
     File = /exports
     File = /misc
     File = /media
+    File = /lost+found
   }
 }
 
@@ -404,9 +407,26 @@ FileSet {
 FileSet {
   Name = Mailboxes
   Include {
+    # NOTE: debug FileSet with:
+    # `sudo -u bacula bconsole <<<"estimate job=mistral-mailboxes level=Full listing" | grep -F -e.{log,cache}`
+    # we use RegexFile here since bacula's doesn't set FNM_PATHNAME so the `*' and `?' metacharacters match `/'
     Options {
-      WildDir = /home/mail/attachments/queue
       Exclude = yes
+
+      # cached mailbox data: $mail_location/mailboxes/INBOX/dbox-Mails/dovecot.index.cache
+      RegexFile = "^/home/mail/virtual/[^/]+/[^/]+/mail/mailboxes/([^/]+/)+dbox-Mails/dovecot\\.index\\.cache$"
+      # transaction log file: $mail_location/mailboxes/INBOX/dbox-Mails/dovecot.index.log
+      RegexFile = "^/home/mail/virtual/[^/]+/[^/]+/mail/mailboxes/([^/]+/)+dbox-Mails/dovecot\\.index\\.log(\\.[0-9])?$"
+      RegexFile = "^/home/mail/virtual/[^/]+/[^/]+/mail/storage/dovecot\\.map\\.index\\.log(\\.[0-9])?$"
+      # mailbox list index files: $mail_location/dovecot.list.index.log
+      RegexFile = "^/home/mail/virtual/[^/]+/[^/]+/mail/dovecot\\.list\\.index\\.log(\\.[0-9])?$"
+      # mailbox changelog: $mail_location/dovecot.mailbox.log
+      RegexFile = "^/home/mail/virtual/[^/]+/[^/]+/mail/dovecot\\.mailbox\\.log(\\.[0-9])?$"
+      # sieve logfile: ~/dovecot.sieve
+      RegexFile = "^/home/mail/virtual/[^/]+/[^/]+/dovecot\\.sieve\\.log(\\.[0-9])?$"
+
+      # exclude queued files for SiS deduplication
+      Wild = "/home/mail/attachments/queue/*"
     }
     Options {
       signature = SHA1
@@ -416,27 +436,36 @@ FileSet {
     File = /home/mail/attachments
     File = /home/mail/spamspool
   }
+  Exclude {
+      File = "/home/mail/lost+found"
+  }
 }
 
 FileSet {
   Name = NextcloudData
   Include {
     Options {
-      WildFile = "/mnt/nextcloud-data/nextcloud.log"
-      WildFile = "/mnt/nextcloud-data/nextcloud.log.*"
-      WildDir = "/mnt/nextcloud-data/lost+found"
-      WildDir = "/mnt/nextcloud-data/*/cache"
-      WildDir = "/mnt/nextcloud-data/*/files_trashbin"
-      WildDir = "/mnt/nextcloud-data/*/files_versions"
-      WildDir = "/mnt/nextcloud-data/*/preview"
-      WildDir = "/mnt/nextcloud-data/*/uploads"
       Exclude = yes
+      RegexFile = "^/mnt/nextcloud-data/nextcloud\\.log(\\.[0-9])?$"
+      RegexFile = "^/mnt/nextcloud-data/updater\\.log(\\.[0-9])?$"
+      RegexDir = "^/mnt/nextcloud-data/[a-z0-9\\-]+/files_trashbin$"
+      RegexDir = "^/mnt/nextcloud-data/[a-z0-9\\-]+/files_versions$"
+      RegexDir = "^/mnt/nextcloud-data/[a-z0-9\\-]+/cache$"
+      RegexDir = "^/mnt/nextcloud-data/[a-z0-9\\-]+/uploads$"
+      RegexDir = "^/mnt/nextcloud-data/__groupfolders/trash$"
+      RegexDir = "^/mnt/nextcloud-data/__groupfolders/versions$"
+      RegexDir = "^/mnt/nextcloud-data/updater-[[:alnum:]]+$"
+      RegexDir = "^/mnt/nextcloud-data/appdata_[[:alnum:]]+/preview$"
+      RegexDir = "^/mnt/nextcloud-data/appdata_[[:alnum:]]+/[^/]+/cache$"
     }
     Options {
       signature = SHA1
       verify = pins1
     }
     File = /mnt/nextcloud-data
+  }
+  Exclude {
+      File = "/mnt/nextcloud-data/lost+found"
   }
 }
 
@@ -508,9 +537,22 @@ Pool {
   Pool Type = Backup
   Recycle = yes
   AutoPrune = yes
-  Volume Retention = 26 weeks
-  Maximum Volume Bytes = 5GB
-  Label Format = "mailboxes-full-${NumVols:p/4/0/r}"
+  Volume Retention = 26 weeks # >13 weeks cycle
+  Maximum Volume Jobs = 1
+  Label Format = "mailboxes-full-"
+  Maximum Volumes = 3 # >2 volumes used at the end of retention period
+}
+
+# Mailbox pool definition (diff backup)
+Pool {
+  Name = mailboxes-diff
+  Pool Type = Backup
+  Recycle = yes
+  AutoPrune = yes
+  Volume Retention = 15 weeks # >13 weeks cycle
+  Maximum Volume Jobs = 1
+  Label Format = "mailboxes-diff-"
+  Maximum Volumes = 20 # >15 volumes used at the end of retention period
 }
 
 # Mailbox pool definition (inc backup)
@@ -519,9 +561,10 @@ Pool {
   Pool Type = Backup
   Recycle = yes
   AutoPrune = yes
-  Volume Retention = 26 weeks
-  Maximum Volume Bytes = 5GB
-  Label Format = "mailboxes-inc-${NumVols:p/4/0/r}"
+  Volume Retention = 8 days # >1 week cycle
+  Maximum Volume Jobs = 24 # group by day
+  Label Format = "mailboxes-inc-"
+  Maximum Volumes = 10 # >8 volumes used at the end of retention period
 }
 
 # Nextcloud pool definition (full backup)
@@ -530,9 +573,22 @@ Pool {
   Pool Type = Backup
   Recycle = yes
   AutoPrune = yes
-  Volume Retention = 26 weeks
-  Maximum Volume Bytes = 5GB
-  Label Format = "nextcloud-full-${NumVols:p/4/0/r}"
+  Volume Retention = 26 weeks # >13 weeks cycle
+  Maximum Volume Jobs = 1
+  Label Format = "nextcloud-full-"
+  Maximum Volumes = 3 # >2 volumes used at the end of retention period
+}
+
+# Nextcloud pool definition (diff backup)
+Pool {
+  Name = nextcloud-diff
+  Pool Type = Backup
+  Recycle = yes
+  AutoPrune = yes
+  Volume Retention = 15 weeks # >13 weeks cycle
+  Maximum Volume Jobs = 1
+  Label Format = "nextcloud-diff-"
+  Maximum Volumes = 20 # >15 volumes used at the end of retention period
 }
 
 # Nextcloud pool definition (inc backup)
@@ -541,9 +597,10 @@ Pool {
   Pool Type = Backup
   Recycle = yes
   AutoPrune = yes
-  Volume Retention = 26 weeks
-  Maximum Volume Bytes = 5GB
-  Label Format = "nextcloud-inc-${NumVols:p/4/0/r}"
+  Volume Retention = 8 days # >1 week cycle
+  Maximum Volume Jobs = 24 # group by day
+  Label Format = "nextcloud-inc-"
+  Maximum Volumes = 10 # >8 volumes used at the end of retention period
 }
 
 # Database pool definition
