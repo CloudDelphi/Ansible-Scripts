@@ -53,6 +53,20 @@ table netdev filter {
         type filter hook ingress device {{ if }} priority -499
         policy accept
 
+        # IPsec traffic (refined later in the filter rule)
+        ip saddr {{ ipsec_subnet }} ip daddr {{ ipsec[inventory_hostname_short] }} meta secpath exists accept
+
+        # rate-limiting is done directly by the kernel (net.ipv4.icmp_{ratelimit,ratemask} runtime options)
+        icmp   type { echo-reply, echo-request, destination-unreachable } counter accept
+        icmpv6 type { echo-reply, echo-request, destination-unreachable,
+                      packet-too-big, time-exceeded, parameter-problem } counter accept
+
+        # accept neighbour discovery for autoconfiguration, RFC 4890 sec. 4.4.1
+        ip6 hoplimit 255 icmpv6 type { 133,134,135,136,141,142 } counter accept
+
+        # reject all remaining ICMP/ICMPv6 traffic
+        meta l4proto { icmp, icmpv6 } drop
+
         # bogon filter (cf. RFC 6890 for non-global ip addresses)
         define bogon = {
             0.0.0.0/8          # this host, on this network (RFC 1122 sec. 3.2.1.3)
@@ -151,13 +165,7 @@ table inet filter {
         # ip saddr {{ ipsec_subnet }} ip daddr {{ ipsec[inventory_hostname_short] }} ipsec in reqid $i accept
         ip saddr {{ ipsec_subnet }} ip daddr {{ ipsec[inventory_hostname_short] }} meta secpath exists accept
 
-        # rate-limiting is done directly by the kernel (net.ipv4.icmp_{ratelimit,ratemask} runtime options)
-        icmp   type { echo-reply, echo-request, destination-unreachable } counter accept
-        icmpv6 type { echo-reply, echo-request, destination-unreachable,
-                      packet-too-big, time-exceeded, parameter-problem } counter accept
-
-        # accept neighbour discovery for autoconfiguration, RFC 4890 sec. 4.4.1
-        icmpv6 type { 133,134,135,136,141,142 } ip6 hoplimit 255 counter accept
+        meta l4proto { icmp, icmpv6 } counter accept
 
         udp sport  123 udp dport  123 ct state     related,established accept
 {% if groups.all | length > 1 %}
@@ -195,7 +203,7 @@ table inet filter {
         # ip saddr {{ ipsec[inventory_hostname_short] }} ip daddr {{ ipsec_subnet }} ipsec out reqid $i accept
         ip saddr {{ ipsec[inventory_hostname_short] }} ip daddr {{ ipsec_subnet }} accept
 
-        meta l4proto { icmp, icmpv6 } accept
+        meta l4proto { icmp, icmpv6 } counter accept
 
         udp sport  123 udp dport  123 ct state new,related,established accept
 {% if groups.all | length > 1 %}
