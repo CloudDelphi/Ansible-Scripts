@@ -1,0 +1,9 @@
+[Time]
+# Sychronize to our (stratum 2) NTP server, to ensure our network has a
+# consistent time.
+{%- set ntp = [] -%}
+{%- for host in groups['NTP_master'] -%}
+{%- set _ = ntp.append(ipsec[ hostvars[host].inventory_hostname_short ]) -%}
+{%- endfor %}
+
+NTP={{ ntp | join(' ') }}

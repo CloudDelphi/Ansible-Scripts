@@ -15,7 +15,6 @@ filegen clockstats file clockstats type day enable
 
 
 # You do need to talk to an NTP server or two (or three).
-{% if 'NTP_master' in group_names %}
 # Use Stratum One Time Servers:
 # http://support.ntp.org/bin/view/Servers/StratumOneTimeServers
 server sth1.ntp.se iburst
@@ -24,17 +23,6 @@ server gbg1.ntp.se iburst
 server gbg2.ntp.se iburst
 server ntp1.sp.se  iburst
 server ntp2.sp.se  iburst
-{% else %}
-# Sychronize to our (stratum 2) NTP server, to ensure our network has a
-# consistent time.
-{% for host in groups['NTP_master'] | sort %}
-server {{ ipsec[ hostvars[host].inventory_hostname_short ] }} prefer iburst
-{% endfor %}
-pool 0.{{ geoip | default('debian') }}.pool.ntp.org iburst
-pool 1.{{ geoip | default('debian') }}.pool.ntp.org iburst
-pool 2.{{ geoip | default('debian') }}.pool.ntp.org iburst
-pool 3.{{ geoip | default('debian') }}.pool.ntp.org iburst
-{% endif %}
 
 
 # Access control configuration; see /usr/share/doc/ntp-doc/html/accopt.html for

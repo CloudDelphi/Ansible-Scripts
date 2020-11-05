@@ -168,7 +168,9 @@ table inet filter {
         # incoming ICMP/ICMPv6 traffic was filtered in the ingress chain already
         meta l4proto { icmp, icmpv6 } counter accept
 
-        udp sport  123 udp dport  123 ct state     related,established accept
+        # NTP (ntpd uses sport 123 but systemd-timesyncd does not)
+        udp sport 123 ct state related,established accept
+
 {% if groups.all | length > 1 %}
         udp sport  500 udp dport  500 ct state new,related,established accept
 {% if groups.NATed | length > 0 %}
@@ -206,7 +208,9 @@ table inet filter {
 
         meta l4proto { icmp, icmpv6 } counter accept
 
-        udp sport  123 udp dport  123 ct state new,related,established accept
+        # NTP (ntpd uses sport 123 but systemd-timesyncd does not)
+        udp dport 123 ct state new,related,established accept
+
 {% if groups.all | length > 1 %}
         udp sport  500 udp dport  500 ct state new,related,established accept
 {% if groups.NATed | length > 0 %}

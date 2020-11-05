@@ -1,15 +1,30 @@
-- name: Install ntp
-  apt: pkg=ntp
+- name: Install/Remove ntp
+  # TODO bullseye: install new package 'systemd-timesyncd'
+  apt: pkg=ntp state={{ state }} purge=yes
+  vars:
+    state: "{{ ('NTP_master' in group_names) | ternary('present', 'absent') }}"
+
+- name: Create /etc/systemd/timesyncd.conf.d
+  file: path=/etc/systemd/timesyncd.conf.d
+        state=directory
+        owner=root group=root
+        mode=0755
+  when: "'NTP_master' not in group_names"
 
 - name: Configure ntp
-  template: src=etc/ntp.conf.j2
-            dest=/etc/ntp.conf
+  template: src=etc/{{ conf }}.j2
+            dest=/etc/{{ conf }}
             owner=root group=root
             mode=0644
+  vars:
+    conf: "{{ ('NTP_master' in group_names) | ternary('ntp.conf', 'systemd/timesyncd.conf.d/fripost.conf') }}"
+    service: "{{ ('NTP_master' in group_names) | ternary('ntp', 'systemd-timesyncd') }}"
   notify:
-    - Restart ntp
+    - Restart {{ service }}
 
 - meta: flush_handlers
 
-- name: Start ntp
-  service: name=ntp state=started
+- name: Start and enable ntp
+  service: name={{ service }}.service state=started enabled=true
+  vars:
+    service: "{{ ('NTP_master' in group_names) | ternary('ntp', 'systemd-timesyncd') }}"

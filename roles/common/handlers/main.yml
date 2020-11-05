@@ -29,6 +29,9 @@
 - name: Restart rsyslog
   service: name=rsyslog state=restarted
 
+- name: Restart systemd-timesyncd
+  service: name=systemd-timesyncd state=restarted
+
 - name: Restart ntp
   service: name=ntp state=restarted
 
