@@ -64,7 +64,10 @@ table netdev filter {
         # accept neighbour discovery for autoconfiguration, RFC 4890 sec. 4.4.1
         ip6 hoplimit 255 icmpv6 type { 133,134,135,136,141,142 } counter accept
 
-        # reject all remaining ICMP/ICMPv6 traffic
+        # accept link-local multicast receiver notification messages
+        ip6 saddr fe80::/10 ip6 daddr ff02::/16 ip6 hoplimit 1 icmpv6 type { 130,131,132,143 } counter accept
+
+        # drop all remaining ICMP/ICMPv6 traffic
         meta l4proto { icmp, icmpv6 } drop
 
         # bogon filter (cf. RFC 6890 for non-global ip addresses)
