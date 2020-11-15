@@ -79,9 +79,7 @@ table netdev filter {
           , 100.64.0.0/10      # shared address space (RFC 6598)
           , 127.0.0.0/8        # loopback (RFC 1122, sec. 3.2.1.3)
           , 169.254.0.0/16     # link local (RFC 3927)
-{% if not addr | ipaddr('172.16.0.0/12') %}
           , 172.16.0.0/12      # private-use (RFC 1918)
-{% endif %}
           , 192.0.0.0/24       # IETF protocol assignments (RFC 6890 sec. 2.1)
           , 192.0.2.0/24       # documentation (RFC 5737)
 {% if not addr | ipaddr('192.168.0.0/16') %}
